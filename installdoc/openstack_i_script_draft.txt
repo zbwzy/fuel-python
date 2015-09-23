@@ -1,0 +1,937 @@
+m     Controller Node
+m1    Compute Node
+m2    Network Node
+
+=========
+service iptables stop
+
+service NetworkManager stop
+chkconfig NetworkManager off
+yum install -y ntp
+service ntpd restart
+
+=====
+
+default-storage-engine = innodb
+collation-server = utf8_general_ci
+init-connect = 'SET NAMES utf8'
+character-set-server = utf8
+
+mysql_install_d
+mysql_secure_installation
+
+==
+
+yum install yum-plugin-priorities
+yum install http://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-3.noarch.rpm
+yum install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+
+======
+
+If see the below info, you need to install namespace service
+# ip netns list
+Object "netns" is unknown, try "ip help".
+
+# install namespace
+yum install kernel iproute
+
+Install RabbitMQ:
+yum install -y rabbitmq-server.noarch
+
+/etc/init.d/rabbitmq-server restart
+chkconfig rabbitmq-server on
+
+rabbitmqctl change_password guest 123456
+
+
+����	Install KeyStone
+[NOTE] keystone is installed on Controller Node
+1)	yum install rpm package 
+# yum install -y openstack-keystone python-keystoneclient
+
+2)	configure keystone.conf
+connection=mysql://keystone:123456@controller/keystone
+
+3)	create keystone db on mysql node
+$ mysql -u root �Cp123456
+mysql> CREATE DATABASE keystone;
+
+mysql> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'localhost' \
+IDENTIFIED BY '123456';
+
+mysql> GRANT ALL PRIVILEGES ON keystone.* TO 'keystone'@'%' \
+IDENTIFIED BY '123456'; 
+
+mysql> exit
+
+4)	Import db schema to Keystone db
+# su -s /bin/sh -c "keystone-manage db_sync" keystone 
+
+5)	configure keystone.conf
+admin_token=123456
+
+6)	configure Keystone to support PKI token
+# keystone-manage pki_setup --keystone-user keystone --keystone-group keystone
+# chown -R keystone:keystone /etc/keystone/ssl 
+# chmod -R o-rwx /etc/keystone/ssl
+
+7)	start keystone
+#service openstack-keystone start
+#chkconfig openstack-keystone on
+8)  create user/tenant/role
+## configure env var
+export OS_SERVICE_TOKEN=123456
+export OS_SERVICE_ENDPOINT=http://controller:35357/v2.0
+
+## create an admin user
+keystone user-create --name=admin --pass=123456 --email=admin@a.com
+keystone role-create --name=admin
+keystone tenant-create --name=admin --description="Admin Tenant"
+keystone user-role-add --user=admin --tenant=admin --role=admin
+keystone user-role-add --user=admin --role=_member_ --tenant=admin
+
+## create a normal user -- demo
+keystone user-create --name=demo --pass=123456 --email=demo@abc.com
+keystone tenant-create --name=demo --description="Demo Tenant"
+keystone user-role-add --user=demo --role=_member_ --tenant=demo
+9)	create service tenant
+keystone tenant-create --name=service --description="Service Tenant"
+
+10)	create keystone users,services & endpoint
+keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
+keystone endpoint-create \
+--service-id=$(keystone service-list | awk '/ identity / {print $2}') \
+--publicurl=http://controller:5000/v2.0 \
+--internalurl=http://controller:5000/v2.0 \
+--adminurl=http://controller:35357/v2.0
+11)	Validation
+unset OS_SERVICE_TOKEN OS_SERVICE_ENDPOINT
+keystone --os-username=admin --os-password=123456 --os-auth-url=http://controller:35357/v2.0 token-get
+12)	use env var
+#create admin_openrc.sh
+vim  admin_openrc.sh
+export OS_USERNAME=admin
+export OS_PASSWORD=123456
+export OS_TENANT_NAME=admin
+export OS_AUTH_URL=http://controller:35357/v2.0
+
+# execute admin_openrc.sh
+source admin_openrc.sh
+
+### create
+keystone user-list
+
+#all nodes
+yum install python-openstackclient -y
+
+#########################
+
+Install Glance on Controller
+
+1).yum install rpm package
+
+# yum install openstack-glance python-glanceclient
+
+2).config Glance conf file: glance-api.conf
+connection=mysql://glance:123456@192.168.32.45/glance
+
+3).modify glance-registry.conf:
+connection=mysql://glance:123456@192.168.32.45/glance
+
+
+4). modify glance-api.conf ,set MQ�Server:
+
+rpc_backend=rabbit
+rabbit_host=192.168.XX.XX(controller node ip)
+rabbit_password=123456
+
+
+5).config Glance db on mysql node:
+$ mysql -u root -p
+mysql> CREATE DATABASE glance;
+mysql> GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'localhost' \ IDENTIFIED BY '123456';
+mysql> GRANT ALL PRIVILEGES ON glance.* TO 'glance'@'%' IDENTIFIED BY '123456'`;
+mysql> exit
+
+# su -s /bin/sh -c "glance-manage db_sync" glance 
+
+[NOTE] Skip the below warning:
+
+/usr/lib64/python2.6/site-packages/Crypto/Util/number.py:57: PowmInsecureWarning: Not using mpz_powm_sec.  You should rebuild using libgmp >= 5 to avoid timing attack vulnerability.
+  _warn("Not using mpz_powm_sec.  You should rebuild using libgmp >= 5 to avoid timing attack vulnerability.", PowmInsecureWarning)
+
+6).create glance user & role on keystone:
+
+Note:source admin_openrc.sh before execute keystone commands.
+$ keystone user-create --name=glance --pass=123456  --email=zhangbai_2004@163.com
+$ keystone user-role-add --user=glance --tenant=service --role=admin 
+
+7). config Glance:
+####modify the files: glance-api.conf & glance-registry.conf,[keystone_authtoken] [paste_deploy]:
+[keystone_authtoken]
+auth_uri=http://controller:5000
+auth_host=controller
+auth_protocal=http
+auth_port=35357
+admin_tenant_name=service
+admin_user=glance
+admin_password=123456
+
+[paste_deploy]
+flavor=keystone
+
+8).Create glance service & endpoint on keystone:
+
+ keystone service-create --name=glance --type=image --description="OpenStack Image Service" 
+keystone endpoint-create --service-id=$(keystone service-list | awk '/ image / {print $2}') --publicurl=http://controller:9292  --internalurl=http://controller:9292  --adminurl=http://controller:9292
+
+9).restart glance service & and chkconfig
+service openstack-glance-api start
+service openstack-glance-registry start 
+
+chkconfig openstack-glance-api on
+chkconfig openstack-glance-registry on 
+
+10). Validate Glance success?
+
+mkdir /tmp/images
+cd /tmp/images/
+wget http://cdn.download.cirros-cloud.net/0.3.2/cirros-0.3.2-x86_64-disk.img
+#wget https://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-disk.img
+glance image-create --name "cirros-0.3.2-x86_64" --disk-format qcow2 \
+--container-format bare --is-public True --progress < cirros-0.3.2-x86_64-disk.img
+
+glance image-create --name "cirros-0.3.0-x86_64" --disk-format qcow2 \
+--container-format bare --is-public True --progress < cirros-0.3.0-x86_64-disk.img
+
+glance image-list
+
+
+Install Nova- on Controller Node
+1).yum install rpm package:
+
+yum install openstack-nova-api openstack-nova-cert openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient
+
+2).modify nova.conf:
+
+[database]
+connection=mysql://nova:123456@controller/nova
+
+[DEFAULT]
+rpc_backend=rabbit
+rabbit_host=192.168.XXX.XXX  # controller node ip
+rabbit_password=123456
+my_ip=192.168.XXX.XXX  # controller node ip
+vncserver_listen=192.168.XXX.XXX  # controller node ip
+vncserver_proxyclient_address=192.168.XXX.XXX  # controller node ip
+#########
+#
+rpc_backend=rabbit
+rabbit_host=192.168.122.80
+rabbit_password=123456
+my_ip=192.168.122.80
+vncserver_listen=192.168.122.80
+vncserver_proxyclient_address=192.168.122.80
+
+
+3).import nova db schema to mysql:
+
+mysql -u root -p
+mysql> CREATE DATABASE nova;
+mysql> GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'localhost'  IDENTIFIED BY '123456';
+mysql> GRANT ALL PRIVILEGES ON nova.* TO 'nova'@'%'  IDENTIFIED BY '123456';
+
+# su -s /bin/sh -c "nova-manage db sync" nova 
+
+4).	set KeyStone: create nova user & role:
+
+$ keystone user-create --name=nova --pass=123456 --email=nova@example. com
+$ keystone user-role-add --user=nova --tenant=service --role=admin
+#####
+keystone user-create --name=nova --pass=123456 --email=zhangbai_2004@163.com
+keystone user-role-add --user=nova --tenant=service --role=admin
+
+
+5).modify nova.conf: set the auth info of keystone:
+
+[DEFAULT]
+auth_strategy=keystone
+
+[keystone_authtoken]
+auth_uri=http://controller:5000
+auth_host=192.168.XX.XX  #controller node ip
+auth_protocal=http
+auth_port=35357
+admin_tenant_name=service
+admin_user=nova
+admin_password=123456
+
+6).set Keystone: create nova service & endpoint
+
+$keystone service-create --name=nova --type=compute --description="OpenStack Compute"
+
+$ keystone endpoint-create --service-id=$(keystone service-list | awk '/ compute / {print $2}') --publicurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s  --internalurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s --adminurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s 
+
+7).restart nova service and chkconfig
+
+# service openstack-nova-api start
+# service openstack-nova-cert start
+# service openstack-nova-consoleauth start 
+# service openstack-nova-scheduler start 
+# service openstack-nova-conductor start 
+# service openstack-nova-novncproxy start 
+
+# chkconfig openstack-nova-api on
+# chkconfig openstack-nova-cert on
+# chkconfig openstack-nova-consoleauth on 
+# chkconfig openstack-nova-scheduler on
+# chkconfig openstack-nova-conductor on
+#chkconfig openstack-nova-novncproxy on
+
+######
+
+Install compute node:
+1).yum install rpm package:
+
+# yum install openstack-nova-compute
+
+2).modify nova.conf
+[database]
+connection=mysql://nova:123456@controller/nova
+
+[DEFAULT]
+auth_strategy=keystone
+rpc_backend=rabbit
+rabbit_host=controller
+rabbit_password=123456
+my_ip=192.168.XX.XX    #compute node ip
+vnc_enabled=true
+vncserver_listen=0.0.0.0
+vncserver_proxyclient_address=192.168.XX.XX                   #compute node ip
+novncproxy_base_url=http://192.168.XX.XX:6080/vnc_auto.html   #controller node ip
+glance_host=controller
+
+[keystone_authtoken]
+auth_uri=http://controller:5000
+auth_host=controller
+auth_protocol=http
+auth_port=35357
+admin_tenant_name=service
+admin_user=nova
+admin_password=123456
+
+3).Validate the virtualization support of CPU on compute node
+
+$ egrep -c '(vmx|svm)' /proc/cpuinfo
+#####If do not return a value, modify the conf file:
+[libvirt]
+virt_type=qemu
+
+4).Restart nova-compute & chkconfig:
+# service libvirtd start
+# service messagebus start
+# chkconfig libvirtd on
+# chkconfig messagebus on
+# service openstack-nova-compute start 
+# chkconfig openstack-nova-compute on 
+
+
+
+Intall Dashboard on controller node:
+
+1)	yum install rpm package
+#### dashboard is installed  at Controller Node
+ yum install memcached python-memcached mod_wsgi openstack-dashboard
+
+2)	modify Dashboard conf file
+/etc/openstack-dashboard/local_settings
+
+CACHES = {
+'default': {
+'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
+'LOCATION' : '127.0.0.1:11211'
+}
+}
+ALLOWED_HOSTS = ['localhost','my-desktop','*','0.0.0.0']
+OPENSTACK_HOST = "controller"
+
+3)	assign network connect:
+
+setsebool -P httpd_can_network_connect on
+
+4)	start Dashboard service:
+
+service httpd restart
+service memcached restart
+chkconfig httpd on
+chkconfig memcached on
+
+5)	validate whether Dashboard can be signed in:
+
+http://192.168.XX.XX(controller-ip)/dashboard
+
+
+
+Install Neutron (gre+openvswitch)- on Controller
+1).	config neutron db on mysql node
+
+$ mysql -u root -p
+mysql> CREATE DATABASE neutron;
+mysql> GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'localhost' \ IDENTIFIED BY '123456';
+mysql> GRANT ALL PRIVILEGES ON neutron.* TO 'neutron'@'%' \ IDENTIFIED BY '123456';
+
+2).	On keystone: config neutron user & role
+
+$ keystone user-create --name neutron --pass 123456 --email neutron@example.com
+$ keystone user-role-add --user neutron --tenant service --role admin
+$ keystone service-create --name neutron --type network --description "OpenStack Networking"
+$ keystone endpoint-create --service-id $(keystone service-list | awk '/ network / {print $2}') --publicurl http://controller:9696 --adminurl http://controller:9696 --internalurl http://controller:9696
+
+3).	Install Neutron package,use ml2 as the second layer core_plugin
+
+yum install openstack-neutron openstack-neutron-ml2 python-neutronclient
+
+
+4).modify neutron conf file: neutron.conf
+
+[DEFAULT]
+auth_strategy=keystone
+rpc_backend = neutron.openstack.common.rpc.impl_kombu
+rabbit_host =controller
+rabbit_password = 123456
+notify_nova_on_port_status=true
+notify_nova_on_port_data_changes=true
+nova_url=http://controller:8774/v2
+nova_admin_username=nova
+nova_admin_password=123456
+nova_admin_auth_url=http://contorller:35357/v2.0
+core_plugin=ml2
+service_plugins=router
+
+[keystone_authtoken]
+auth_host=controller
+auth_protocal=http
+auth_port=35357
+admin_tenant_name=service
+admin_user=neutron
+admin_password=123456
+
+[database]
+connection = mysql://neutron:123456@controller/neutron
+
+
+5)	execute command to configure nova_admin_tenant_id
+
+# openstack-config --set /etc/neutron/neutron.conf DEFAULT nova_admin_tenant_id $(keystone tenant-list | awk '/ service / { print $2 }')
+
+6).configure ML2
+
+modify /etc/neutron/plugins/ml2/ml2_conf.ini
+
+[ml2]
+type_driver=gre,flat
+tenant_network_types=gre,flat
+mechanism_drivers=openvswitch
+
+[ml2_type_flat]
+flat_networks = physnet1
+
+[ml2_type_gre]
+tunnel_id_ranges =1:1000
+
+[securitygroup]
+firewall_driver=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+enable_security_group=true
+
+7).	configure Compute: use Neutron to provide network services
+
+modify /etc/nova/nova.conf
+
+[DEFAULT]
+network_api_class=nova.network.neutronv2.api.API
+neutron_url=http://controller:9696
+neutron_auth_strategy=keystone
+neutron_admin_tenant_name=service
+neutron_admin_username=neutron
+neutron_admin_password=123456
+neutron_admin_auth_url=http://controller:35357/v2.0
+linuxnet_interface_driver=nova.network.linux_net.LinuxOVSInterfaceDriver
+firewall_driver=nova.virt.firewall.NoopFirewallDriver
+security_group_api=neutron
+
+8)	create soft link: from ml2_conf.ini to plugin.ini
+
+# ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini
+
+9)	restart neutron services & chkconfig on
+
+# service neutron-server start 
+# chkconfig neutron-server on
+
+
+Configure on network node:
+
+1).prerequisites:
+
+modify sysctl.conf
+net.ipv4.ip_forward=1
+net.ipv4.conf.all.rp_filter=0
+net.ipv4.conf.default.rp_filter=0
+
+
+reload sys configuration:
+# sysctl -p
+
+1).	Install Openstack network services
+
+# yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch
+ 
+2)	configure /etc/neutron/neutron.conf
+
+[DEFAULT]
+auth_strategy = keystone
+
+rpc_backend = neutron.openstack.common.rpc.impl_kombu
+rabbit_host = controller
+rabbit_password = 123456
+core_plugin=ml2
+service_plugins=router
+
+[keystone_authtoken]
+auth_uri=http://controller:5000
+auth_host=controller
+auth_protocal=http
+auth_port=35357
+admin_tenant_name=service
+admin_user=neutron
+admin_password=123456
+
+3)	config l3_agent.ini:
+
+[DEFAULT]
+interface_driver=neutron.agent.linux.interface.OVSInterfaceDriver
+use_namespaces=true
+external_network_bridge =  (The value is null, qg-xxx interface can be loaded to br-int automatically)
+
+4).	configure DHCP Agent,modify dhcp_agent.ini:
+
+[DEFAULT]
+interface_driver=neutron.agent.linux.interface.OVSInterfaceDriver
+dhcp_driver=neutron.agent.linux.dhcp.Dnsmasq
+use_namespaces=true 
+
+5).  configure metadata agent��modify metadata_agent.ini:
+
+[DEFAULT]
+auth_url=http://controller:5000/v2.0
+auth_region=regionOne
+admin_tenant_name=service
+admin_user=neutron
+admin_password=123456
+nova_metadata_ip=192.168.XX.XX    # controller node ip
+metadata_proxy_shared_secret=123456    #The same with nova.conf
+
+6)	on Controller node: moidfy /etc/nova/nova.conf, enabled metadata:
+
+[DEFAULT]
+service_neutron_metadata_proxy=true
+neutron_metadata_proxy_shared_secret=123456
+
+7)	on Controller node: moidfy /etc/nova/nova.conf��to support VMs creation if vif_plug fails
+vif_plugging_is_fatal=false
+vif_plugging_timeout=0
+
+8)	restart Controller nova-api services:
+# service openstack-nova-api restart
+
+
+9)	on Network Node: configure ML2 on Network node:
+modify /etc/neutron/plugins/ml2/ml2_conf.ini
+
+[ml2]
+type_driver=gre,flat
+tenant_network_types=gre,flat
+mechanism_drivers=openvswitch
+
+[ml2_type_flat]
+flat_networks = physnet1
+
+ [ml2_type_gre]
+tunnel_id_ranges =1:1000
+
+[securitygroup]
+firewall_driver=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+enable_security_group=true
+
+[ovs]
+local_ip = 192.168.XXX.XXX  # network node ip address
+tunnel_type = gre
+enable_tunneling = True
+bridge_mappings=physnet1:br-eth0
+
+10)	on NetworkNode : configure OVS
+
+#start openvswitch:set chkconfig
+service openvswitch start
+chkconfig openvswitch on
+
+11)	add network-bridge and network-card to OVS
+
+# ovs-vsctl add-br br-int
+# ovs-vsctl add-br br-ex
+
+# ovs-vsctl add-br br-eth0
+# ovs-vsctl add-port br-eth0 eth0
+
+###  add eth0 ip addr to br-eth0
+# ifconfig eth0 0.0.0.0
+#ifconfig br-eth0  xxx.xxx.xxx.xxx    ----eth0 ip address
+
+12)	create soft link: from ml2_conf.ini to plugin.ini
+# ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini
+
+13)	create neutron-openvswitch-agent
+
+# cp /etc/init.d/neutron-openvswitch-agent /etc/init.d/neutron-openvswitch-agent.orig
+# sed -i 's,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g' /etc/init.d/neutron-openvswitch-agent
+
+14)	restart neutron and set chkconfig
+
+# service neutron-openvswitch-agent start 
+# service neutron-l3-agent start
+# service neutron-dhcp-agent start
+# service neutron-metadata-agent start
+
+# chkconfig neutron-openvswitch-agent on 
+# chkconfig neutron-l3-agent on
+# chkconfig neutron-dhcp-agent on
+# chkconfig neutron-metadata-agent on 
+
+Configure compute node:
+1)	prerequisites:
+##modify sysctl config file :/etc/sysctl.conf
+net.ipv4.conf.all.rp_filter=0
+net.ipv4.conf.default.rp_filter=0
+
+##reload confinguration
+sysctl -p
+chkconfig neutron-dhcp-agent on
+2)	Install neutron's second layer Agent
+# yum install openstack-neutron-ml2 openstack-neutron-openvswitch
+
+3)	on Compute Node: neutron.conf
+
+[DEFAULT]
+auth_strategy=keystone
+rpc_backend=neutron.openstack.common.rpc.impl_kombu
+rabbit_host=controller
+rabbit_password=123456
+core_plugin=ml2
+service_plugins=router
+
+[keystone_authtoken]
+auth_uri=http://controller:5000
+auth_host=controller
+auth_protocol=http
+auth_port=35357
+admin_tenant_name=service
+admin_user=neutron
+admin_password=123456
+
+4)	on Compute Node: modify ML2,/etc/neutron/plugins/ml2/ml2_conf.ini
+
+[ml2]
+type_drivers=gre,flat
+tenant_network_types=gre,flat
+mechanism_drivers=openvswitch
+
+[ml2_type_flat]
+flat_networks = physnet1
+
+[ml2_type_gre]
+tunnel_id_ranges =1:1000
+
+[securitygroup]
+firewall_driver=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
+enable_security_group=true
+
+[ovs]
+local_ip = 192.168.242.131    ###compute node local ip
+tunnel_type = gre
+enable_tunneling = True
+bridge_mappings=physnet1:br-eth0
+
+5)	start openvswitch and set chkconfig
+
+service openvswitch start
+ chkconfig openvswitch on
+
+6)	add network-bridge and network-card to openvswitch
+
+# ovs-vsctl add-br br-int
+
+# ovs-vsctl add-br br-etho
+# ovs-vsctl add-port br-eth0 eth0
+###add eth0 ip addr to br-eth0��
+# ifconfig eth0 0.0.0.0
+#ifconfig br-eth0  xxx.xxx.xxx.xxx    ---eth0 ip address
+
+
+7)	on Compute Node: modify nova.conf��configue neutron to support network
+
+[DEFAULT]
+network_api_class=nova.network.neutronv2.api.API
+neutron_url=http://controller:9696
+neutron_auth_strategy=keystone
+neutron_admin_tenant_name=service
+neutron_admin_username=neutron
+neutron_admin_password=123456
+neutron_admin_auth_url=http://controller:35357/v2.0
+linuxnet_interface_driver=nova.network.linux_net.LinuxOVSInterfaceDriver
+firewall_driver=nova.virt.firewall.NoopFirewallDriver
+security_group_api=neutron
+
+8)	modify nova.conf to support VMs creations if vif_plug fails
+vif_plugging_is_fatal=false
+vif_plugging_timeout=0
+
+9)	create soft link: from ml2_conf.ini to plugin.ini
+
+# ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini
+
+10)	create neutron-openvswitch-agent services
+
+# cp /etc/init.d/neutron-openvswitch-agent /etc/init.d/neutron-openvswitch-agent.orig
+# sed -i 's,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g' /etc/init.d/neutron-openvswitch-agent
+
+11)	start neutron-openvswitch and set chkconfig
+
+# service neutron-openvswitch-agent start 
+# chkconfig neutron-openvswitch-agent on
+
+
+Validate network connection:
+1)	on Controller Node:create external network
+#neutron net-create ext-net-flat --shared --provider:network_type flat \
+--provider:physical_network physnet1--router:external true
+
+######## create 192.168.242.0/24  flat-network sub net 
+#neutron subnet-create ext-net-flat --name ext-subnet \
+  --allocation-pool start=192.168.242.20,end=192.168.242.30 \  (VMs ip range)
+  --disable-dhcp --gateway 192.168.242.2 192.168.242.0/24 
+
+
+#### on Controller Node: create internal net
+####create internal net
+neutron net-create private-net
+
+####create  192.168.10.0/24  sub net
+neutron subnet-create private-net --name private-subnet  --gateway 192.168.10.1 192.168.10.0/24
+
+2)	create vRouter
+###create v router
+neutron router-create admin-router
+
+### add interface�� gateway
+neutron router-interface-add admin-router private-subnet
+neutron router-gateway-set admin-router ext-net-flat
+
+3)	login dashboard to create VM cirros to validate network connection
+#####VMs can use private net or flat-work net
+1.	use private-net net   ### get addr from dnsmasq
+2.	use flat-network net  ### vm ip and route need to be configured manually
+
+#ifconfig 192.168.242.25
+#ip r add default via 192.168.242.2 dev eth0
+
+### on VM, ping external net:
+
+Install FWaaS services:
+1)	on Controller, Network node: modify neutron.conf
+#### service_plugins add fwaas
+service_plugins=router,firewall
+
+2)	modify fwaas.ini conf file: /etc/neutron/fwaas_driver.ini
+
+[fwaas]
+driver = neutron.services.firewall.drivers.linux.iptables_fwaas.IptablesFwaasDriver
+enabled = True
+
+3)	restart neutron-server��neutron-l3-agent
+
+#### restart  neutron server @ controller node
+# /etc/init.d/neutron-server restart
+
+#####restart neutron-l3-agent @network node
+# /etc/init.d/neutron-l3-agent restart
+
+4)	moidfy dashboard configuration to support use FWaaS
+###on Controller Node,/etc/openstack-dashboard/local_settings
+
+OPENSTACK_NEUTRON_NETWORK = {
+	'enable_firewall': True,
+}
+
+5)	restart dashboard
+# /etc/init.d/httpd restart
+
+[NOTE]
+http://docs.openstack.org/admin-guide-cloud/content/install_neutron-fwaas-agent.html
+
+
+#DO NOT DO YET
+5)	Install LoadBalance services:
+1)	on Neutron-Controller and Network: neutron.conf
+
+[DEFAULT]
+service_plugins= router,firewall,lbaas
+
+2)	on Neutron-Controller, Network: lbaas.ini
+[DEFAULT]
+interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
+ovs_use_veth = True
+device_driver = neutron.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver
+
+3)	Install haproxy @network node, controller node
+yum intsall haproxy
+
+4)	create nogroup , nobody @network, controller node
+
+# groupadd nogroup
+# useradd -g nogroup nobody
+
+5)	restart neutron-server  neutron-lbaas-agent
+
+@controller node
+# /etc/init.d/neutron-server restart
+
+@network node
+# /etc/init.d/neutron-lbaas-agent restart
+# chkconfig neutron-lbaas-agent on
+
+
+6)	modify dashboard to support LBaaS
+on Controller Node:/etc/openstack-dashboard/local_settings
+
+OPENSTACK_NEUTRON_NETWORK = {
+	'enable_lbaas': True,
+}
+
+7)	restart dashboard
+# /etc/init.d/httpd restart
+
+8)	Note:
+Use Opensatck's lbaas service to create pool��after adding member��vip��status monitoring��if you find member is INACTIVE,
+check when add member,the port for VMs is open.
+
+
+9)	TBD
+In neutron.conf,the item:
+service_provider = LOADBALANCER:Haproxy:neutron.services.loadbalancer.drivers.haproxy.plugin_driver.HaproxyOnHostPluginDriver:default, 
+how to configure?If you do not configure them��what is the default configuration?how to make it into effective?
+
+
+       Install VPN service
+1)	on Controller ,Network Nodes, install openstack-neutron-vpn-agent
+
+# yum install openstack-neutron-vpn-agent
+ 
+2)	only on network node,install openswan
+
+Note
+openswan version, 2.6.38:
+ipsec kernel module:recommend to use NetKey��if you use Kflips��error may happen: errno 17 File Exists
+
+###execute the below command
+sysctl -a | egrep "ipv4.*(accept|send)_redirects" | awk -F "=" '{print $1"= 0"}' >> /etc/sysctl.conf
+
+#####Modify /etc/ sysctl.conf
+net.ipv4.ip_forward = 0
+net.ipv4.conf.default.rp_filter = 1
+
+To
+#####
+net.ipv4.ip_forward = 1
+net.ipv4.conf.default.rp_filter = 0
+sysctl �Cp
+
+#####install ipsec suite tools and fundamental software env
+#  yum install -y make gcc gmp-devel xmlto bison gawk flex xmlto libpcap-devel lsof vim-enhanced man
+
+#####install penSWAN, downlaod openswan source code
+#tar zxvf openswan-2.6.38.tar.gz
+
+#cd openswan-2.6.38
+
+# ./buildlin.sh
+
+#make install
+
+# ln -s /usr/local/sbin/ipsec /usr/sbin/ipsec
+
+Validate installation
+execute the below command:
+
+#ipsec --version    
+
+start ipsec�� validate ipsec
+
+# service ipsec start
+# ipsec verify
+
+3)	Modify neutron.conf @controller�� network node
+
+[DEFAULT]
+service_plugins=router,firewall,lbaas,vpnaas
+service_provider=VPN:openswan:neutron.services.vpn.service_drivers.ipsec.IPsecVPNDriver:default
+
+4)	modify vpnaas.ini @controller network node
+[vpnagent]
+vpn_device_driver=neutron.services.vpn.device_drivers.ipsec.OpenSwanDriver
+[ipsec]
+ipsec_status_check_interval=60
+
+5)	@network node, stop neutron-l3-agent
+service neurton-l3-agent stop
+
+
+
+6)	start neutron-vpn-agent, start neutron-openvswitch-agent
+
+# /etc/init.d/neutron-vpn-agent start
+# chkconfig neutron-vpn-agent on
+# /etc/init.d/neutron-openvswitch-agent start
+
+
+7)	moidfy dashboard configuration @ Controller Node
+
+###@controller node, /etc/openstack-dashboard/local_settings
+
+OPENSTACK_NEUTRON_NETWORK = {
+	��enable_vpnaas': True,
+}
+
+8)	restart dashboard
+# /etc/init.d/httpd restart
+
+
+
+9)	Note:
+-	On nodes on which the vpn service is installed��deploy neutron-openvswitch and neutron-ml2��and do configuration for neutron.conf, ml2_conf.ini, l3_agent.ini.
+
+-	neutron-vpn-agent and neutron-l3-agent can NOT be deployed at the same node.
+
+10)	TBD
+-	vrouter's external_gateway status id DOWN ��can ping��and can use.
+
+
+
+
+
+
+
+
+
+
+
+

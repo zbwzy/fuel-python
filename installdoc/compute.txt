@@ -1,0 +1,25 @@
+#computer
+#
+#stop iptables and NetworkManager
+
+service NetworkManager stop
+chkconfig NetworkManager off
+
+yum install -y ntp
+
+ntpdate <NTP_SERVER_IP>
+
+service ntpd start
+
+yum install -y MySQL-python
+
+#install RDO sources
+yum install yum-plugin-priorities -y
+yum install http://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-3.noarch.rpm -y
+yum install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm -y
+
+yum install openstack-utils -y
+yum install openstack-selinux -y
+
+#install namespace
+yum install kernel iproute -y

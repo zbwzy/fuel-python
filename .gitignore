@@ -1,0 +1,10 @@
+*~
+*.pyc
+*.log
+*.egg
+.project
+.pydevproject
+.idea
+target/*
+nohup.out
+.DS_Store

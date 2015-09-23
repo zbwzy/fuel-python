@@ -1,0 +1,75 @@
+#controller
+
+#stop iptables and NetworkManager
+
+service NetworkManager stop
+chkconfig NetworkManager off 
+yum install -y ntp 
+
+#FILE
+#config ntp: only on controller
+#vim /etc/ntp.conf
+##
+restrict <LOCAL_IP> mask 255.255.255.0 nomodify
+server 127.127.1.0
+
+
+######
+service ntpd restart
+
+#on controller: install mysql
+
+yum install mysql mysql-server MySQL-python -y
+
+#FILE
+#config /etc/my.cnf, under the line :
+#[mysqld]
+#vim /etc/my.cnf
+default-storage-engine = innodb
+collation-server = utf8_general_ci
+init-connect = 'SET NAMES utf8'
+character-set-server = utf8
+
+#start mysql
+
+service mysqld start
+chkconfig mysqld on
+######
+#ln -s /usr/local/mysql/bin/mysqladmin /usr/bin/mysqladmin
+#CONFIG MYSQL root PASSWORD
+mysqladmin -u root -p password 123456
+
+
+#######
+
+
+#install RDO sources
+yum install yum-plugin-priorities -y
+yum install http://repos.fedorapeople.org/repos/openstack/openstack-icehouse/rdo-release-icehouse-3.noarch.rpm -y
+yum install http://dl.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm -y
+
+yum install openstack-utils -y
+yum install openstack-selinux -y
+
+#install namespace
+yum install kernel iproute -y
+
+#install rabbitmq
+yum install -y rabbitmq-server.noarch
+
+/etc/init.d/rabbitmq-server restart
+chkconfig rabbitmq-server on
+
+rabbitmqctl change_password guest 123456
+
+
+
+
+
+
+
+
+
+
+
+
