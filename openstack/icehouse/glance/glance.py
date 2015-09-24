@@ -7,16 +7,8 @@ Created on Aug 26, 2015
 '''
 usage:
 
-python glance.py <LOCAL_IP> <MYSQL_VIP> <RABBIT_HOSTS> 
+python glance.py <LOCAL_IP> <MYSQL_VIP> <RABBIT_HOST> <KEYSTONE_VIP> 
 '''
-import sys
-
-# sys.path.append("/Users/zhangbai/Documents/AptanaWorkspace/fuel-python/common/shell/ShellCmdExecutor.py")
-
-print sys.path
-print 'len=%s' % len(sys.path)
-for path in sys.path :
-    print path
 
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
 
