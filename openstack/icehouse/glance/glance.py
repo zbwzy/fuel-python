@@ -3,7 +3,22 @@ Created on Aug 26, 2015
 
 @author: zhangbai
 '''
-from openstack.icehouse.common.Utils import ShellCmdExecutor
+
+'''
+usage:
+
+python glance.py <LOCAL_IP> <MYSQL_VIP> <RABBIT_HOSTS> 
+'''
+import sys
+
+# sys.path.append("/Users/zhangbai/Documents/AptanaWorkspace/fuel-python/common/shell/ShellCmdExecutor.py")
+
+print sys.path
+print 'len=%s' % len(sys.path)
+for path in sys.path :
+    print path
+
+from common.shell.ShellCmdExecutor import ShellCmdExecutor
 
 class Prerequisites(object):
     '''
@@ -20,7 +35,7 @@ class Glance(object):
     '''
     classdocs
     '''
-    GLANCE_CONF_FILE_PATH = "/etc/nova/nova.conf"
+    
     def __init__(self):
         '''
         Constructor
@@ -30,22 +45,26 @@ class Glance(object):
     @staticmethod
     def install():
         print 'Glance node install start========'
-        yumCmd = "yum install openstack-nova-compute -y"
-        ShellCmdExecutor.execCmd(yumCmd)
+        yumCmd = "yum install telnet -y"
+        output, exitcode = ShellCmdExecutor.execCmd("ls -lt")
+        print 'output=\n%s--' % output
         Glance.configConfFile()
         Glance.start()
         
-        Glance.configAfterNetworkNodeConfiguration()
         print 'Glance node install done####'
         pass
     
     @staticmethod
     def start():
-        ShellCmdExecutor.execCmd("glance")
+        print "start glance========="
+        
+        print "start glance done####"
+#         ShellCmdExecutor.execCmd("glance")
         pass
     
     @staticmethod
     def configConfFile():
+        print "configure glance conf file======"
         #Use conf file template to replace the IP
         pass
     
@@ -53,6 +72,6 @@ class Glance(object):
 if __name__ == '__main__':
     print 'hello openstack-icehouse:glance============'
     Glance.install()
-    print '#######'
+    print 'hello openstack-icehouse:glance#######'
     pass
 

@@ -2,67 +2,13 @@
 Created on Sep 9, 2015
 
 @author: zhangbai
-'''
-
+'''  
 import os
-import md5
-import random
-import types
-import sys
-
-class FileUtil(object):
-    '''
-    classdocs
-    '''
-    OPENSTACK_INSTALL_LOG_TEMP_DIR ="/var/log/openstack_icehouse"
-
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def readContent(file_path):
-        config_file = file(file_path, 'r')
-        file_content = ""
-        file_lines = config_file.readlines();
-        for line in file_lines :
-            file_content = file_content + line
-        config_file.close()
-        return file_content
-    
-    @staticmethod
-    def writeContent(file_path, content):
-        dir_path = os.path.dirname(file_path)
-        os.system("mkdir -p %s" % dir_path)
-        config_file = file(file_path, 'w')
-        config_file.write(content)
-        config_file.close()
-    
-    @staticmethod
-    def replaceFileContent(filePath, replaceToken, replaceValue):
-        print("Replace %s to %s in conf file %s" % (replaceToken, replaceValue, filePath))
-        content = FileUtil.readContent(filePath)
-        content = content.replace(replaceToken, replaceValue)
-        FileUtil.writeContent(filePath, content)
-        pass
-    
-    @staticmethod
-    def replaceByRegularExpression(filePath, toBeReplacedRegularEx, replaceValue):
-        sedCmd = "sed -i 's/%s/%s/g' %s" % (toBeReplacedRegularEx, replaceValue, filePath)
-        output, exitcode = ShellCmdExecutor.execCmd(sedCmd)
-        
-        if exitcode != 0 :
-            print 'The return code is not zero when execute:%s' % sedCmd
-            print 'output=%s--' % output
-            pass
-        pass
-
-    
 import subprocess
 import datetime
 import commands
+
+from common.file.FileUtil import FileUtil
 
 class ShellCmdExecutor(object):
     '''
@@ -324,5 +270,8 @@ class ShellCmdExecutor(object):
         
         return (output, exitcode)
 #1.Implement execute cmd with timeout, it will return the output including both stdout and stderr.
+
+
+
 
 
