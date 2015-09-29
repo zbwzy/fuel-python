@@ -7,7 +7,7 @@ Created on Aug 26, 2015
 '''
 usage:
 
-python glance.py
+python keystone.py
 
 NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
@@ -49,7 +49,7 @@ class Prerequisites(object):
         pass
     pass
 
-class Glance(object):
+class Keystone(object):
     '''
     classdocs
     '''
@@ -72,8 +72,8 @@ class Glance(object):
             
         output, exitcode = ShellCmdExecutor.execCmd(yumCmd)
         print 'output=\n%s--' % output
-        Glance.configConfFile()
-        Glance.start()
+        Keystone.configConfFile()
+        Keystone.start()
         
         print 'Glance node install done####'
         pass
@@ -142,7 +142,7 @@ class Glance(object):
         os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
         
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        local_ip_file_path = glanceConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
         localIP = output.strip()
         print 'localip=%s--' % localIP
@@ -160,7 +160,7 @@ class Glance(object):
         pass
     pass
 
-class GlanceHA(object):
+class KeystoneHA(object):
     '''
     classdocs
     '''
@@ -186,8 +186,8 @@ class GlanceHA(object):
     
     @staticmethod
     def configure():
-        GlanceHA.configureHAProxy()
-        GlanceHA.configureKeepalived()
+        KeystoneHA.configureHAProxy()
+        KeystoneHA.configureKeepalived()
         pass
     
     @staticmethod
@@ -352,14 +352,14 @@ if __name__ == '__main__':
         pass
     
     #
-    Glance.install()
-    Glance.configConfFile()
-    Glance.start()
+    Keystone.install()
+    Keystone.configConfFile()
+    Keystone.start()
     
     #add HA
-    GlanceHA.install()
-    GlanceHA.configure()
-    GlanceHA.start()
+    KeystoneHA.install()
+    KeystoneHA.configure()
+    KeystoneHA.start()
     print 'hello openstack-icehouse:glance#######'
     pass
 

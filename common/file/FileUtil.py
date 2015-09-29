@@ -45,11 +45,7 @@ class FileUtil(object):
     
     @staticmethod
     def replaceByRegularExpression(filePath, toBeReplacedRegularEx, replaceValue):
+        print "Replace the string [%s] with [%s] in file %s." % (toBeReplacedRegularEx, replaceValue, filePath)
         sedCmd = "sed -i 's/%s/%s/g' %s" % (toBeReplacedRegularEx, replaceValue, filePath)
-        output, exitcode = os.system(sedCmd)
-        
-        if exitcode != 0 :
-            print 'The return code is not zero when execute:%s' % sedCmd
-            print 'output=%s--' % output
-            pass
+        os.system(sedCmd)
         pass

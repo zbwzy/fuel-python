@@ -3,7 +3,7 @@ Created on Aug 27, 2015
 
 @author: zhangbai
 '''
-from openstack.icehouse.common.Utils import ShellCmdExecutor
+from common.shell.ShellCmdExecutor import ShellCmdExecutor
 
 class Prerequisites(object):
     '''
