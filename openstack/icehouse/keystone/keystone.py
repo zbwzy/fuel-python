@@ -333,9 +333,9 @@ if __name__ == '__main__':
         pass
     
     #
-#     Keystone.install()
-#     Keystone.configConfFile()
-#     Keystone.start()
+    Keystone.install()
+    Keystone.configConfFile()
+    Keystone.start()
     
     #add HA
     KeystoneHA.install()
