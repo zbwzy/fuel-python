@@ -84,7 +84,6 @@ class ZooKeeperLock():
 def main():
     #zk hosts
     zookeeper_hosts = "54.205.0.210:2181"
-#     zookeeper_hosts = "ext.zk1.dev.ec2-us-east-1.n66.cloudpi.net:2181,ext.zk2.dev.ec2-us-east-1.n66.cloudpi.net:2181,ext.zk3.dev.ec2-us-east-1.n66.cloudpi.net:2181"
     lock_name = "test"
 
     lock = ZooKeeperLock(zookeeper_hosts, "myid is 1", lock_name)
