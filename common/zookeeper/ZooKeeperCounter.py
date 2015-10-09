@@ -15,6 +15,10 @@ class ZooKeeperCounter():
         self.timeout = timeout
         self.counter_name = counter_name
         self.init_counter_value = init_counter_value
+        
+        if init_counter_value == None :
+            self.init_counter_value = 300
+            pass
 
         pass
 
@@ -73,7 +77,7 @@ def main():
     counter -= 1
     print 'After substract 1, curValue=%s' % counter.value
 #     zk_counter.destroy()
-    print 'couter#######'
+    print 'counter#######'
     pass
 
 if __name__ == "__main__":

@@ -101,15 +101,6 @@ def main():
     lock.release()
     
     ##################
-    print 'counter========='
-    zk_client = KazooClient(hosts=zookeeper_hosts, timeout=10)
-    print zk_client.start(timeout=10)
-    print 'zkSTATE=%s' % zk_client.state
-    
-    zk_client.stop()
-    print 'couter#######'
-    
-    
     pass
 
 if __name__ == "__main__":
