@@ -17,7 +17,13 @@ if __name__ == '__main__':
     
     zookeeper_hosts = "54.205.0.210:2181"
     lock_name = "glance_weight_lock"
- 
+    #####
+    
+    for i in range(1, 10):
+        time.sleep(1)
+        print str(i)
+        pass
+    
     lock = ZooKeeperLock(zookeeper_hosts, "myid is 1", lock_name)
     ###########################
     ret = lock.acquire() #get lock
@@ -28,7 +34,7 @@ if __name__ == '__main__':
 #         return
  
     print "Get lock! Do something! Sleep 10 secs!"
-    for i in range(1, 10):
+    for i in range(1, 1801):
         time.sleep(1)
         print str(i)
         pass
@@ -42,7 +48,6 @@ if __name__ == '__main__':
     counter = zk_counter.get_counter()
     value = counter.value
     print 'curValue=%s' % value
-    print 'typeof(counter.value)=%s' % type(value)
     counter -= 1
 #     counter += (300 - counter.value)
     print 'After substract 1, counterValue=%s' % counter.value

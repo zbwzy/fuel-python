@@ -1,13 +1,14 @@
 {
-    "mysql_vip": "192.168.147.100",
-    "rabbit_host": "192.168.147.5",
-    "keystone_vip": "192.168.147.100",
-    "keystone_ips": "192.168.147.5,192.168.147.6",
-    "glance_vip" : "192.168.147.100",
-    "glance_ips": "192.168.147.5,192.168.147.6",
-    "nova_vip" : "192.168.147.100",
-    "nova_ips": "192.168.147.5,192.168.147.6",
-    "glance_vip_interface" : "eth3",
-    "keystone_vip_interface" : "eth3"
+    "mysql_vip": "192.168.11.128",
+    "rabbit_host": "192.168.11.128",
+    "keystone_vip": "192.168.11.100",
+    "keystone_ips": "192.168.11.128,192.168.11.129",
+    "glance_vip" : "192.168.11.100",
+    "glance_ips": "192.168.11.128,192.168.11.129",
+    "nova_vip" : "192.168.11.100",
+    "nova_ips": "192.168.11.128,192.168.11.129",
+    "glance_vip_interface" : "eth0",
+    "keystone_vip_interface" : "eth0",
+    "nova_vip_interface" : "eth0"
     
 }

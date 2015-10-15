@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -103,6 +103,77 @@ class Keystone(object):
         pass
     
     @staticmethod
+    def importKeystoneDBSchema():
+        importCmd = 'su -s /bin/sh -c "keystone-manage db_sync" keystone'
+        ShellCmdExecutor.execCmd(importCmd)
+        pass
+    
+    @staticmethod
+    def supportPKIToken():
+        cmd1 = 'keystone-manage pki_setup --keystone-user keystone --keystone-group keystone'
+        cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
+        cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'
+        ShellCmdExecutor.execCmd(cmd1)
+        ShellCmdExecutor.execCmd(cmd2)
+        ShellCmdExecutor.execCmd(cmd3)
+        pass
+    
+    @staticmethod
+    def configureEnvVar():
+        ShellCmdExecutor.execCmd('export OS_SERVICE_TOKEN=123456')
+        template_string = 'export OS_SERVICE_ENDPOINT=http://<LOCAL_IP>:35357/v2.0'
+        localIP = Keystone.getLocalIP()
+        cmd = template_string.replace('<LOCAL_IP>', localIP)
+        ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def initKeystone():
+        '''
+# create keystone users,services & endpoint
+keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
+keystone endpoint-create \
+--service-id=$(keystone service-list | awk '/ identity / {print $2}') \
+--publicurl=http://controller:5000/v2.0 \
+--internalurl=http://controller:5000/v2.0 \
+--adminurl=http://controller:35357/v2.0
+        '''
+        ## create an admin user
+        cmd1 = 'keystone user-create --name=admin --pass=123456 --email=admin@a.com'
+        cmd2 = 'keystone role-create --name=admin'
+        cmd3 = 'keystone tenant-create --name=admin --description="Admin Tenant"'
+        cmd4 = 'keystone user-role-add --user=admin --tenant=admin --role=admin'
+        cmd5 = 'keystone user-role-add --user=admin --role=_member_ --tenant=admin'
+        
+        ##create a normal user
+        cmd6 = 'keystone user-create --name=demo --pass=123456 --email=demo@abc.com'
+        cmd7 = 'keystone tenant-create --name=demo --description="Demo Tenant"'
+        cmd8 = 'keystone user-role-add --user=demo --role=_member_ --tenant=demo'
+        
+        ##create service tenant
+        cmd9 = 'keystone tenant-create --name=service --description="Service Tenant"'
+        
+        ##create keystone users,services & endpoint
+        cmd10 = 'keystone service-create --name=keystone --type=identity --description="OpenStack Identity"'
+        cmd11 = 'keystone endpoint-create --service-id=$(keystone service-list | awk \'/ identity / {print $2}\') --publicurl=http://controller:5000/v2.0 --internalurl=http://controller:5000/v2.0 --adminurl=http://controller:35357/v2.0'
+        
+        ShellCmdExecutor.execCmd(cmd1)
+        ShellCmdExecutor.execCmd(cmd2)
+        ShellCmdExecutor.execCmd(cmd3)
+        ShellCmdExecutor.execCmd(cmd4)
+        ShellCmdExecutor.execCmd(cmd5)
+        ShellCmdExecutor.execCmd(cmd6)
+        ShellCmdExecutor.execCmd(cmd7)
+        ShellCmdExecutor.execCmd(cmd8)
+        ShellCmdExecutor.execCmd(cmd9)
+        ShellCmdExecutor.execCmd(cmd10)
+        ShellCmdExecutor.execCmd(cmd11)
+        
+        ##
+        
+        
+    
+    @staticmethod
     def configConfFile():
         print "configure keystone conf file======"
         mysql_vip = JSONUtility.getValue("mysql_vip")
@@ -126,9 +197,7 @@ class Keystone(object):
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
-        localIP = output.strip()
+        localIP = Keystone.getLocalIP(self)
         print 'localip=%s--' % localIP
         
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<LOCAL_IP>', localIP)
@@ -140,6 +209,15 @@ class Keystone(object):
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keystone_conf_file_path)
         print "configure keystone conf file done####"
         pass
+    
+    @staticmethod
+    def getLocalIP():
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        localIP = output.strip()
+        return localIP
+    
     pass
 
 class KeystoneHA(object):
@@ -275,17 +353,19 @@ vrrp_instance 42 {
         ##Here: connect to ZooKeeper to coordinate the weight
         keystone_vip = JSONUtility.getValue("keystone_vip")
         keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
-        #Refactor later
-        GLANCE_WEIGHT = 300
-        if GLANCE_WEIGHT == 300 : #This is MASTER
+        #Call ZooKeeper lock & counter services
+        keystone_weight_counter = Keystone.getWeightCounter()
+        if keystone_weight_counter == 300 : #This is MASTER
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', '1')
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', '300')
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'MASTER')
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
         else :
-            #
-            #
+            index = 301 - keystone_weight_counter
+
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', str(index))
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', str(keystone_weight_counter))
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'SLAVE')
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
@@ -313,7 +393,24 @@ vrrp_instance 42 {
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
+    @staticmethod
+    def getWeightCounter():
+        print 'refactor later================'
+        print 'get keystone weight=================='
+        
+        return 300
     
+    @staticmethod
+    def isMasterNode():
+        if Keystone.getWeightCounter() == 300 :
+            return True
+        else :
+            return False
+        pass
+    pass
+    
+IS_KEYSTONE_MASTER_NODE = True
+ 
 if __name__ == '__main__':
     
     print 'hello openstack-icehouse:keystone============'
@@ -335,7 +432,18 @@ if __name__ == '__main__':
     #
     Keystone.install()
     Keystone.configConfFile()
+    
+    if Keystone.isMasterNode()  == True :
+        Keystone.importKeystoneDBSchema()
+        Keystone.supportPKIToken()
+        pass
+    
     Keystone.start()
+    
+    if Keystone.isMasterNode() == True :
+        Keystone.configureEnvVar()
+        Keystone.initKeystone()
+        pass
     
     #add HA
     KeystoneHA.install()

@@ -7,6 +7,8 @@ import os, time
 from kazoo.client import KazooClient
 from kazoo.client import KazooState
 
+import logging
+logging.basicConfig()
 
 class ZooKeeperCounter():
     def __init__(self, hosts, counter_name, init_counter_value=300, timeout=10):
@@ -72,7 +74,8 @@ def main():
     
     zk_counter.create_zk_client()
     counter = zk_counter.get_counter()
-    print 'curValue=%s' % counter.value
+    value = counter.value
+    print 'curValue=%s' % value
     
     counter -= 1
     print 'After substract 1, curValue=%s' % counter.value

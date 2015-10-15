@@ -8,6 +8,9 @@ from kazoo.client import KazooClient
 from kazoo.client import KazooState
 from kazoo.recipe.lock import Lock
 
+import logging
+logging.basicConfig()
+
 
 class ZooKeeperLock():
     def __init__(self, hosts, id_str, lock_name, timeout=10):
