@@ -1,5 +1,5 @@
 '''
-Created on Aug 26, 2015
+Created on Sep 29, 2015
 
 @author: zhangbai
 '''
@@ -7,7 +7,7 @@ Created on Aug 26, 2015
 '''
 usage:
 
-python keystone.py
+python nova.py
 
 NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
@@ -27,8 +27,7 @@ else :
 
 OPENSTACK_VERSION_TAG = 'icehouse'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
-SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-api.conf')
-SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-registry.conf')
+SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
 sys.path.append(PROJ_HOME_DIR)
 
@@ -46,13 +45,23 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        cmd = 'yum install openstack-utils -y'
+        ShellCmdExecutor.execCmd(cmd)
+        
+        cmd = 'yum install openstack-selinux -y'
+        ShellCmdExecutor.execCmd(cmd)
+        
+        cmd = 'yum install python-openstackclient -y'
+        ShellCmdExecutor.execCmd(cmd)
         pass
     pass
 
-class Keystone(object):
+
+class Nova(object):
     '''
     classdocs
     '''
+    NOVA_CONF_FILE_PATH = "/etc/nova/nova.conf"
     
     def __init__(self):
         '''
@@ -62,187 +71,350 @@ class Keystone(object):
     
     @staticmethod
     def install():
-        print 'Glance node install start========'
-        #Enable 
-        if debug == True:
-            print 'DEBUG is True.On local dev env, do test====='
-            yumCmd = "ls -lt"
-        else :
-            yumCmd = "yum install openstack-glance python-glanceclient -y"
-            
-        output, exitcode = ShellCmdExecutor.execCmd(yumCmd)
-        print 'output=\n%s--' % output
-        Keystone.configConfFile()
-        Keystone.start()
+        print 'Nova.install start===='
+        yumCmd = "yum install -y openstack-nova-api openstack-nova-cert openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient"
+        ShellCmdExecutor.execCmd(yumCmd)
+        Nova.configConfFile()
         
-        print 'Glance node install done####'
+#         ShellCmdExecutor.execCmd("keystone service-create --name=nova --type=compute --description=\"OpenStack Compute\"")
+#         ShellCmdExecutor.execCmd("keystone endpoint-create --service-id=$(keystone service-list | awk '/ compute / {print $2}') --publicurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s  --internalurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s --adminurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s")
+#         
+        Nova.start()
+        
+        #After Network node configuration done
+        Nova.configAfterNetworkNodeConfiguration()
+        Nova.restart()
+        print 'Nova.install done####'
         pass
     
     @staticmethod
-    def start():
-        print "start glance========="
-        if debug == True :
-            print 'DEBUG=True.On local dev env, do test===='
-            pass
-        else :
-            ShellCmdExecutor.execCmd('service openstack-glance-api start')
-            ShellCmdExecutor.execCmd('service openstack-glance-registry start')
-            
-            ShellCmdExecutor.execCmd('chkconfig openstack-glance-api on')
-            ShellCmdExecutor.execCmd('chkconfig openstack-glance-registry on')
-        print "start glance done####"
+    def configAfterNetworkNodeConfiguration():
+        '''
+1.on Controller node: moidfy /etc/nova/nova.conf, enabled metadata:
+
+[DEFAULT]
+service_neutron_metadata_proxy=true
+neutron_metadata_proxy_shared_secret=123456
+
+2. on Controller node: moidfy /etc/nova/nova.conf:to support VMs creation if vif_plug fails
+vif_plugging_is_fatal=false
+vif_plugging_timeout=0
+
+        '''
         pass
     
     @staticmethod
     def restart():
-        print "restart glance========="
-        if debug == True :
-            print 'DEBUG=True.On local dev env, do test===='
-            pass
-        else :
-            ShellCmdExecutor.execCmd('service openstack-glance-api restart')
-            ShellCmdExecutor.execCmd('service openstack-glance-registry restart')
-            pass
+        #restart Controller nova-api service
+        restartCmd = "service openstack-nova-api restart"
+        ShellCmdExecutor.execCmd(restartCmd)
+        pass
+    
+    @staticmethod
+    def start():
+        ShellCmdExecutor.execCmd("service openstack-nova-api start")
+        ShellCmdExecutor.execCmd("service openstack-nova-cert start")
+        ShellCmdExecutor.execCmd("service openstack-nova-consoleauth start")
+        ShellCmdExecutor.execCmd("service openstack-nova-scheduler start")
+        ShellCmdExecutor.execCmd("service openstack-nova-conductor start")
+        ShellCmdExecutor.execCmd("service openstack-nova-novncproxy start")
         
-        print "restart glance done####"
+        ShellCmdExecutor.execCmd("chkconfig openstack-nova-api on")
+        ShellCmdExecutor.execCmd("chkconfig openstack-nova-cert on")
+        ShellCmdExecutor.execCmd("chkconfig openstack-nova-consoleauth on ")
+        ShellCmdExecutor.execCmd("chkconfig openstack-nova-scheduler on")
+        ShellCmdExecutor.execCmd("chkconfig openstack-nova-conductor on")
+        ShellCmdExecutor.execCmd("chkconfig openstack-nova-novncproxy on")
         pass
     
     @staticmethod
     def configConfFile():
-        print "configure glance conf file======"
+        #use conf template file to replace <CONTROLLER_IP>
+        '''
+        #modify nova.conf:
+
+[database]
+connection=mysql://nova:123456@controller/nova
+
+[DEFAULT]
+rpc_backend=rabbit
+rabbit_host=<CONTROLLER_IP>
+rabbit_password=123456
+my_ip=<CONTROLLER_IP>
+vncserver_listen=<CONTROLLER_IP>
+vncserver_proxyclient_address=<CONTROLLER_IP>
+#########
+#
+rpc_backend=rabbit
+rabbit_host=<CONTROLLER_IP>
+rabbit_password=123456
+my_ip=<CONTROLLER_IP>
+vncserver_listen=<CONTROLLER_IP>
+vncserver_proxyclient_address=<CONTROLLER_IP>
+
+5).modify nova.conf: set the auth info of keystone:
+
+[DEFAULT]
+auth_strategy=keystone
+
+[keystone_authtoken]
+auth_uri=http://controller:5000
+auth_host=<CONTROLLER_IP>
+auth_protocal=http
+auth_port=35357
+admin_tenant_name=service
+admin_user=nova
+admin_password=123456
+        '''
         mysql_vip = JSONUtility.getValue("mysql_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
-        print "glance_vip=%s" % glance_vip
-        glance_ips = JSONUtility.getValue("glance_ips")
-        print "glance_ips=%s" % glance_ips
+        mysql_password = JSONUtility.getValue("mysql_password")
+        
+        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
+        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_password = JSONUtility.getValue("rabbit_password")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        rabbit_host = JSONUtility.getValue("rabbit_host")
+        
+        #controller: Horizon, Neutron-server
+        controller_vip = JSONUtility.getValue("controller_vip")
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /etc/puppet/localip')
+        localIP = output.strip()
+        
+        print 'ddddddddddddddd========='
+        print 'mysql_vip=%s' % mysql_vip
+        print 'mysql_password=%s' % mysql_password
+        print 'rabbit_hosts=%s' % rabbit_hosts
+        print 'rabbit_userid=%s' % rabbit_userid
+        print 'rabbit_password=%s' % rabbit_password
+        print 'keystone_vip=%s' % keystone_vip
+        print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        glanceConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'GLANCE_CONF_DIR')
-        print 'glanceConfDir=%s' % glanceConfDir #/etc/glance
+        nova_api_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'nova.conf')
+        print 'nova_api_conf_template_file_path=%s' % nova_api_conf_template_file_path
         
-        glance_api_conf_file_path = os.path.join(glanceConfDir, 'glance-api.conf')
-        glance_registry_conf_file_path = os.path.join(glanceConfDir, 'glance-registry.conf')
+        novaConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'NOVA_CONF_DIR')
+        print 'novaConfDir=%s' % novaConfDir #/etc/keystone
         
-        if not os.path.exists(glanceConfDir) :
-            os.system("sudo mkdir -p %s" % glanceConfDir)
-            pass
-        #if exist, remove original conf files
-        if os.path.exists(glance_api_conf_file_path) :
-            os.system("sudo rm -rf %s" % glance_api_conf_file_path)
-            pass
+        nova_conf_file_path = os.path.join(novaConfDir, 'nova.conf')
+        print 'nova_conf_file_path=%s' % nova_conf_file_path
         
-        if os.path.exists(glance_registry_conf_file_path) :
-            os.system("sudo rm -rf %s" % glance_registry_conf_file_path)
+        if not os.path.exists(novaConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % novaConfDir)
             pass
         
-        os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
-        os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        if os.path.exists(nova_conf_file_path) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
+            pass
         
-        ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
-        local_ip_file_path = glanceConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
-        localIP = output.strip()
-        print 'localip=%s--' % localIP
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<LOCAL_IP>', localIP)
-        FileUtil.replaceByRegularExpression(glance_registry_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceByRegularExpression(glance_registry_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceByRegularExpression(glance_registry_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<MANAGEMENT_LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<PUBLIC_LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_SERVER_VIP>', localIP)
+        
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         pass
-    pass
+    
+    @staticmethod
+    def configDB():
+        pass
 
-class KeystoneHA(object):
+
+class NovaHA(object):
     '''
     classdocs
     '''
-    
     def __init__(self):
         '''
         Constructor
         '''
         pass
+    
+    @staticmethod
+    def isKeepalivedInstalled():
+        KEEPALIVED_CONF_FILE_PATH = '/etc/keepalived/keepalived.conf'
+        if os.path.exists(KEEPALIVED_CONF_FILE_PATH) :
+            return True
+        else :
+            return False
+        
+    @staticmethod
+    def isHAProxyInstalled():
+        HAPROXY_CONF_FILE_PATH = '/etc/haproxy/haproxy.cfg'
+        if os.path.exists(HAPROXY_CONF_FILE_PATH) :
+            return True
+        else :
+            return False
     
     @staticmethod
     def install():
         if debug == True :
             print "DEBUG is True.On local dev env, do test==="
             yumCmd = "ls -lt"
+            ShellCmdExecutor.execCmd(yumCmd)
             pass
         else :
-            yumCmd = "yum install keepalived haproxy -y"
+            if not NovaHA.isKeepalivedInstalled() :
+                keepalivedInstallCmd = "yum install keepalived -y"
+                ShellCmdExecutor.execCmd(keepalivedInstallCmd)
+                pass
+            
+            if not NovaHA.isHAProxyInstalled() :
+                haproxyInstallCmd = 'yum install haproxy -y'
+                ShellCmdExecutor.execCmd(haproxyInstallCmd)
+                
+                #prepare haproxy conf file template
+                openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+                haproxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
+                haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
+                print 'haproxyTemplateFilePath=%s' % haproxyTemplateFilePath
+                print 'haproxyConfFilePath=%s' % haproxyConfFilePath
+                if not os.path.exists('/etc/haproxy') :
+                    ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
+                    pass
+                
+                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                pass
             pass
-        
-        ShellCmdExecutor.execCmd(yumCmd)    
         pass
     
     @staticmethod
     def configure():
-        KeystoneHA.configureHAProxy()
-        KeystoneHA.configureKeepalived()
+        NovaHA.configureHAProxy()
+        NovaHA.configureKeepalived()
         pass
     
     @staticmethod
     def configureHAProxy():
         ####################configure haproxy
-        #server glance-01 192.168.1.137:9191 check inter 10s
-        glance_vip = JSONUtility.getValue("glance_vip")
+        nova_api_vip = JSONUtility.getValue("nova_api_vip")
+        print 'nova_api_vip=%s' % nova_api_vip
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        glanceHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'haproxy.cfg')
+        keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
         haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
         print 'haproxyConfFilePath=%s' % haproxyConfFilePath
         if not os.path.exists('/etc/haproxy') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (glanceHAProxyTemplateFilePath, haproxyConfFilePath))
+        if not os.path.exists(haproxyConfFilePath) :
+            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
+            pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
-        glance_ips = JSONUtility.getValue("glance_ips")
-        glance_ip_list = glance_ips.strip().split(',')
+        ####
+        novaApiFrontendStringTemplate = '''
+frontend nova-api-vip-1
+    bind <NOVA_API_VIP>:8773
+    default_backend nova-api-1
+
+frontend nova-api-vip-2
+    bind <NOVA_API_VIP>:8774
+    default_backend nova-api-2
+    
+frontend nova-api-vip-3
+    bind <NOVA_API_VIP>:8775
+    default_backend nova-api-3
+    
+frontend nova-api-vip-4
+    bind <NOVA_API_VIP>:8776
+    default_backend nova-api-4
+'''
+        novaApiFrontendString = novaApiFrontendStringTemplate.replace('<NOVA_API_VIP>', nova_api_vip)
+        print 'novaApiFrontendString=%s--' % novaApiFrontendString
         
-        serverGlanceRegistryAPIBackendTemplate = 'server glance-<INDEX> <SERVER_IP>:9191 check inter 10s'
-        serverGlanceAPIBackendTemplate         = 'server glance-<INDEX> <SERVER_IP>:9292 check inter 10s'
+        ####
+        nova_api_ips = JSONUtility.getValue("nova_api_ips")
+        nova_api_ip_list = nova_api_ips.strip().split(',')
         
-        glanceRegistryAPIServerListContent = ''
-        glanceAPIServerListContent = ''
+        novaApi1BackendStringTemplate = '''
+backend nova-api-1
+    balance roundrobin
+    <NOVA_API1_SERVER_LIST>
+        '''
+        
+        novaApi2BackendStringTemplate = '''
+backend nova-api-2
+    balance roundrobin
+    <NOVA_API2_SERVER_LIST>
+        '''
+        
+        novaApi3BackendStringTemplate = '''
+backend nova-api-3
+    balance roundrobin
+    <NOVA_API3_SERVER_LIST>
+        '''
+        
+        novaApi4BackendStringTemplate = '''
+backend nova-api-4
+    balance roundrobin
+    <NOVA_API4_SERVER_LIST>
+        '''
+        
+        serverNovaApi1BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8773 check inter 10s'
+        serverNovaApi2BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8774 check inter 10s'
+        serverNovaApi3BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8775 check inter 10s'
+        serverNovaApi4BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8776 check inter 10s'
+        
+        novaAPI1ServerListContent = ''
+        novaAPI2ServerListContent = ''
+        novaAPI3ServerListContent = ''
+        novaAPI4ServerListContent = ''
         
         index = 1
-        for glance_ip in glance_ip_list:
-            print 'glance_ip=%s' % glance_ip
-            glanceRegistryAPIServerListContent += serverGlanceRegistryAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', glance_ip)
-            glanceAPIServerListContent += serverGlanceAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', glance_ip)
+        for nova_api_ip in nova_api_ip_list:
+            novaAPI1ServerListContent += serverNovaApi1BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_api_ip)
+            novaAPI2ServerListContent += serverNovaApi2BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_api_ip)
+            novaAPI3ServerListContent += serverNovaApi3BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_api_ip)
+            novaAPI4ServerListContent += serverNovaApi4BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_api_ip)
             
-            glanceRegistryAPIServerListContent += '\n'
-            glanceRegistryAPIServerListContent += '    '
+            novaAPI1ServerListContent += '\n'
+            novaAPI1ServerListContent += '    '
             
-            glanceAPIServerListContent += '\n'
-            glanceAPIServerListContent += '    '
+            novaAPI2ServerListContent += '\n'
+            novaAPI2ServerListContent += '    '
+            
+            novaAPI3ServerListContent += '\n'
+            novaAPI3ServerListContent += '    '
+            
+            novaAPI4ServerListContent += '\n'
+            novaAPI4ServerListContent += '    '
             
             index += 1
             pass
         
-        glanceRegistryAPIServerListContent = glanceRegistryAPIServerListContent.strip()
-        glanceAPIServerListContent = glanceAPIServerListContent.strip()
-        print 'glanceRegistryAPIServerListContent=%s--' % glanceRegistryAPIServerListContent
-        print 'glanceAPIServerListContent=%s--' % glanceAPIServerListContent
+        novaAPI1ServerListContent = novaAPI1ServerListContent.strip()
+        novaAPI2ServerListContent = novaAPI2ServerListContent.strip()
+        novaAPI3ServerListContent = novaAPI3ServerListContent.strip()
+        novaAPI4ServerListContent = novaAPI4ServerListContent.strip()
         
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
         
-        #Default: glance-api & glance-registry-api use the same vip
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_VIP>', glance_vip)
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_VIP>', glance_vip)
+        novaApi1BackendString = novaApi1BackendStringTemplate.replace('<NOVA_API1_SERVER_LIST>', novaAPI1ServerListContent)
+        novaApi2BackendString = novaApi2BackendStringTemplate.replace('<NOVA_API2_SERVER_LIST>', novaAPI2ServerListContent)
+        novaApi3BackendString = novaApi3BackendStringTemplate.replace('<NOVA_API3_SERVER_LIST>', novaAPI3ServerListContent)
+        novaApi4BackendString = novaApi4BackendStringTemplate.replace('<NOVA_API4_SERVER_LIST>', novaAPI4ServerListContent)
+        
+        #append
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApiFrontendString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi1BackendString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi2BackendString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi3BackendString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi4BackendString, haproxyConfFilePath))
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -251,7 +423,7 @@ class KeystoneHA(object):
     def configureKeepalived():
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         ###################configure keepalived
-        glanceKeepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'keepalived.conf')
+        keepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keepalived.conf')
         keepalivedConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEEPALIVED_CONF_FILE_PATH')
         print 'keepalivedConfFilePath=%s' % keepalivedConfFilePath
         if not os.path.exists('/etc/keepalived') :
@@ -260,16 +432,17 @@ class KeystoneHA(object):
         
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-        print 'checkHAProxyScriptPath=%s===========================---' % checkHAProxyScriptPath
         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (glanceKeepalivedTemplateFilePath, keepalivedConfFilePath))
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+        print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
+        print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keepalivedConfFilePath)
         ##configure
         '''keepalived template====
         global_defs {
-  router_id glance-<GLANCE_INDEX>
+  router_id LVS-DEVEL
 }
 vrrp_script chk_haproxy {
    script "/etc/keepalived/check_haproxy.sh"
@@ -280,8 +453,8 @@ vrrp_script chk_haproxy {
 vrrp_instance 42 {
   virtual_router_id 42
   # for electing MASTER, highest priority wins.
-  priority  <GLANCE_WEIGHT>
-  state     <GLANCE_STATE>
+  priority  <KEYSTONE_WEIGHT>
+  state     <KEYSTONE_STATE>
   interface <INTERFACE>
   track_script {
     chk_haproxy
@@ -293,22 +466,24 @@ vrrp_instance 42 {
         '''
         #GLANCE_WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        glance_vip = JSONUtility.getValue("glance_vip")
-        glance_vip_interface = JSONUtility.getValue("glance_vip_interface")
-        #Refactor later
-        GLANCE_WEIGHT = 300
-        if GLANCE_WEIGHT == 300 : #This is MASTER
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_INDEX>', '1')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_WEIGHT>', '300')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_STATE>', 'MASTER')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', glance_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', glance_vip)
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
+        #Call ZooKeeper lock & counter services
+        keystone_weight_counter = Nova.getWeightCounter()
+        if keystone_weight_counter == 300 : #This is MASTER
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', '1')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', '300')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'MASTER')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
         else :
-            #
-            #
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_STATE>', 'SLAVE')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', glance_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', glance_vip)
+            index = 301 - keystone_weight_counter
+
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', str(index))
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', str(keystone_weight_counter))
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'SLAVE')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
             pass
         
         ##temporary: if current user is not root
@@ -320,6 +495,7 @@ vrrp_instance 42 {
     @staticmethod
     def start():
         if debug == True :
+            print "DEBUG=True.On local dev env, do test===="
             pass
         else :
             ShellCmdExecutor.execCmd('service haproxy start')
@@ -335,7 +511,7 @@ vrrp_instance 42 {
     
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:glance============'
+    print 'hello openstack-icehouse:nova============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -351,15 +527,30 @@ if __name__ == '__main__':
         print "ERROR:no params."
         pass
     
-    #
-    Keystone.install()
-    Keystone.configConfFile()
-    Keystone.start()
+    ###############################
+    INSTALL_TAG_FILE = '/opt/novaapi_installed'
+    if os.path.exists(INSTALL_TAG_FILE) :
+        print 'nova-api installed####'
+        print 'exit===='
+        exit()
+        pass
     
-    #add HA
-    KeystoneHA.install()
-    KeystoneHA.configure()
-    KeystoneHA.start()
-    print 'hello openstack-icehouse:glance#######'
+    if os.path.exists(INSTALL_TAG_FILE) :
+        print 'nova-api installed####'
+        print 'exit===='
+        exit()
+        pass
+    
+#     Nova.install()
+#     Nova.configConfFile()
+#     Nova.start()
+    #
+    NovaHA.install()
+    NovaHA.configure()
+    NovaHA.start()
+    
+    #mark: nova-api is installed
+    os.system('touch %s' % INSTALL_TAG_FILE)
+    print 'hello openstack-icehouse:nova-api#######'
     pass
 

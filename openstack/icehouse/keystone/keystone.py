@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = False
+debug = True
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -45,6 +45,18 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
+        cmd = 'yum install openstack-utils -y'
+        ShellCmdExecutor.execCmd(cmd)
+        
+        cmd = 'yum install openstack-selinux -y'
+        ShellCmdExecutor.execCmd(cmd)
+        
+        cmd = 'yum install python-openstackclient -y'
+        ShellCmdExecutor.execCmd(cmd)
         pass
     pass
 
@@ -129,55 +141,39 @@ class Keystone(object):
     
     @staticmethod
     def initKeystone():
-        '''
-# create keystone users,services & endpoint
-keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
-keystone endpoint-create \
---service-id=$(keystone service-list | awk '/ identity / {print $2}') \
---publicurl=http://controller:5000/v2.0 \
---internalurl=http://controller:5000/v2.0 \
---adminurl=http://controller:35357/v2.0
-        '''
-        ## create an admin user
-        cmd1 = 'keystone user-create --name=admin --pass=123456 --email=admin@a.com'
-        cmd2 = 'keystone role-create --name=admin'
-        cmd3 = 'keystone tenant-create --name=admin --description="Admin Tenant"'
-        cmd4 = 'keystone user-role-add --user=admin --tenant=admin --role=admin'
-        cmd5 = 'keystone user-role-add --user=admin --role=_member_ --tenant=admin'
+        keystoneInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keystone_init.sh')
+        print 'keystoneInitScriptPath=%s' % keystoneInitScriptPath
+#         os.system('bash %s' % keystoneInitScriptPath)
         
-        ##create a normal user
-        cmd6 = 'keystone user-create --name=demo --pass=123456 --email=demo@abc.com'
-        cmd7 = 'keystone tenant-create --name=demo --description="Demo Tenant"'
-        cmd8 = 'keystone user-role-add --user=demo --role=_member_ --tenant=demo'
+        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % keystoneInitScriptPath)
         
-        ##create service tenant
-        cmd9 = 'keystone tenant-create --name=service --description="Service Tenant"'
+        keystoneAdminEmail = JSONUtility.getValue("keystone_admin_email")
+        print 'keystoneAdminEmail=%s' % keystoneAdminEmail
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_ADMIN_EMAIL>', keystoneAdminEmail)
         
-        ##create keystone users,services & endpoint
-        cmd10 = 'keystone service-create --name=keystone --type=identity --description="OpenStack Identity"'
-        cmd11 = 'keystone endpoint-create --service-id=$(keystone service-list | awk \'/ identity / {print $2}\') --publicurl=http://controller:5000/v2.0 --internalurl=http://controller:5000/v2.0 --adminurl=http://controller:35357/v2.0'
-        
-        ShellCmdExecutor.execCmd(cmd1)
-        ShellCmdExecutor.execCmd(cmd2)
-        ShellCmdExecutor.execCmd(cmd3)
-        ShellCmdExecutor.execCmd(cmd4)
-        ShellCmdExecutor.execCmd(cmd5)
-        ShellCmdExecutor.execCmd(cmd6)
-        ShellCmdExecutor.execCmd(cmd7)
-        ShellCmdExecutor.execCmd(cmd8)
-        ShellCmdExecutor.execCmd(cmd9)
-        ShellCmdExecutor.execCmd(cmd10)
-        ShellCmdExecutor.execCmd(cmd11)
-        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_IP>', keystone_vip)
+        ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
+        pass
         ##
         
+    @staticmethod
+    def sourceAdminOpenRC():
+        adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
+        print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
         
+        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
+        
+        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<LOCAL_IP>', Keystone.getLocalIP())
+        time.sleep(2)
+        ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
+        pass
     
     @staticmethod
     def configConfFile():
         print "configure keystone conf file======"
         mysql_vip = JSONUtility.getValue("mysql_vip")
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        mysql_password = JSONUtility.getValue("mysql_password")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         keystoneConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEYSTONE_CONF_DIR')
@@ -197,7 +193,7 @@ keystone endpoint-create \
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
-        localIP = Keystone.getLocalIP(self)
+        localIP = Keystone.getLocalIP()
         print 'localip=%s--' % localIP
         
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<LOCAL_IP>', localIP)
@@ -205,6 +201,7 @@ keystone endpoint-create \
         
         FileUtil.replaceFileContent(keystone_conf_file_path, '<LOCAL_IP>', localIP)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keystone_conf_file_path)
         print "configure keystone conf file done####"
@@ -218,7 +215,21 @@ keystone endpoint-create \
         localIP = output.strip()
         return localIP
     
-    pass
+    @staticmethod
+    def getWeightCounter():
+        print 'refactor later================'
+        print 'get keystone weight=================='
+        
+        return 300
+    
+    @staticmethod
+    def isMasterNode():
+        print 'go into Master======'
+        if Keystone.getWeightCounter() == 300 :
+            return True
+        else :
+            return False
+        pass
 
 class KeystoneHA(object):
     '''
@@ -232,16 +243,51 @@ class KeystoneHA(object):
         pass
     
     @staticmethod
+    def isKeepalivedInstalled():
+        KEEPALIVED_CONF_FILE_PATH = '/etc/keepalived/keepalived.conf'
+        if os.path.exists(KEEPALIVED_CONF_FILE_PATH) :
+            return True
+        else :
+            return False
+        
+    @staticmethod
+    def isHAProxyInstalled():
+        HAPROXY_CONF_FILE_PATH = '/etc/haproxy/haproxy.cfg'
+        if os.path.exists(HAPROXY_CONF_FILE_PATH) :
+            return True
+        else :
+            return False
+    
+    @staticmethod
     def install():
         if debug == True :
             print "DEBUG is True.On local dev env, do test==="
             yumCmd = "ls -lt"
+            ShellCmdExecutor.execCmd(yumCmd)
             pass
         else :
-            yumCmd = "yum install keepalived haproxy -y"
+            if not KeystoneHA.isKeepalivedInstalled() :
+                keepalivedInstallCmd = "yum install keepalived -y"
+                ShellCmdExecutor.execCmd(keepalivedInstallCmd)
+                pass
+            
+            if not KeystoneHA.isHAProxyInstalled() :
+                haproxyInstallCmd = 'yum install haproxy -y'
+                ShellCmdExecutor.execCmd(haproxyInstallCmd)
+                
+                #prepare haproxy conf file template
+                openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+                haproxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
+                haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
+                print 'haproxyTemplateFilePath=%s' % haproxyTemplateFilePath
+                print 'haproxyConfFilePath=%s' % haproxyConfFilePath
+                if not os.path.exists('/etc/haproxy') :
+                    ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
+                    pass
+                
+                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                pass
             pass
-        
-        ShellCmdExecutor.execCmd(yumCmd)    
         pass
     
     @staticmethod
@@ -257,19 +303,47 @@ class KeystoneHA(object):
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'haproxy.cfg')
+        keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
         haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
         print 'haproxyConfFilePath=%s' % haproxyConfFilePath
         if not os.path.exists('/etc/haproxy') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
+        if not os.path.exists(haproxyConfFilePath) :
+            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
+            pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
+        ####
+        keystoneFrontendStringTemplate = '''
+frontend keystone-admin-vip
+    bind <KEYSTONE_VIP>:35357
+    default_backend keystone-admin-api
+
+frontend keystone-public-vip
+    bind <KEYSTONE_VIP>:5000
+    default_backend keystone-public-api
+'''
+        keystoneFrontendString = keystoneFrontendStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
+        print 'keystoneFrontendString=%s--' % keystoneFrontendString
+        
+        ####
         keystone_ips = JSONUtility.getValue("keystone_ips")
         keystone_ip_list = keystone_ips.strip().split(',')
+        
+        keystoneBackendAdminApiStringTemplate = '''
+backend keystone-admin-api
+    balance roundrobin
+    <KEYSTONE_ADMIN_API_SERVER_LIST>
+        '''
+        
+        keystoneBackendPublicApiStringTemplate = '''
+backend keystone-public-api
+    balance roundrobin
+    <KEYSTONE_PUBLIC_API_SERVER_LIST>
+        '''
         
         serverKeystoneAdminAPIBackendTemplate   = 'server keystone-<INDEX> <SERVER_IP>:35357 check inter 10s'
         serverKeystonePublicAPIBackendTemplate  = 'server keystone-<INDEX> <SERVER_IP>:5000 check inter 10s'
@@ -296,10 +370,21 @@ class KeystoneHA(object):
         print 'keystoneAdminAPIServerListContent=%s--' % keystoneAdminAPIServerListContent
         print 'keystonePublicAPIServerListContent=%s--' % keystonePublicAPIServerListContent
         
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
+        keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate.replace('<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
+        keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate.replace('<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
         
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_VIP>', keystone_vip)
+        print 'keystoneBackendAdminApiString=%s--' % keystoneBackendAdminApiString
+        print 'keystoneBackendPublicApiString=%s--' % keystoneBackendPublicApiString
+        
+        #append
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneFrontendString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendAdminApiString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendPublicApiString, haproxyConfFilePath))
+        
+#         FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
+#         FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
+#         
+#         FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_VIP>', keystone_vip)
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -327,7 +412,7 @@ class KeystoneHA(object):
         ##configure
         '''keepalived template====
         global_defs {
-  router_id glance-<KEYSTONE_INDEX>
+  router_id LVS-DEVEL
 }
 vrrp_script chk_haproxy {
    script "/etc/keepalived/check_haproxy.sh"
@@ -393,24 +478,8 @@ vrrp_instance 42 {
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
-    @staticmethod
-    def getWeightCounter():
-        print 'refactor later================'
-        print 'get keystone weight=================='
-        
-        return 300
-    
-    @staticmethod
-    def isMasterNode():
-        if Keystone.getWeightCounter() == 300 :
-            return True
-        else :
-            return False
-        pass
-    pass
-    
-IS_KEYSTONE_MASTER_NODE = True
- 
+
+
 if __name__ == '__main__':
     
     print 'hello openstack-icehouse:keystone============'
@@ -429,26 +498,40 @@ if __name__ == '__main__':
         print "ERROR:no params."
         pass
     
-    #
-    Keystone.install()
-    Keystone.configConfFile()
+    ###############################
+    INSTALL_TAG_FILE = '/opt/keystone_installed'
     
-    if Keystone.isMasterNode()  == True :
-        Keystone.importKeystoneDBSchema()
-        Keystone.supportPKIToken()
+    if os.path.exists(INSTALL_TAG_FILE) :
+        print 'keystone installed####'
+        print 'exit===='
+        exit()
         pass
-    
-    Keystone.start()
-    
-    if Keystone.isMasterNode() == True :
-        Keystone.configureEnvVar()
-        Keystone.initKeystone()
-        pass
-    
+        
+    print 'start to install======='
+    Prerequisites.prepare()
+#     Keystone.install()
+#     Keystone.configConfFile()
+#          
+#     if Keystone.isMasterNode()  == True :
+#         Keystone.importKeystoneDBSchema()
+#         Keystone.supportPKIToken()
+#         pass
+#          
+#     Keystone.start()
+#        
+#     if Keystone.isMasterNode() == True :
+#         Keystone.configureEnvVar()
+#         Keystone.initKeystone()
+#         Keystone.sourceAdminOpenRC()
+#         pass
+       
     #add HA
     KeystoneHA.install()
     KeystoneHA.configure()
     KeystoneHA.start()
+    
+    #mark: keystone is installed
+    os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:keystone#######'
     pass
 

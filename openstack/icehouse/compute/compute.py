@@ -14,6 +14,12 @@ class Prerequisites(object):
         Constructor
         '''
         pass
+    
+    @staticmethod
+    def prepare():
+        cmd = 'yum install python-openstackclient -y'
+        ShellCmdExecutor.execCmd(cmd)
+        pass
     pass
 
 class Nova(object):
@@ -205,6 +211,8 @@ vif_plugging_timeout=0
 
 if __name__ == '__main__':
     print 'hello openstack-icehouse:compute============'
+    Prerequisites.prepare()
+    
     Nova.install()
     print '#######'
     pass

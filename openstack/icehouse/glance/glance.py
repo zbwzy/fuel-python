@@ -47,6 +47,18 @@ class Prerequisites(object):
         Constructor
         '''
         pass
+    
+    @staticmethod
+    def prepare():
+        cmd = 'yum install openstack-utils -y'
+        ShellCmdExecutor.execCmd(cmd)
+        
+        cmd = 'yum install openstack-selinux -y'
+        ShellCmdExecutor.execCmd(cmd)
+        
+        cmd = 'yum install python-openstackclient -y'
+        ShellCmdExecutor.execCmd(cmd)
+        pass
     pass
 
 class Glance(object):
@@ -111,6 +123,7 @@ class Glance(object):
     def configConfFile():
         print "configure glance conf file======"
         mysql_vip = JSONUtility.getValue("mysql_vip")
+        mysql_password = JSONUtility.getValue("mysql_password")
         glance_vip = JSONUtility.getValue("glance_vip")
         print "glance_vip=%s" % glance_vip
         glance_ips = JSONUtility.getValue("glance_ips")
@@ -135,28 +148,37 @@ class Glance(object):
             pass
         
         if os.path.exists(glance_registry_conf_file_path) :
+            print 'tttttttt====='
+            print 'glance_registry_conf_file_path=%s' % glance_registry_conf_file_path
             os.system("sudo rm -rf %s" % glance_registry_conf_file_path)
             pass
         
         os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
         os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
         
+        ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
+        ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
         localIP = output.strip()
         print 'localip=%s--' % localIP
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<LOCAL_IP>', localIP)
-        FileUtil.replaceByRegularExpression(glance_registry_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(glance_registry_conf_file_path, '<LOCAL_IP>', localIP)
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceByRegularExpression(glance_registry_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(glance_registry_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceByRegularExpression(glance_registry_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(glance_registry_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(glance_registry_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
-        FileUtil.replaceByRegularExpression(glance_api_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        
+        ShellCmdExecutor.execCmd('sudo chmod 644 %s' % glance_api_conf_file_path)
+        ShellCmdExecutor.execCmd('sudo chmod 644 %s' % glance_registry_conf_file_path)
         pass
     pass
 
@@ -172,22 +194,57 @@ class GlanceHA(object):
         pass
     
     @staticmethod
+    def isKeepalivedInstalled():
+        KEEPALIVED_CONF_FILE_PATH = '/etc/keepalived/keepalived.conf'
+        if os.path.exists(KEEPALIVED_CONF_FILE_PATH) :
+            return True
+        else :
+            return False
+        
+    @staticmethod
+    def isHAProxyInstalled():
+        HAPROXY_CONF_FILE_PATH = '/etc/haproxy/haproxy.cfg'
+        if os.path.exists(HAPROXY_CONF_FILE_PATH) :
+            return True
+        else :
+            return False
+        
+    @staticmethod
     def install():
         if debug == True :
             print "DEBUG is True.On local dev env, do test==="
             yumCmd = "ls -lt"
+            ShellCmdExecutor.execCmd(yumCmd)
             pass
         else :
-            yumCmd = "yum install keepalived haproxy -y"
+            if not GlanceHA.isKeepalivedInstalled() :
+                keepalivedInstallCmd = "yum install keepalived -y"
+                ShellCmdExecutor.execCmd(keepalivedInstallCmd)
+                pass
+            
+            if not GlanceHA.isHAProxyInstalled() :
+                haproxyInstallCmd = 'yum install haproxy -y'
+                ShellCmdExecutor.execCmd(haproxyInstallCmd)
+                
+                #prepare haproxy conf file template
+                openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+                haproxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
+                haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
+                print 'haproxyTemplateFilePath=%s' % haproxyTemplateFilePath
+                print 'haproxyConfFilePath=%s' % haproxyConfFilePath
+                if not os.path.exists('/etc/haproxy') :
+                    ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
+                    pass
+                
+                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                pass
             pass
-        
-        ShellCmdExecutor.execCmd(yumCmd)    
         pass
     
     @staticmethod
     def configure():
         GlanceHA.configureHAProxy()
-        GlanceHA.configureKeepalived()
+#         GlanceHA.configureKeepalived()
         pass
     
     @staticmethod
@@ -197,17 +254,36 @@ class GlanceHA(object):
         glance_vip = JSONUtility.getValue("glance_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        glanceHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'haproxy.cfg')
+        glanceHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
         haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
         print 'haproxyConfFilePath=%s' % haproxyConfFilePath
         if not os.path.exists('/etc/haproxy') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (glanceHAProxyTemplateFilePath, haproxyConfFilePath))
+        if not os.path.exists(haproxyConfFilePath) :
+            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (glanceHAProxyTemplateFilePath, haproxyConfFilePath))
+            pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
+        #####
+        glanceFrontendStringTemplate = '''
+frontend glance-vip
+    bind <GLANCE_VIP>:9292
+    default_backend glance-api
+
+frontend glance-registry-vip
+    bind <GLANCE_REGISTRY_VIP>:9191
+    default_backend glance-registry-api
+        '''
+        
+        glanceFrontendString = glanceFrontendStringTemplate.replace('<GLANCE_VIP>', glance_vip)
+        glanceFrontendString = glanceFrontendString.replace('<GLANCE_REGISTRY_VIP>', glance_vip)
+        
+        print 'glanceFrontendString=%s--' % glanceFrontendString
+        
+        #####
         glance_ips = JSONUtility.getValue("glance_ips")
         glance_ip_list = glance_ips.strip().split(',')
         
@@ -237,12 +313,32 @@ class GlanceHA(object):
         print 'glanceRegistryAPIServerListContent=%s--' % glanceRegistryAPIServerListContent
         print 'glanceAPIServerListContent=%s--' % glanceAPIServerListContent
         
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
+        glanceBackendRegistryApiStringTemplate = '''
+backend glance-registry-api
+    balance roundrobin
+    <GLANCE_REGISTRY_API_SERVER_LIST>
+        '''
+        
+        glanceBackendApiStringTemplate = '''
+backend glance-api
+    balance roundrobin
+    <GLANCE_API_SERVER_LIST>
+        '''
+        
+        glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate.replace('<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
+        
+        glanceBackendApiString = glanceBackendApiStringTemplate.replace('<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
+        #append
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceFrontendString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendRegistryApiString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendApiString, haproxyConfFilePath))
+        
+#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
+#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
         
         #Default: glance-api & glance-registry-api use the same vip
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_VIP>', glance_vip)
-        FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_VIP>', glance_vip)
+#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_VIP>', glance_vip)
+#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_VIP>', glance_vip)
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -351,6 +447,17 @@ if __name__ == '__main__':
         print "ERROR:no params."
         pass
     
+    INSTALL_TAG_FILE = '/opt/glance_installed'
+    
+    if os.path.exists(INSTALL_TAG_FILE) :
+        print 'glance installed####'
+        print 'exit===='
+        exit()
+        pass
+        
+    print 'start to install======='
+    
+    Prerequisites.prepare()
     #
     Glance.install()
     Glance.configConfFile()
@@ -360,6 +467,10 @@ if __name__ == '__main__':
     GlanceHA.install()
     GlanceHA.configure()
     GlanceHA.start()
+    
+    #mark: glance is installed
+    os.system('touch %s' % INSTALL_TAG_FILE)
+    
     print 'hello openstack-icehouse:glance#######'
     pass
 

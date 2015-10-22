@@ -18,12 +18,12 @@ frontend keystone-public-vip
 
 backend keystone-admin-api
     balance roundrobin
-    <KEYSTONE_ADMIN_API_SERVER_LIST>
+    server keystone-01 192.168.147.5:35357 check inter 10s
+    server keystone-02 192.168.147.6:35357 check inter 10s
 
 backend keystone-public-api
     balance roundrobin
-    <KEYSTONE_PUBLIC_API_SERVER_LIST>
-    
-    
+    server keystone-01 192.168.147.5:5000 check inter 10s
+    server keystone-02 192.168.147.6:5000 check inter 10s
     
     

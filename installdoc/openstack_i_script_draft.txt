@@ -182,7 +182,7 @@ flavor=keystone
 
 8).Create glance service & endpoint on keystone:
 
- keystone service-create --name=glance --type=image --description="OpenStack Image Service" 
+keystone service-create --name=glance --type=image --description="OpenStack Image Service" 
 keystone endpoint-create --service-id=$(keystone service-list | awk '/ image / {print $2}') --publicurl=http://controller:9292  --internalurl=http://controller:9292  --adminurl=http://controller:9292
 
 9).restart glance service & and chkconfig
@@ -210,7 +210,7 @@ glance image-list
 Install Nova- on Controller Node
 1).yum install rpm package:
 
-yum install openstack-nova-api openstack-nova-cert openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient
+yum install openstack-nova-api openstack-nova-cert openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient -y
 
 2).modify nova.conf:
 

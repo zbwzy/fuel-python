@@ -1,14 +1,24 @@
 {
-    "mysql_vip": "192.168.11.128",
+    "mysql_vip": "192.168.11.100",
+    "mysql_password": "123456",
     "rabbit_host": "192.168.11.128",
     "keystone_vip": "192.168.11.100",
     "keystone_ips": "192.168.11.128,192.168.11.129",
+    "keystone_admin_email" : "zhangbai_2004@163.com",
     "glance_vip" : "192.168.11.100",
     "glance_ips": "192.168.11.128,192.168.11.129",
     "nova_vip" : "192.168.11.100",
     "nova_ips": "192.168.11.128,192.168.11.129",
+    "nova_vip_interface" : "eth0",
     "glance_vip_interface" : "eth0",
     "keystone_vip_interface" : "eth0",
-    "nova_vip_interface" : "eth0"
-    
+    "rabbit_hosts": "192.168.11.128:5672",
+    "rabbit_userid": "guest",
+    "rabbit_password": "123456",
+    "virt_type": "qemu",
+    "controller_vip": "192.168.11.100",
+    "nova_api_vip" : "192.168.11.100",
+    "nova_api_ips": "192.168.11.128,192.168.11.129",
+    "nova_api_vip_interface" : "eth0",
+    "neutron-server-vip": "192.168.11.100"
 }
