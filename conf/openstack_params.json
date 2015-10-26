@@ -5,7 +5,7 @@
     "keystone_vip": "192.168.11.100",
     "keystone_ips": "192.168.11.131,192.168.11.132",
     "keystone_admin_email" : "zhangbai_2004@163.com",
-    "glance_vip" : "192.168.11.131",
+    "glance_vip" : "192.168.11.100",
     "glance_ips": "192.168.11.131,192.168.11.132",
     "glance_admin_email": "zhangbai_2004@163.com",
     "nova_vip" : "192.168.11.131",
