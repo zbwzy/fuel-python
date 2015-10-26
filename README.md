@@ -23,5 +23,10 @@ init openstack params, and the parameters are put into /etc/puppet/openstack_con
     
 }
 
+4).For each component python script:
+debug = False
+
+5).Prepare local ip on localhost:
+/etc/puppet/localip
 
 

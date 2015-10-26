@@ -45,6 +45,8 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        Network.Prepare()
+        
         cmd = 'yum install openstack-utils -y'
         ShellCmdExecutor.execCmd(cmd)
         
@@ -55,6 +57,31 @@ class Prerequisites(object):
         ShellCmdExecutor.execCmd(cmd)
         pass
     pass
+
+class Network(object):
+    '''
+    classdocs
+    '''
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def Prepare():
+        Network.stopIPTables()
+        Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopNetworkManager():
+        stopCmd = "service NetworkManager stop"
+        chkconfigOffCmd = "chkconfig NetworkManager off"
+        
+        ShellCmdExecutor.execCmd(stopCmd)
+        ShellCmdExecutor.execCmd(chkconfigOffCmd)
+        pass
 
 
 class Nova(object):
@@ -169,6 +196,7 @@ admin_password=123456
         mysql_vip = JSONUtility.getValue("mysql_vip")
         mysql_password = JSONUtility.getValue("mysql_password")
         
+        rabbit_host = JSONUtility.getValue("rabbit_host")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
@@ -214,9 +242,13 @@ admin_password=123456
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOST>', rabbit_host)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        
+        ######rabbitmq cluster
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         

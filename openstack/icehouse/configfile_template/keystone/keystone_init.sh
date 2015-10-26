@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo 'start to init keystone db====='
+
 ## configure env var
 export OS_SERVICE_TOKEN=123456
 export OS_SERVICE_ENDPOINT=http://<LOCAL_IP>:35357/v2.0
@@ -7,6 +9,7 @@ export OS_SERVICE_ENDPOINT=http://<LOCAL_IP>:35357/v2.0
 ## create an admin user
 keystone user-create --name=admin --pass=123456 --email=<KEYSTONE_ADMIN_EMAIL>
 keystone role-create --name=admin
+keystone role-create --name=_member_
 keystone tenant-create --name=admin --description="Admin Tenant"
 keystone user-role-add --user=admin --tenant=admin --role=admin
 keystone user-role-add --user=admin --role=_member_ --tenant=admin
@@ -22,6 +25,6 @@ keystone tenant-create --name=service --description="Service Tenant"
 
 ##	create keystone users,services & endpoint
 keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
-keystone endpoint-create --service-id=$(keystone service-list | awk '/ identity / {print $2}') --publicurl=http://<KEYSTONE_VIP>:5000/v2.0 --internalurl=http://<KEYSTONE_VIP>:5000/v2.0 --adminurl=http://<LOCAL_IP>:35357/v2.0
+keystone endpoint-create --service-id=$(keystone service-list | awk '/ identity / {print $2}') --publicurl=http://<KEYSTONE_VIP>:5000/v2.0 --internalurl=http://<KEYSTONE_VIP>:5000/v2.0 --adminurl=http://<KEYSTONE_VIP>:35357/v2.0
 
-echo 'init keystone done####'
+echo 'init keystone db done####'

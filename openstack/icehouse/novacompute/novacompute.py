@@ -45,6 +45,8 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        Network.Prepare()
+        
         cmd = 'yum install openstack-utils -y'
         ShellCmdExecutor.execCmd(cmd)
         
@@ -56,6 +58,30 @@ class Prerequisites(object):
         pass
     pass
 
+class Network(object):
+    '''
+    classdocs
+    '''
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def Prepare():
+        Network.stopIPTables()
+        Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopNetworkManager():
+        stopCmd = "service NetworkManager stop"
+        chkconfigOffCmd = "chkconfig NetworkManager off"
+        
+        ShellCmdExecutor.execCmd(stopCmd)
+        ShellCmdExecutor.execCmd(chkconfigOffCmd)
+        pass
 
 class NovaCompute(object):
     '''

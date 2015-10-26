@@ -50,6 +50,8 @@ class Prerequisites(object):
     
     @staticmethod
     def prepare():
+        Network.Prepare()
+        
         cmd = 'yum install openstack-utils -y'
         ShellCmdExecutor.execCmd(cmd)
         
@@ -60,6 +62,37 @@ class Prerequisites(object):
         ShellCmdExecutor.execCmd(cmd)
         pass
     pass
+
+class Network(object):
+    '''
+    classdocs
+    '''
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def Prepare():
+        Network.stopIPTables()
+        Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
+        pass
+    
+    @staticmethod
+    def stopNetworkManager():
+        stopCmd = "service NetworkManager stop"
+        chkconfigOffCmd = "chkconfig NetworkManager off"
+        
+        ShellCmdExecutor.execCmd(stopCmd)
+        ShellCmdExecutor.execCmd(chkconfigOffCmd)
+        pass
 
 class Glance(object):
     '''
@@ -287,8 +320,29 @@ frontend glance-registry-vip
         glance_ips = JSONUtility.getValue("glance_ips")
         glance_ip_list = glance_ips.strip().split(',')
         
-        serverGlanceRegistryAPIBackendTemplate = 'server glance-<INDEX> <SERVER_IP>:9191 check inter 10s'
-        serverGlanceAPIBackendTemplate         = 'server glance-<INDEX> <SERVER_IP>:9292 check inter 10s'
+        ###############NEW
+        glanceBackendApiStringTemplate = '''
+listen glance_api_cluster
+  bind <GLANCE_VIP>:9292
+  balance source
+  <GLANCE_API_SERVER_LIST>
+  '''
+        glanceBackendRegistryApiStringTemplate = '''
+listen glance_registry_cluster
+  bind <GLANCE_VIP>:9191
+  balance source
+  <GLANCE_REGISTRY_API_SERVER_LIST>
+        '''
+        
+        glanceBackendApiString = glanceBackendApiStringTemplate.strip()
+        glanceBackendApiString = glanceBackendApiString.replace('<GLANCE_VIP>', glance_vip)
+        
+        glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate.strip()
+        glanceBackendRegistryApiString = glanceBackendRegistryApiString.replace('<GLANCE_VIP>', glance_vip)
+        ###############
+        
+        serverGlanceRegistryAPIBackendTemplate = 'server glance-<INDEX> <SERVER_IP>:9191 check inter 2000 rise 2 fall 5'
+        serverGlanceAPIBackendTemplate         = 'server glance-<INDEX> <SERVER_IP>:9292 check inter 2000 rise 2 fall 5'
         
         glanceRegistryAPIServerListContent = ''
         glanceAPIServerListContent = ''
@@ -300,10 +354,10 @@ frontend glance-registry-vip
             glanceAPIServerListContent += serverGlanceAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', glance_ip)
             
             glanceRegistryAPIServerListContent += '\n'
-            glanceRegistryAPIServerListContent += '    '
+            glanceRegistryAPIServerListContent += '  '
             
             glanceAPIServerListContent += '\n'
-            glanceAPIServerListContent += '    '
+            glanceAPIServerListContent += '  '
             
             index += 1
             pass
@@ -319,7 +373,7 @@ backend glance-registry-api
     <GLANCE_REGISTRY_API_SERVER_LIST>
         '''
         
-        glanceBackendApiStringTemplate = '''
+        glanceBackendApiString = '''
 backend glance-api
     balance roundrobin
     <GLANCE_API_SERVER_LIST>

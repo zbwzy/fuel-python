@@ -49,6 +49,8 @@ class Prerequisites(object):
     
     @staticmethod
     def prepare():
+        Network.Prepare()
+        
         cmd = 'yum install openstack-utils -y'
         ShellCmdExecutor.execCmd(cmd)
         
@@ -59,6 +61,37 @@ class Prerequisites(object):
         ShellCmdExecutor.execCmd(cmd)
         pass
     pass
+
+class Network(object):
+    '''
+    classdocs
+    '''
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def Prepare():
+        Network.stopIPTables()
+        Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
+        pass
+    
+    @staticmethod
+    def stopNetworkManager():
+        stopCmd = "service NetworkManager stop"
+        chkconfigOffCmd = "chkconfig NetworkManager off"
+        
+        ShellCmdExecutor.execCmd(stopCmd)
+        ShellCmdExecutor.execCmd(chkconfigOffCmd)
+        pass
 
 class Keystone(object):
     '''
@@ -122,9 +155,11 @@ class Keystone(object):
     
     @staticmethod
     def supportPKIToken():
-        cmd1 = 'keystone-manage pki_setup --keystone-user keystone --keystone-group keystone'
+        cmd0 = 'keystone-manage pki_setup --keystone-user keystone --keystone-group keystone'
+        cmd1 = 'chown -R keystone:keystone /var/log/keystone'
         cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
         cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'
+        ShellCmdExecutor.execCmd(cmd0)
         ShellCmdExecutor.execCmd(cmd1)
         ShellCmdExecutor.execCmd(cmd2)
         ShellCmdExecutor.execCmd(cmd3)
@@ -144,15 +179,22 @@ class Keystone(object):
         keystoneInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keystone_init.sh')
         print 'keystoneInitScriptPath=%s' % keystoneInitScriptPath
 #         os.system('bash %s' % keystoneInitScriptPath)
+
+        if os.path.exists('/opt/keystone_init.sh') :
+            ShellCmdExecutor.execCmd('sudo rm -rf /opt/keystone_init.sh')
+            pass
         
         ShellCmdExecutor.execCmd('cp -rf %s /opt/' % keystoneInitScriptPath)
+        
+        localIP = Keystone.getLocalIP()
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
         
         keystoneAdminEmail = JSONUtility.getValue("keystone_admin_email")
         print 'keystoneAdminEmail=%s' % keystoneAdminEmail
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_ADMIN_EMAIL>', keystoneAdminEmail)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_IP>', keystone_vip)
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
         pass
         ##
