@@ -277,13 +277,12 @@ class GlanceHA(object):
     @staticmethod
     def configure():
         GlanceHA.configureHAProxy()
-#         GlanceHA.configureKeepalived()
+        GlanceHA.configureKeepalived()
         pass
     
     @staticmethod
     def configureHAProxy():
         ####################configure haproxy
-        #server glance-01 192.168.1.137:9191 check inter 10s
         glance_vip = JSONUtility.getValue("glance_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -300,27 +299,9 @@ class GlanceHA(object):
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
-        #####
-        glanceFrontendStringTemplate = '''
-frontend glance-vip
-    bind <GLANCE_VIP>:9292
-    default_backend glance-api
-
-frontend glance-registry-vip
-    bind <GLANCE_REGISTRY_VIP>:9191
-    default_backend glance-registry-api
-        '''
-        
-        glanceFrontendString = glanceFrontendStringTemplate.replace('<GLANCE_VIP>', glance_vip)
-        glanceFrontendString = glanceFrontendString.replace('<GLANCE_REGISTRY_VIP>', glance_vip)
-        
-        print 'glanceFrontendString=%s--' % glanceFrontendString
-        
-        #####
         glance_ips = JSONUtility.getValue("glance_ips")
         glance_ip_list = glance_ips.strip().split(',')
         
-        ###############NEW
         glanceBackendApiStringTemplate = '''
 listen glance_api_cluster
   bind <GLANCE_VIP>:9292
@@ -334,11 +315,9 @@ listen glance_registry_cluster
   <GLANCE_REGISTRY_API_SERVER_LIST>
         '''
         
-        glanceBackendApiString = glanceBackendApiStringTemplate.strip()
-        glanceBackendApiString = glanceBackendApiString.replace('<GLANCE_VIP>', glance_vip)
+        glanceBackendApiString = glanceBackendApiStringTemplate.replace('<GLANCE_VIP>', glance_vip)
         
-        glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate.strip()
-        glanceBackendRegistryApiString = glanceBackendRegistryApiString.replace('<GLANCE_VIP>', glance_vip)
+        glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate.replace('<GLANCE_VIP>', glance_vip)
         ###############
         
         serverGlanceRegistryAPIBackendTemplate = 'server glance-<INDEX> <SERVER_IP>:9191 check inter 2000 rise 2 fall 5'
@@ -367,23 +346,10 @@ listen glance_registry_cluster
         print 'glanceRegistryAPIServerListContent=%s--' % glanceRegistryAPIServerListContent
         print 'glanceAPIServerListContent=%s--' % glanceAPIServerListContent
         
-        glanceBackendRegistryApiStringTemplate = '''
-backend glance-registry-api
-    balance roundrobin
-    <GLANCE_REGISTRY_API_SERVER_LIST>
-        '''
+        glanceBackendRegistryApiString = glanceBackendRegistryApiString.replace('<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
         
-        glanceBackendApiString = '''
-backend glance-api
-    balance roundrobin
-    <GLANCE_API_SERVER_LIST>
-        '''
-        
-        glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate.replace('<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
-        
-        glanceBackendApiString = glanceBackendApiStringTemplate.replace('<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
+        glanceBackendApiString = glanceBackendApiString.replace('<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceFrontendString, haproxyConfFilePath))
         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendRegistryApiString, haproxyConfFilePath))
         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendApiString, haproxyConfFilePath))
         
@@ -513,14 +479,14 @@ if __name__ == '__main__':
     
     Prerequisites.prepare()
     #
-    Glance.install()
-    Glance.configConfFile()
-    Glance.start()
+#     Glance.install()
+#     Glance.configConfFile()
+#     Glance.start()
     
     #add HA
     GlanceHA.install()
     GlanceHA.configure()
-    GlanceHA.start()
+#     GlanceHA.start()
     
     #mark: glance is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
