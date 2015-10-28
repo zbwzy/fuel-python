@@ -227,6 +227,87 @@ class GlanceHA(object):
         pass
     
     @staticmethod
+    def isExistVIP(vip, interface):
+        cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == None or output == '':
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        
+        if debug == True :
+            output = '''
+            xxxx
+            inet 192.168.11.100/32 scope global eth0
+            xxxx
+            '''
+            pass
+        
+        newString = vip + '/'
+        if newString in output :
+            print 'exist vip %s on interface %s.' % (vip, interface)
+            return True
+        else :
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        pass
+    
+    #return value: 192.168.11.100/32
+    @staticmethod
+    def getVIPFormatString(vip, interface):
+        vipFormatString = ''
+        if GlanceHA.isExistVIP(vip, interface) :
+            print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
+            cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+            output, exitcode = ShellCmdExecutor.execCmd(cmd)
+            vipFormatString = output.strip()
+            if debug == True :
+                fakeVIPFormatString = 'inet 192.168.11.100/32 scope global eth0'
+                vipFormatString = fakeVIPFormatString
+                pass
+            
+            result = vipFormatString.split(' ')[1]
+            pass
+        else :
+            #construct vip format string
+            print 'getVIPFormatString====do not exist vip %s on interface %s, to construct vip format string' % (vip, interface) 
+            vipFormatString = '{vip}/32'.format(vip=vip)
+            print 'vipFormatString=%s--' % vipFormatString
+            result = vipFormatString
+            pass
+        
+        return result
+    
+    @staticmethod
+    def addVIP(vip, interface):
+        result = GlanceHA.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if not GlanceHA.isExistVIP(vip, interface) :
+            print 'NOT exist vip %s on interface %s.' % (vip, interface)
+            addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'addVIPCmd=%s--' % addVIPCmd
+            ShellCmdExecutor.execCmd(addVIPCmd)
+            pass
+        else :
+            print 'The VIP %s already exists on interface %s.' % (vip, interface)
+            pass
+        pass
+    
+    @staticmethod
+    def deleteVIP(vip, interface):
+        result = GlanceHA.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if GlanceHA.isExistVIP(vip, interface) :
+            deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'deleteVIPCmd=%s--' % deleteVIPCmd
+            ShellCmdExecutor.execCmd(deleteVIPCmd)
+            pass
+        else :
+            print 'The VIP %s does not exist on interface %s.' % (vip, interface)
+            pass
+        pass
+    
+    @staticmethod
     def isKeepalivedInstalled():
         KEEPALIVED_CONF_FILE_PATH = '/etc/keepalived/keepalived.conf'
         if os.path.exists(KEEPALIVED_CONF_FILE_PATH) :
@@ -367,7 +448,7 @@ listen glance_registry_cluster
     def configureKeepalived():
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         ###################configure keepalived
-        glanceKeepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'keepalived.conf')
+        glanceKeepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keepalived.conf')
         keepalivedConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEEPALIVED_CONF_FILE_PATH')
         print 'keepalivedConfFilePath=%s' % keepalivedConfFilePath
         if not os.path.exists('/etc/keepalived') :
@@ -378,7 +459,10 @@ listen glance_registry_cluster
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
         print 'checkHAProxyScriptPath=%s===========================---' % checkHAProxyScriptPath
         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
-        
+        if os.path.exists(keepalivedConfFilePath) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
+            pass
+            
         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (glanceKeepalivedTemplateFilePath, keepalivedConfFilePath))
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keepalivedConfFilePath)
@@ -414,15 +498,17 @@ vrrp_instance 42 {
         #Refactor later
         GLANCE_WEIGHT = 300
         if GLANCE_WEIGHT == 300 : #This is MASTER
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_INDEX>', '1')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_WEIGHT>', '300')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_STATE>', 'MASTER')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', '300')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', 'MASTER')
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', glance_vip_interface)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', glance_vip)
         else :
             #
             #
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<GLANCE_STATE>', 'SLAVE')
+            index = 300 - GLANCE_WEIGHT
+            state = 'SLAVE' + str(index)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(GLANCE_WEIGHT))
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', glance_vip_interface)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', glance_vip)
             pass
@@ -467,6 +553,14 @@ if __name__ == '__main__':
         print "ERROR:no params."
         pass
     
+    print 'test exist VIP============================'
+    print 'existVIP=%s' % GlanceHA.isExistVIP('192.168.11.100', 'eth0')
+    
+    print 'test add VIP=============================='
+    GlanceHA.addVIP('192.168.11.100', 'eth0')
+    print 'test delete VIP==========================='
+    GlanceHA.deleteVIP('192.168.11.100', 'eth0')
+    
     INSTALL_TAG_FILE = '/opt/glance_installed'
     
     if os.path.exists(INSTALL_TAG_FILE) :
@@ -482,12 +576,12 @@ if __name__ == '__main__':
 #     Glance.install()
 #     Glance.configConfFile()
 #     Glance.start()
-    
-    #add HA
-    GlanceHA.install()
-    GlanceHA.configure()
+#      
+#     #add HA
+#     GlanceHA.install()
+#     GlanceHA.configure()
 #     GlanceHA.start()
-    
+#     
     #mark: glance is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     
