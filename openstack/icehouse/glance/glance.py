@@ -202,6 +202,7 @@ class Glance(object):
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<LOCAL_IP>', localIP)
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<LOCAL_IP>', localIP)
         
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<GLANCE_VIP>', glance_vip)
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<GLANCE_VIP>', glance_vip)
         
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
