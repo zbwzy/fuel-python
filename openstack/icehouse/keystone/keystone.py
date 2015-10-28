@@ -206,7 +206,8 @@ class Keystone(object):
         
         ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
         
-        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<LOCAL_IP>', Keystone.getLocalIP())
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
         time.sleep(2)
         ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
         pass
@@ -262,7 +263,7 @@ class Keystone(object):
         print 'refactor later================'
         print 'get keystone weight=================='
         
-        return 300
+        return 299
     
     @staticmethod
     def isMasterNode():
@@ -282,6 +283,87 @@ class KeystoneHA(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def isExistVIP(vip, interface):
+        cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == None or output == '':
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        
+        if debug == True :
+            output = '''
+            xxxx
+            inet 192.168.11.100/32 scope global eth0
+            xxxx
+            '''
+            pass
+        
+        newString = vip + '/'
+        if newString in output :
+            print 'exist vip %s on interface %s.' % (vip, interface)
+            return True
+        else :
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        pass
+    
+    #return value: 192.168.11.100/32
+    @staticmethod
+    def getVIPFormatString(vip, interface):
+        vipFormatString = ''
+        if KeystoneHA.isExistVIP(vip, interface) :
+            print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
+            cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+            output, exitcode = ShellCmdExecutor.execCmd(cmd)
+            vipFormatString = output.strip()
+            if debug == True :
+                fakeVIPFormatString = 'inet 192.168.11.100/32 scope global eth0'
+                vipFormatString = fakeVIPFormatString
+                pass
+            
+            result = vipFormatString.split(' ')[1]
+            pass
+        else :
+            #construct vip format string
+            print 'getVIPFormatString====do not exist vip %s on interface %s, to construct vip format string' % (vip, interface) 
+            vipFormatString = '{vip}/32'.format(vip=vip)
+            print 'vipFormatString=%s--' % vipFormatString
+            result = vipFormatString
+            pass
+        
+        return result
+    
+    @staticmethod
+    def addVIP(vip, interface):
+        result = KeystoneHA.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if not KeystoneHA.isExistVIP(vip, interface) :
+            print 'NOT exist vip %s on interface %s.' % (vip, interface)
+            addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'addVIPCmd=%s--' % addVIPCmd
+            ShellCmdExecutor.execCmd(addVIPCmd)
+            pass
+        else :
+            print 'The VIP %s already exists on interface %s.' % (vip, interface)
+            pass
+        pass
+    
+    @staticmethod
+    def deleteVIP(vip, interface):
+        result = KeystoneHA.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if KeystoneHA.isExistVIP(vip, interface) :
+            deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'deleteVIPCmd=%s--' % deleteVIPCmd
+            ShellCmdExecutor.execCmd(deleteVIPCmd)
+            pass
+        else :
+            print 'The VIP %s does not exist on interface %s.' % (vip, interface)
+            pass
         pass
     
     @staticmethod
@@ -359,36 +441,27 @@ class KeystoneHA(object):
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
         ####
-        keystoneFrontendStringTemplate = '''
-frontend keystone-admin-vip
-    bind <KEYSTONE_VIP>:35357
-    default_backend keystone-admin-api
-
-frontend keystone-public-vip
-    bind <KEYSTONE_VIP>:5000
-    default_backend keystone-public-api
-'''
-        keystoneFrontendString = keystoneFrontendStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
-        print 'keystoneFrontendString=%s--' % keystoneFrontendString
+        ##############new
+        keystoneBackendAdminApiStringTemplate = '''
+listen keystone_admin_cluster
+  bind <KEYSTONE_VIP>:35357
+  balance source
+  <KEYSTONE_ADMIN_API_SERVER_LIST>
+  '''
+        keystoneBackendPublicApiStringTemplate = '''
+listen keystone_public_internal_cluster
+  bind <KEYSTONE_VIP>:5000
+  <KEYSTONE_PUBLIC_API_SERVER_LIST>
+  '''
+        keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
+        keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
         
-        ####
+        ################new
         keystone_ips = JSONUtility.getValue("keystone_ips")
         keystone_ip_list = keystone_ips.strip().split(',')
         
-        keystoneBackendAdminApiStringTemplate = '''
-backend keystone-admin-api
-    balance roundrobin
-    <KEYSTONE_ADMIN_API_SERVER_LIST>
-        '''
-        
-        keystoneBackendPublicApiStringTemplate = '''
-backend keystone-public-api
-    balance roundrobin
-    <KEYSTONE_PUBLIC_API_SERVER_LIST>
-        '''
-        
-        serverKeystoneAdminAPIBackendTemplate   = 'server keystone-<INDEX> <SERVER_IP>:35357 check inter 10s'
-        serverKeystonePublicAPIBackendTemplate  = 'server keystone-<INDEX> <SERVER_IP>:5000 check inter 10s'
+        serverKeystoneAdminAPIBackendTemplate   = 'server keystone-<INDEX> <SERVER_IP>:35357 check inter 2000 rise 2 fall 5'
+        serverKeystonePublicAPIBackendTemplate  = 'server keystone-<INDEX> <SERVER_IP>:5000 check inter 2000 rise 2 fall 5'
         
         keystoneAdminAPIServerListContent = ''
         keystonePublicAPIServerListContent = ''
@@ -400,10 +473,10 @@ backend keystone-public-api
             keystonePublicAPIServerListContent += serverKeystonePublicAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', keystone_ip)
             
             keystoneAdminAPIServerListContent += '\n'
-            keystoneAdminAPIServerListContent += '    '
+            keystoneAdminAPIServerListContent += '  '
             
             keystonePublicAPIServerListContent += '\n'
-            keystonePublicAPIServerListContent += '    '
+            keystonePublicAPIServerListContent += '  '
             index += 1
             pass
         
@@ -412,21 +485,15 @@ backend keystone-public-api
         print 'keystoneAdminAPIServerListContent=%s--' % keystoneAdminAPIServerListContent
         print 'keystonePublicAPIServerListContent=%s--' % keystonePublicAPIServerListContent
         
-        keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate.replace('<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
-        keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate.replace('<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
+        keystoneBackendAdminApiString = keystoneBackendAdminApiString.replace('<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
+        keystoneBackendPublicApiString = keystoneBackendPublicApiString.replace('<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
         
         print 'keystoneBackendAdminApiString=%s--' % keystoneBackendAdminApiString
         print 'keystoneBackendPublicApiString=%s--' % keystoneBackendPublicApiString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneFrontendString, haproxyConfFilePath))
         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendAdminApiString, haproxyConfFilePath))
         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendPublicApiString, haproxyConfFilePath))
-        
-#         FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
-#         FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
-#         
-#         FileUtil.replaceFileContent(haproxyConfFilePath, '<KEYSTONE_VIP>', keystone_vip)
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -435,7 +502,7 @@ backend keystone-public-api
     def configureKeepalived():
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         ###################configure keepalived
-        keepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keepalived.conf')
+        keepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keepalived.conf')
         keepalivedConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEEPALIVED_CONF_FILE_PATH')
         print 'keepalivedConfFilePath=%s' % keepalivedConfFilePath
         if not os.path.exists('/etc/keepalived') :
@@ -445,6 +512,9 @@ backend keystone-public-api
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+        if os.path.exists(keepalivedConfFilePath) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
+            pass
         
         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
@@ -483,17 +553,17 @@ vrrp_instance 42 {
         #Call ZooKeeper lock & counter services
         keystone_weight_counter = Keystone.getWeightCounter()
         if keystone_weight_counter == 300 : #This is MASTER
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', '1')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', '300')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'MASTER')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', '300')
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', 'MASTER')
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
         else :
-            index = 301 - keystone_weight_counter
-
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', str(index))
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', str(keystone_weight_counter))
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'SLAVE')
+            #
+            #
+            index = 300 - keystone_weight_counter
+            state = 'SLAVE' + str(index)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(keystone_weight_counter))
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
             pass
@@ -505,13 +575,49 @@ vrrp_instance 42 {
         pass
     
     @staticmethod
+    def isHAProxyRunning():
+        cmd = 'ps aux | grep haproxy | grep -v grep | wc -l'
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == '0' :
+            return False
+        else :
+            return True
+        
+    @staticmethod
+    def isKeepalivedRunning():
+        cmd = 'ps aux | grep keepalived | grep -v grep | wc -l'
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == '0' :
+            return False
+        else :
+            return True
+    
+    @staticmethod
     def start():
         if debug == True :
-            print "DEBUG=True.On local dev env, do test===="
             pass
         else :
-            ShellCmdExecutor.execCmd('service haproxy start')
-            ShellCmdExecutor.execCmd('service keepalived start')
+            keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
+            keystone_vip = JSONUtility.getValue("keystone_vip")
+            
+            KeystoneHA.addVIP(keystone_vip, keystone_vip_interface)
+            
+            if KeystoneHA.isHAProxyRunning() :
+                ShellCmdExecutor.execCmd('service haproxy restart')
+            else :
+                ShellCmdExecutor.execCmd('service haproxy start')
+                pass
+            
+            KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
+            
+            if KeystoneHA.isKeepalivedRunning() :
+                ShellCmdExecutor.execCmd('service keepalived restart')
+            else :
+                ShellCmdExecutor.execCmd('service keepalived start')
+                pass
+            pass
         pass
     
     @staticmethod
@@ -519,7 +625,6 @@ vrrp_instance 42 {
         ShellCmdExecutor.execCmd('service haproxy restart')
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
-    
 
 
 if __name__ == '__main__':
@@ -551,22 +656,21 @@ if __name__ == '__main__':
         
     print 'start to install======='
     Prerequisites.prepare()
-#     Keystone.install()
-#     Keystone.configConfFile()
-#          
+    Keystone.install()
+    Keystone.configConfFile()
+          
 #     if Keystone.isMasterNode()  == True :
 #         Keystone.importKeystoneDBSchema()
 #         Keystone.supportPKIToken()
 #         pass
-#          
-#     Keystone.start()
-#        
+          
+    Keystone.start()
+        
 #     if Keystone.isMasterNode() == True :
 #         Keystone.configureEnvVar()
 #         Keystone.initKeystone()
-#         Keystone.sourceAdminOpenRC()
 #         pass
-       
+    Keystone.sourceAdminOpenRC()
     #add HA
     KeystoneHA.install()
     KeystoneHA.configure()

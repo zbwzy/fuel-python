@@ -164,6 +164,8 @@ class Glance(object):
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         rabbit_host = JSONUtility.getValue("rabbit_host")
+        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_password = JSONUtility.getValue("rabbit_password")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         glanceConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'GLANCE_CONF_DIR')
@@ -200,6 +202,8 @@ class Glance(object):
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<LOCAL_IP>', localIP)
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<LOCAL_IP>', localIP)
         
+        FileUtil.replaceFileContent(glance_registry_conf_file_path, '<GLANCE_VIP>', glance_vip)
+        
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         
@@ -209,9 +213,24 @@ class Glance(object):
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % glance_registry_conf_file_path)
+        pass
+    
+    @staticmethod
+    def sourceAdminOpenRC():
+        adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
+        print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
+        
+        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
+        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
+        time.sleep(2)
+        ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
         pass
     pass
 
@@ -520,12 +539,49 @@ vrrp_instance 42 {
         pass
     
     @staticmethod
+    def isHAProxyRunning():
+        cmd = 'ps aux | grep haproxy | grep -v grep | wc -l'
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == '0' :
+            return False
+        else :
+            return True
+        
+    @staticmethod
+    def isKeepalivedRunning():
+        cmd = 'ps aux | grep keepalived | grep -v grep | wc -l'
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == '0' :
+            return False
+        else :
+            return True
+    
+    @staticmethod
     def start():
         if debug == True :
             pass
         else :
-            ShellCmdExecutor.execCmd('service haproxy start')
-            ShellCmdExecutor.execCmd('service keepalived start')
+            glance_vip_interface = JSONUtility.getValue("glance_vip_interface")
+            glance_vip = JSONUtility.getValue("glance_vip")
+            
+            GlanceHA.addVIP(glance_vip, glance_vip_interface)
+            
+            if GlanceHA.isHAProxyRunning() :
+                ShellCmdExecutor.execCmd('service haproxy restart')
+            else :
+                ShellCmdExecutor.execCmd('service haproxy start')
+                pass
+            
+            GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
+            
+            if GlanceHA.isKeepalivedRunning() :
+                ShellCmdExecutor.execCmd('service keepalived restart')
+            else :
+                ShellCmdExecutor.execCmd('service keepalived start')
+                pass
+            pass
         pass
     
     @staticmethod
@@ -533,7 +589,6 @@ vrrp_instance 42 {
         ShellCmdExecutor.execCmd('service haproxy restart')
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
-    
     
 if __name__ == '__main__':
     
@@ -553,13 +608,12 @@ if __name__ == '__main__':
         print "ERROR:no params."
         pass
     
-    print 'test exist VIP============================'
-    print 'existVIP=%s' % GlanceHA.isExistVIP('192.168.11.100', 'eth0')
-    
-    print 'test add VIP=============================='
-    GlanceHA.addVIP('192.168.11.100', 'eth0')
-    print 'test delete VIP==========================='
-    GlanceHA.deleteVIP('192.168.11.100', 'eth0')
+#     print 'test exist VIP============================'
+#     print 'existVIP=%s' % GlanceHA.isExistVIP('192.168.11.100', 'eth0')
+#     print 'test add VIP=============================='
+#     GlanceHA.addVIP('192.168.11.100', 'eth0')
+#     print 'test delete VIP==========================='
+#     GlanceHA.deleteVIP('192.168.11.100', 'eth0')
     
     INSTALL_TAG_FILE = '/opt/glance_installed'
     
@@ -574,14 +628,16 @@ if __name__ == '__main__':
     Prerequisites.prepare()
     #
 #     Glance.install()
-#     Glance.configConfFile()
-#     Glance.start()
-#      
-#     #add HA
-#     GlanceHA.install()
-#     GlanceHA.configure()
-#     GlanceHA.start()
-#     
+    Glance.configConfFile()
+    Glance.start()
+    
+    
+    Glance.sourceAdminOpenRC()
+    #add HA
+    GlanceHA.install()
+    GlanceHA.configure()
+    GlanceHA.start()
+     
     #mark: glance is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     

@@ -96,7 +96,7 @@ class Dashboard(object):
     @staticmethod
     def install():
         print 'Dashboard.install start===='
-        yumCmd = "yum install memcached python-memcached mod_wsgi openstack-dashboard"
+        yumCmd = "yum install openstack-dashboard httpd mod_wsgi memcached python-memcached -y"
         ShellCmdExecutor.execCmd(yumCmd)
         Dashboard.configConfFile()
         
