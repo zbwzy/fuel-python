@@ -98,13 +98,21 @@ class Dashboard(object):
         print 'Dashboard.install start===='
         yumCmd = "yum install openstack-dashboard httpd mod_wsgi memcached python-memcached -y"
         ShellCmdExecutor.execCmd(yumCmd)
+        print 'Dashboard.install done####'
+        pass
+    
+    @staticmethod
+    def configure():
         Dashboard.configConfFile()
         
         #assign network connect
         ShellCmdExecutor.execCmd("setsebool -P httpd_can_network_connect on")
-        Dashboard.start()
-        print 'Dashboard.install done####'
+        
+        #Due to a packaging bug, the dashboard CSS fails to load properly. 
+        #Run the following command to resolve this issue:
+        ShellCmdExecutor.execCmd("chown -R apache:apache /usr/share/openstack-dashboard/static")
         pass
+
     
     @staticmethod
     def start():
@@ -117,16 +125,24 @@ class Dashboard(object):
     
     @staticmethod
     def configConfFile():
-        '''
-CACHES = {
-'default': {
-'BACKEND' : 'django.core.cache.backends.memcached.MemcachedCache',
-'LOCATION' : '127.0.0.1:11211'
-}
-}
-ALLOWED_HOSTS = ['localhost','my-desktop','*','0.0.0.0']
-OPENSTACK_HOST = "controller"
-        '''
+        localSettingsFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'local_settings')
+        if os.path.exists(Dashboard.DASHBOARD_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Dashboard.DASHBOARD_CONF_FILE_PATH)
+            pass
+        
+        print 'localSettingsFileTemplatePath=%s--' % localSettingsFileTemplatePath
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (localSettingsFileTemplatePath, Dashboard.DASHBOARD_CONF_FILE_PATH))
+        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        
+        ShellCmdExecutor.execCmd('sudo chmod 777 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
+        FileUtil.replaceFileContent(Dashboard.DASHBOARD_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
+        ShellCmdExecutor.execCmd('sudo chmod 644 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
+        #Assign rights: can be accessed
+        DIR_PATH = '/usr/share/openstack-dashboard/openstack_dashboard/local'
+        if os.path.exists(DIR_PATH) :
+            ShellCmdExecutor.execCmd('sudo chmod 777 %s' % DIR_PATH)
+            pass
         pass
     pass
 
@@ -158,6 +174,8 @@ if __name__ == '__main__':
         pass
     
     Dashboard.install()
+    Dashboard.configure()
+    Dashboard.start()
     #
     #mark: nova-compute is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
