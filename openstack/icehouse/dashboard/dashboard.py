@@ -486,6 +486,8 @@ vrrp_instance 42 {
             dashboard_vip_interface = JSONUtility.getValue("dashboard_vip_interface")
             dashboard_vip = JSONUtility.getValue("dashboard_vip")
             
+            isExistVIP = DashboardHA.isExistVIP(dashboard_vip, dashboard_vip_interface)
+            
             DashboardHA.addVIP(dashboard_vip, dashboard_vip_interface)
             
             if DashboardHA.isHAProxyRunning() :
