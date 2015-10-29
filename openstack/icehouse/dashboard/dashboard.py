@@ -86,6 +86,7 @@ class Dashboard(object):
     classdocs
     '''
     DASHBOARD_CONF_FILE_PATH = "/etc/openstack-dashboard/local_settings"
+    HTTPD_CONF_FILE_PATH = '/etc/httpd/conf/httpd.conf'
     
     def __init__(self):
         '''
@@ -111,8 +112,9 @@ class Dashboard(object):
         #Due to a packaging bug, the dashboard CSS fails to load properly. 
         #Run the following command to resolve this issue:
         ShellCmdExecutor.execCmd("chown -R apache:apache /usr/share/openstack-dashboard/static")
+        
+        Dashboard.configHttpdConfFile()
         pass
-
     
     @staticmethod
     def start():
@@ -144,6 +146,16 @@ class Dashboard(object):
             ShellCmdExecutor.execCmd('sudo chmod 777 %s' % DIR_PATH)
             pass
         pass
+    
+    @staticmethod
+    def configHttpdConfFile():
+        httpdConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'httpd.conf')
+        if os.path.exists(Dashboard.HTTPD_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % Dashboard.HTTPD_CONF_FILE_PATH)
+            pass
+        
+        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (httpdConfFileTemplatePath, Dashboard.HTTPD_CONF_FILE_PATH))
+        pass
     pass
 
 
@@ -156,7 +168,6 @@ class DashboardHA(object):
         '''
         Constructor
         '''
-        DASHBOARD_CONF_FILE_PATH = '/etc/openstack-dashboard/local_settings'
         pass
     
     @staticmethod
@@ -325,9 +336,6 @@ listen  localhost <DASHBOARD_VIP>:80
   option  httpclose
   <DASHBOARD_SERVER_LIST>
   '''
-
-        
-        
         ###############
         dashboardBackendString = dashboardBackendStringTemplate.replace('<DASHBOARD_VIP>', dashboard_vip)
         
@@ -338,7 +346,7 @@ listen  localhost <DASHBOARD_VIP>:80
         
         dashboardServerListContent = ''
         index = 1
-        for dashboard_ip in dashboard_ips:
+        for dashboard_ip in dashboard_ip_list:
             print 'dashboard_ip=%s' % dashboard_ip
             dashboardServerListContent += serverDashboardBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', dashboard_ip)
             
