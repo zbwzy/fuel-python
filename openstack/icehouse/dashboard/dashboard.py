@@ -329,16 +329,26 @@ class DashboardHA(object):
         
         ####
         ##############new
+#         dashboardBackendStringTemplate = '''
+# listen  localhost <DASHBOARD_VIP>:80
+#   mode http
+#   stats   uri  /haproxy
+#   balance roundrobin
+#   cookie  JSESSIONID prefix
+#   stats   hide-version
+#   option  httpclose
+#   <DASHBOARD_SERVER_LIST>
+#   '''
+        
         dashboardBackendStringTemplate = '''
-listen  localhost <DASHBOARD_VIP>:80
-  mode http
-  stats   uri  /haproxy
-  balance roundrobin
-  cookie  JSESSIONID prefix
-  stats   hide-version
-  option  httpclose
+listen dashboard_cluster
+  bind <DASHBOARD_VIP>:80
+  balance source
+  option tcpka
+  option httpchk
+  option tcplog
   <DASHBOARD_SERVER_LIST>
-  '''
+        '''
         ###############
         dashboardBackendString = dashboardBackendStringTemplate.replace('<DASHBOARD_VIP>', dashboard_vip)
         
