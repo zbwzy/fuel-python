@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -628,10 +628,9 @@ if __name__ == '__main__':
     
     Prerequisites.prepare()
     #
-#     Glance.install()
+    Glance.install()
     Glance.configConfFile()
     Glance.start()
-    
     
     Glance.sourceAdminOpenRC()
     #add HA

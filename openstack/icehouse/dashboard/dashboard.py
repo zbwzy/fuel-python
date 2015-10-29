@@ -5,9 +5,12 @@ Created on Sep 29, 2015
 '''
 
 '''
+Note:
+Defaultly,on localhost, dashboard is listened on port 8080.
+
 usage:
 
-python nova.py
+python dashboard.py
 
 NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
@@ -15,7 +18,7 @@ import sys
 import os
 import time
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'

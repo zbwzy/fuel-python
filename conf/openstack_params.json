@@ -22,6 +22,9 @@
     "nova_api_ips": "192.168.11.131,192.168.11.132",
     "nova_api_vip_interface" : "eth0",
     "nova_admin_email": "zhangbai_2004@163.com",
+    "dashboard_vip": "192.168.11.100",
+    "dashboard_vip_interface": "eth0",
+    "dashboard_ips": "192.168.11.131,192.168.11.132",
     "neutron_admin_email": "zhangbai_2004@163.com",
     "neutron_server_vip": "192.168.11.131"
 }
