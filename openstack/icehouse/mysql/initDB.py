@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -252,9 +252,9 @@ class Keystone(object):
     @staticmethod
     def configureEnvVar():
         ShellCmdExecutor.execCmd('export OS_SERVICE_TOKEN=123456')
-        template_string = 'export OS_SERVICE_ENDPOINT=http://<LOCAL_IP>:35357/v2.0'
-        localIP = Keystone.getLocalIP()
-        cmd = template_string.replace('<LOCAL_IP>', localIP)
+        template_string = 'export OS_SERVICE_ENDPOINT=http://<KEYSTONE_VIP>:35357/v2.0'
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        cmd = template_string.replace('<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd(cmd)
         pass
     
@@ -289,7 +289,8 @@ class Keystone(object):
         
         ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
         
-        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<LOCAL_IP>', Keystone.getLocalIP())
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
         time.sleep(2)
         ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
         pass
@@ -307,14 +308,15 @@ class Keystone(object):
         keystone_conf_file_path = os.path.join(keystoneConfDir, 'keystone.conf')
         
         if not os.path.exists(keystoneConfDir) :
-            os.system("sudo mkdir -p %s" % keystoneConfDir)
+            ShellCmdExecutor.execCmd("sudo mkdir -p %s" % keystoneConfDir)
             pass
         #if exist, remove original conf files
         if os.path.exists(keystone_conf_file_path) :
-            os.system("sudo rm -rf %s" % keystone_conf_file_path)
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % keystone_conf_file_path)
             pass
         
-        os.system("sudo cp -rf %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
+        print 'vvvvvvvvvvvvvvvvvvvvvvv=%s----' % SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH
+        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
@@ -435,21 +437,21 @@ class Glance(object):
         glance_registry_conf_file_path = os.path.join(glanceConfDir, 'glance-registry.conf')
         
         if not os.path.exists(glanceConfDir) :
-            os.system("sudo mkdir -p %s" % glanceConfDir)
+            ShellCmdExecutor.execCmd("sudo mkdir -p %s" % glanceConfDir)
             pass
         #if exist, remove original conf files
         if os.path.exists(glance_api_conf_file_path) :
-            os.system("sudo rm -rf %s" % glance_api_conf_file_path)
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % glance_api_conf_file_path)
             pass
         
         if os.path.exists(glance_registry_conf_file_path) :
             print 'tttttttt====='
             print 'glance_registry_conf_file_path=%s' % glance_registry_conf_file_path
-            os.system("sudo rm -rf %s" % glance_registry_conf_file_path)
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % glance_registry_conf_file_path)
             pass
         
-        os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
-        os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
@@ -822,28 +824,28 @@ if __name__ == '__main__':
     MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
 #     
 #     ########
-#     Keystone.install()
-#     Keystone.configConfFile()
-#     
-#     Keystone.importKeystoneDBSchema()
-#     Keystone.supportPKIToken()
-#            
-#     Keystone.start()
-#          
-#     Keystone.configureEnvVar()
-#     Keystone.initKeystone()
-#     Keystone.sourceAdminOpenRC()
-#     
-#     ###glance
-#     Glance.install()
-#     Glance.configConfFile()
-#     Glance.initGlance()
-#     
-#     ##nova
-#     Nova.install()
-#     Nova.configConfFile()
-#     Nova.initNova()
-    
+    Keystone.install()
+    Keystone.configConfFile()
+     
+    Keystone.importKeystoneDBSchema()
+    Keystone.supportPKIToken()
+             
+    Keystone.start()
+           
+    Keystone.configureEnvVar()
+    Keystone.initKeystone()
+    Keystone.sourceAdminOpenRC()
+      
+    ###glance
+    Glance.install()
+    Glance.configConfFile()
+    Glance.initGlance()
+      
+    ##nova
+    Nova.install()
+    Nova.configConfFile()
+    Nova.initNova()
+     
     ##neutron
     Neutron.initNeutron()
     

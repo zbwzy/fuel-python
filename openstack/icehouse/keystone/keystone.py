@@ -168,9 +168,9 @@ class Keystone(object):
     @staticmethod
     def configureEnvVar():
         ShellCmdExecutor.execCmd('export OS_SERVICE_TOKEN=123456')
-        template_string = 'export OS_SERVICE_ENDPOINT=http://<LOCAL_IP>:35357/v2.0'
-        localIP = Keystone.getLocalIP()
-        cmd = template_string.replace('<LOCAL_IP>', localIP)
+        template_string = 'export OS_SERVICE_ENDPOINT=http://<KEYSTONE_VIP>:35357/v2.0'
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        cmd = template_string.replace('<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd(cmd)
         pass
     
