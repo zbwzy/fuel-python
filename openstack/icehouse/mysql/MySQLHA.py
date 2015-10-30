@@ -1,16 +1,13 @@
 '''
-Created on Sep 29, 2015
+Created on Aug 26, 2015
 
 @author: zhangbai
 '''
 
 '''
-Note:
-Defaultly,on localhost, dashboard is listened on port 8080.
-
 usage:
 
-python dashboard.py
+python keystone.py
 
 NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
@@ -30,7 +27,7 @@ else :
 
 OPENSTACK_VERSION_TAG = 'icehouse'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
-SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
+SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone.conf')
 
 sys.path.append(PROJ_HOME_DIR)
 
@@ -48,6 +45,12 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
+        Network.Prepare()
+        
         cmd = 'yum install openstack-utils -y'
         ShellCmdExecutor.execCmd(cmd)
         
@@ -76,6 +79,12 @@ class Network(object):
         pass
     
     @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
+        pass
+    
+    @staticmethod
     def stopNetworkManager():
         stopCmd = "service NetworkManager stop"
         chkconfigOffCmd = "chkconfig NetworkManager off"
@@ -84,12 +93,10 @@ class Network(object):
         ShellCmdExecutor.execCmd(chkconfigOffCmd)
         pass
 
-class Dashboard(object):
+class Keystone(object):
     '''
     classdocs
     '''
-    DASHBOARD_CONF_FILE_PATH = "/etc/openstack-dashboard/local_settings"
-    HTTPD_CONF_FILE_PATH = '/etc/httpd/conf/httpd.conf'
     
     def __init__(self):
         '''
@@ -99,70 +106,175 @@ class Dashboard(object):
     
     @staticmethod
     def install():
-        print 'Dashboard.install start===='
-        yumCmd = "yum install openstack-dashboard httpd mod_wsgi memcached python-memcached -y"
-        ShellCmdExecutor.execCmd(yumCmd)
-        print 'Dashboard.install done####'
-        pass
-    
-    @staticmethod
-    def configure():
-        Dashboard.configConfFile()
+        print 'Keystone node install start========'
+        #Enable 
+        if debug == True:
+            print 'DEBUG is True.On local dev env, do test====='
+            yumCmd = "ls -lt"
+        else :
+            yumCmd = "yum install openstack-keystone python-keystoneclient -y"
+            
+        output, exitcode = ShellCmdExecutor.execCmd(yumCmd)
+        print 'output=\n%s--' % output
+        Keystone.configConfFile()
+        Keystone.start()
         
-        #assign network connect
-        ShellCmdExecutor.execCmd("setsebool -P httpd_can_network_connect on")
-        
-        #Due to a packaging bug, the dashboard CSS fails to load properly. 
-        #Run the following command to resolve this issue:
-        ShellCmdExecutor.execCmd("chown -R apache:apache /usr/share/openstack-dashboard/static")
-        
-        Dashboard.configHttpdConfFile()
+        print 'Keystone node install done####'
         pass
     
     @staticmethod
     def start():
-        ShellCmdExecutor.execCmd("service httpd restart")
-        ShellCmdExecutor.execCmd("service memcached restart")
-        ShellCmdExecutor.execCmd("chkconfig httpd on")
-        ShellCmdExecutor.execCmd("chkconfig memcached on")
+        print "start keystone========="
+        if debug == True :
+            print 'DEBUG=True.On local dev env, do test===='
+            pass
+        else :
+            ShellCmdExecutor.execCmd('service openstack-keystone start')
+            ShellCmdExecutor.execCmd('chkconfig openstack-keystone on')
+        print "start keystone done####"
         pass
     
+    @staticmethod
+    def restart():
+        print "restart keystone========="
+        if debug == True :
+            print 'DEBUG=True.On local dev env, do test===='
+            pass
+        else :
+            ShellCmdExecutor.execCmd('service openstack-keystone restart')
+            pass
+        
+        print "restart keystone done####"
+        pass
+    
+    @staticmethod
+    def importKeystoneDBSchema():
+        importCmd = 'su -s /bin/sh -c "keystone-manage db_sync" keystone'
+        ShellCmdExecutor.execCmd(importCmd)
+        pass
+    
+    @staticmethod
+    def supportPKIToken():
+        cmd0 = 'keystone-manage pki_setup --keystone-user keystone --keystone-group keystone'
+        cmd1 = 'chown -R keystone:keystone /var/log/keystone'
+        cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
+        cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'
+        ShellCmdExecutor.execCmd(cmd0)
+        ShellCmdExecutor.execCmd(cmd1)
+        ShellCmdExecutor.execCmd(cmd2)
+        ShellCmdExecutor.execCmd(cmd3)
+        pass
+    
+    @staticmethod
+    def configureEnvVar():
+        ShellCmdExecutor.execCmd('export OS_SERVICE_TOKEN=123456')
+        template_string = 'export OS_SERVICE_ENDPOINT=http://<KEYSTONE_VIP>:35357/v2.0'
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        cmd = template_string.replace('<KEYSTONE_VIP>', keystone_vip)
+        ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def initKeystone():
+        keystoneInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keystone_init.sh')
+        print 'keystoneInitScriptPath=%s' % keystoneInitScriptPath
+#         os.system('bash %s' % keystoneInitScriptPath)
+
+        if os.path.exists('/opt/keystone_init.sh') :
+            ShellCmdExecutor.execCmd('sudo rm -rf /opt/keystone_init.sh')
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % keystoneInitScriptPath)
+        
+        localIP = Keystone.getLocalIP()
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
+        
+        keystoneAdminEmail = JSONUtility.getValue("keystone_admin_email")
+        print 'keystoneAdminEmail=%s' % keystoneAdminEmail
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_ADMIN_EMAIL>', keystoneAdminEmail)
+        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)
+        ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
+        pass
+        ##
+        
+    @staticmethod
+    def sourceAdminOpenRC():
+        adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
+        print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
+        
+        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
+        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
+        time.sleep(2)
+        ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
+        pass
     
     @staticmethod
     def configConfFile():
-        localSettingsFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'local_settings')
-        if os.path.exists(Dashboard.DASHBOARD_CONF_FILE_PATH) :
-            ShellCmdExecutor.execCmd("rm -rf %s" % Dashboard.DASHBOARD_CONF_FILE_PATH)
+        print "configure keystone conf file======"
+        mysql_vip = JSONUtility.getValue("mysql_vip")
+        mysql_password = JSONUtility.getValue("mysql_password")
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        keystoneConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEYSTONE_CONF_DIR')
+        print 'keystoneConfDir=%s' % keystoneConfDir #/etc/keystone
+        
+        keystone_conf_file_path = os.path.join(keystoneConfDir, 'keystone.conf')
+        
+        if not os.path.exists(keystoneConfDir) :
+            os.system("sudo mkdir -p %s" % keystoneConfDir)
+            pass
+        #if exist, remove original conf files
+        if os.path.exists(keystone_conf_file_path) :
+            os.system("sudo rm -rf %s" % keystone_conf_file_path)
             pass
         
-        print 'localSettingsFileTemplatePath=%s--' % localSettingsFileTemplatePath
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (localSettingsFileTemplatePath, Dashboard.DASHBOARD_CONF_FILE_PATH))
+        os.system("sudo cp -rf %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
+        ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
+        localIP = Keystone.getLocalIP()
+        print 'localip=%s--' % localIP
         
-        ShellCmdExecutor.execCmd('sudo chmod 777 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
-        FileUtil.replaceFileContent(Dashboard.DASHBOARD_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
-        ShellCmdExecutor.execCmd('sudo chmod 644 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
-        #Assign rights: can be accessed
-        DIR_PATH = '/usr/share/openstack-dashboard/openstack_dashboard/local'
-        if os.path.exists(DIR_PATH) :
-            ShellCmdExecutor.execCmd('sudo chmod 777 %s' % DIR_PATH)
-            pass
+#         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<LOCAL_IP>', localIP)
+#         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        
+        FileUtil.replaceFileContent(keystone_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keystone_conf_file_path)
+        print "configure keystone conf file done####"
         pass
     
     @staticmethod
-    def configHttpdConfFile():
-        httpdConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'httpd.conf')
-        if os.path.exists(Dashboard.HTTPD_CONF_FILE_PATH) :
-            ShellCmdExecutor.execCmd("sudo rm -rf %s" % Dashboard.HTTPD_CONF_FILE_PATH)
-            pass
+    def getLocalIP():
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        localIP = output.strip()
+        return localIP
+    
+    @staticmethod
+    def getWeightCounter():
+        print 'refactor later================'
+        print 'get keystone weight=================='
         
-        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (httpdConfFileTemplatePath, Dashboard.HTTPD_CONF_FILE_PATH))
+        return 299
+    
+    @staticmethod
+    def isMasterNode():
+        print 'go into Master======'
+        if Keystone.getWeightCounter() == 300 :
+            return True
+        else :
+            return False
         pass
-    pass
 
-
-class DashboardHA(object):
+class MySQLHA(object):
     '''
     classdocs
     '''
@@ -203,7 +315,7 @@ class DashboardHA(object):
     @staticmethod
     def getVIPFormatString(vip, interface):
         vipFormatString = ''
-        if DashboardHA.isExistVIP(vip, interface) :
+        if KeystoneHA.isExistVIP(vip, interface) :
             print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
             cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
             output, exitcode = ShellCmdExecutor.execCmd(cmd)
@@ -227,9 +339,9 @@ class DashboardHA(object):
     
     @staticmethod
     def addVIP(vip, interface):
-        result = DashboardHA.getVIPFormatString(vip, interface)
+        result = KeystoneHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if not DashboardHA.isExistVIP(vip, interface) :
+        if not KeystoneHA.isExistVIP(vip, interface) :
             print 'NOT exist vip %s on interface %s.' % (vip, interface)
             addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'addVIPCmd=%s--' % addVIPCmd
@@ -242,9 +354,9 @@ class DashboardHA(object):
     
     @staticmethod
     def deleteVIP(vip, interface):
-        result = DashboardHA.getVIPFormatString(vip, interface)
+        result = KeystoneHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if DashboardHA.isExistVIP(vip, interface) :
+        if KeystoneHA.isExistVIP(vip, interface) :
             deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'deleteVIPCmd=%s--' % deleteVIPCmd
             ShellCmdExecutor.execCmd(deleteVIPCmd)
@@ -278,12 +390,12 @@ class DashboardHA(object):
             ShellCmdExecutor.execCmd(yumCmd)
             pass
         else :
-            if not DashboardHA.isKeepalivedInstalled() :
+            if not KeystoneHA.isKeepalivedInstalled() :
                 keepalivedInstallCmd = "yum install keepalived -y"
                 ShellCmdExecutor.execCmd(keepalivedInstallCmd)
                 pass
             
-            if not DashboardHA.isHAProxyInstalled() :
+            if not KeystoneHA.isHAProxyInstalled() :
                 haproxyInstallCmd = 'yum install haproxy -y'
                 ShellCmdExecutor.execCmd(haproxyInstallCmd)
                 
@@ -304,17 +416,18 @@ class DashboardHA(object):
     
     @staticmethod
     def configure():
-        DashboardHA.configureHAProxy()
-        DashboardHA.configureKeepalived()
+        KeystoneHA.configureHAProxy()
+        KeystoneHA.configureKeepalived()
         pass
     
     @staticmethod
     def configureHAProxy():
         ####################configure haproxy
-        dashboard_vip = JSONUtility.getValue("dashboard_vip")
+        #server keystone-01 192.168.1.137:35357 check inter 10s
+        keystone_vip = JSONUtility.getValue("keystone_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
+        keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
         haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
         print 'haproxyConfFilePath=%s' % haproxyConfFilePath
         if not os.path.exists('/etc/haproxy') :
@@ -322,62 +435,65 @@ class DashboardHA(object):
             pass
         
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (HAProxyTemplateFilePath, haproxyConfFilePath))
+            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
         ####
         ##############new
-#         dashboardBackendStringTemplate = '''
-# listen  localhost <DASHBOARD_VIP>:80
-#   mode http
-#   stats   uri  /haproxy
-#   balance roundrobin
-#   cookie  JSESSIONID prefix
-#   stats   hide-version
-#   option  httpclose
-#   <DASHBOARD_SERVER_LIST>
-#   '''
-        
-        dashboardBackendStringTemplate = '''
-listen dashboard_cluster
-  bind <DASHBOARD_VIP>:80
+        keystoneBackendAdminApiStringTemplate = '''
+listen keystone_admin_cluster
+  bind <KEYSTONE_VIP>:35357
   balance source
-  option tcpka
-  option httpchk
-  option tcplog
-  <DASHBOARD_SERVER_LIST>
-        '''
-        ###############
-        dashboardBackendString = dashboardBackendStringTemplate.replace('<DASHBOARD_VIP>', dashboard_vip)
+  <KEYSTONE_ADMIN_API_SERVER_LIST>
+  '''
+        keystoneBackendPublicApiStringTemplate = '''
+listen keystone_public_internal_cluster
+  bind <KEYSTONE_VIP>:5000
+  <KEYSTONE_PUBLIC_API_SERVER_LIST>
+  '''
+        keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
+        keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
         
         ################new
-        dashboard_ips = JSONUtility.getValue("dashboard_ips")
-        dashboard_ip_list = dashboard_ips.strip().split(',')
-        serverDashboardBackendTemplate = 'server dashboard-<INDEX> <SERVER_IP>:8080 weight 3 check inter 2000 rise 2 fall 3'
+        keystone_ips = JSONUtility.getValue("keystone_ips")
+        keystone_ip_list = keystone_ips.strip().split(',')
         
-        dashboardServerListContent = ''
+        serverKeystoneAdminAPIBackendTemplate   = 'server keystone-<INDEX> <SERVER_IP>:35357 check inter 2000 rise 2 fall 5'
+        serverKeystonePublicAPIBackendTemplate  = 'server keystone-<INDEX> <SERVER_IP>:5000 check inter 2000 rise 2 fall 5'
+        
+        keystoneAdminAPIServerListContent = ''
+        keystonePublicAPIServerListContent = ''
+        
         index = 1
-        for dashboard_ip in dashboard_ip_list:
-            print 'dashboard_ip=%s' % dashboard_ip
-            dashboardServerListContent += serverDashboardBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', dashboard_ip)
+        for keystone_ip in keystone_ip_list:
+            print 'keystone_ip=%s' % keystone_ip
+            keystoneAdminAPIServerListContent += serverKeystoneAdminAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', keystone_ip)
+            keystonePublicAPIServerListContent += serverKeystonePublicAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', keystone_ip)
             
-            dashboardServerListContent += '\n'
-            dashboardServerListContent += '  '
-
+            keystoneAdminAPIServerListContent += '\n'
+            keystoneAdminAPIServerListContent += '  '
+            
+            keystonePublicAPIServerListContent += '\n'
+            keystonePublicAPIServerListContent += '  '
             index += 1
             pass
         
-        dashboardServerListContent = dashboardServerListContent.strip()
-        print 'dashboardServerListContent=%s--' % dashboardServerListContent
+        keystoneAdminAPIServerListContent = keystoneAdminAPIServerListContent.strip()
+        keystonePublicAPIServerListContent = keystonePublicAPIServerListContent.strip()
+        print 'keystoneAdminAPIServerListContent=%s--' % keystoneAdminAPIServerListContent
+        print 'keystonePublicAPIServerListContent=%s--' % keystonePublicAPIServerListContent
         
-        dashboardBackendString = dashboardBackendString.replace('<DASHBOARD_SERVER_LIST>', dashboardServerListContent)
+        keystoneBackendAdminApiString = keystoneBackendAdminApiString.replace('<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
+        keystoneBackendPublicApiString = keystoneBackendPublicApiString.replace('<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
         
-        print 'dashboardBackendString=%s--' % dashboardBackendString
+        print 'keystoneBackendAdminApiString=%s--' % keystoneBackendAdminApiString
+        print 'keystoneBackendPublicApiString=%s--' % keystoneBackendPublicApiString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (dashboardBackendString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendAdminApiString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendPublicApiString, haproxyConfFilePath))
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -432,24 +548,24 @@ vrrp_instance 42 {
         '''
         #GLANCE_WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        dashboard_vip = JSONUtility.getValue("dashboard_vip")
-        dashboard_vip_interface = JSONUtility.getValue("dashboard_vip_interface")
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
         #Call ZooKeeper lock & counter services
-        weight_counter = 300
-        if weight_counter == 300 : #This is MASTER
+        keystone_weight_counter = Keystone.getWeightCounter()
+        if keystone_weight_counter == 300 : #This is MASTER
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', '300')
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', 'MASTER')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', dashboard_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', dashboard_vip)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
         else :
             #
             #
-            index = 300 - weight_counter
+            index = 300 - keystone_weight_counter
             state = 'SLAVE' + str(index)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(keystone_weight_counter))
             FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', dashboard_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', dashboard_vip)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
+            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
             pass
         
         ##temporary: if current user is not root
@@ -483,31 +599,32 @@ vrrp_instance 42 {
         if debug == True :
             pass
         else :
-            dashboard_vip_interface = JSONUtility.getValue("dashboard_vip_interface")
-            dashboard_vip = JSONUtility.getValue("dashboard_vip")
+            keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
+            keystone_vip = JSONUtility.getValue("keystone_vip")
             
-            DashboardHA.addVIP(dashboard_vip, dashboard_vip_interface)
+            KeystoneHA.addVIP(keystone_vip, keystone_vip_interface)
             
-            if DashboardHA.isHAProxyRunning() :
+            if KeystoneHA.isHAProxyRunning() :
                 ShellCmdExecutor.execCmd('service haproxy restart')
             else :
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-            DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
+            KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
             
-            if DashboardHA.isKeepalivedRunning() :
+            if KeystoneHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
             else :
                 ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             
-            #Ensure only one VIP exists.
+            #refactor===============
             isMasterNode = True
             if isMasterNode == True :
-                DashboardHA.addVIP(dashboard_vip, dashboard_vip_interface)
+                KeystoneHA.addVIP(keystone_vip, keystone_vip_interface)
             else :
-                DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
+                KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
+                pass
             pass
         pass
     
@@ -517,43 +634,15 @@ vrrp_instance 42 {
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
 
-    
+
 if __name__ == '__main__':
+        
+    print 'start to install======='
+    #add HA
+
     
-    print 'hello openstack-icehouse:dashboard============'
-    
-    print 'start time: %s' % time.ctime()
-    #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
-    
-    ###############################
-    INSTALL_TAG_FILE = '/opt/dashboard_installed'
-    if os.path.exists(INSTALL_TAG_FILE) :
-        print 'dashboard installed####'
-        print 'exit===='
-        exit()
-        pass
-    
-    Dashboard.install()
-    Dashboard.configure()
-    Dashboard.start()
-    
-    DashboardHA.install()
-    DashboardHA.configure()
-    DashboardHA.start()
-    #
-    #mark: nova-compute is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:dashboard installed#######'
+    print 'conetent===%s' % content
+    #mark: keystone is installed
+    print 'hello openstack-icehouse:keystone#######'
     pass
 

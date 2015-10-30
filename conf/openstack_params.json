@@ -1,5 +1,6 @@
 {
     "mysql_vip": "192.168.11.131",
+    "mysql_vip_interface": "eth0",
     "mysql_password": "123456",
     "rabbit_host": "192.168.11.131",
     "keystone_vip": "192.168.11.100",

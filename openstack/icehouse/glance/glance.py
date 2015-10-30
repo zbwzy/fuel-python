@@ -582,6 +582,14 @@ vrrp_instance 42 {
             else :
                 ShellCmdExecutor.execCmd('service keepalived start')
                 pass
+            
+            #refactor===============
+            #Ensure only one VIP exists.
+            isMasterNode = True
+            if isMasterNode == True :
+                GlanceHA.addVIP(glance_vip, glance_vip_interface)
+            else :
+                GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
             pass
         pass
     

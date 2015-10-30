@@ -1,0 +1,122 @@
+---
+status: error
+puppet_modules_source: rsync://10.20.0.2:/puppet/2014.2-6.0/modules/
+ceilometer:
+  ceilometer_vip_interface: eth0
+  ceilometer_vip: 10.20.0.111
+  ceilometer_mongo_password: '123456'
+  install: true
+  ceilometer_mongo_user: ceilometer
+uid: '21'
+keystone:
+  keystone_vip: 10.20.0.111
+  keystone_mysql_password: '123456'
+  keystone_mysql_user: keystone
+  keystone_vip_interface: eth0
+  install: true
+puppet_manifests_source: rsync://10.20.0.2:/puppet/2014.2-6.0/manifests/
+ip: 10.20.0.134
+mysql:
+  action: config
+  mysql_vip: 10.20.0.111
+  mysql_vip_interface: eth0
+  install: true
+  root_password: '123456'
+fqdn: compute-134.domain.tld
+rabbitmq:
+  rabbit_userid: guest
+  action: config
+  install: true
+  rabbit_password: '123456'
+priority: 500
+mongodb:
+  mongo_user: ceilometer
+  install: true
+  mongo_password: '123456'
+repo_metadata:
+  2014.2-6.0: http://10.20.0.2:8080/2014.2-6.0/centos/x86_64
+role: rabbitmq
+online: true
+fail_if_error: false
+cobbler:
+  profile: centos-x86_64
+nodes:
+- swift_zone: '21'
+  uid: '21'
+  ip: 10.20.0.134
+  fqdn: compute-134.domain.tld
+  role: ceilometer
+  name: compute-134
+- swift_zone: '21'
+  uid: '21'
+  ip: 10.20.0.134
+  fqdn: compute-134.domain.tld
+  role: heat
+  name: compute-134
+- swift_zone: '21'
+  uid: '21'
+  ip: 10.20.0.134
+  fqdn: compute-134.domain.tld
+  role: keystone
+  name: compute-134
+- swift_zone: '21'
+  uid: '21'
+  ip: 10.20.0.134
+  fqdn: compute-134.domain.tld
+  role: mongodb
+  name: compute-134
+- swift_zone: '21'
+  uid: '21'
+  ip: 10.20.0.134
+  fqdn: compute-134.domain.tld
+  role: mysql
+  name: compute-134
+- swift_zone: '21'
+  uid: '21'
+  ip: 10.20.0.134
+  fqdn: compute-134.domain.tld
+  role: rabbitmq
+  name: compute-134
+- swift_zone: '22'
+  uid: '22'
+  ip: 10.20.0.9
+  fqdn: compute-133.domain.tld
+  role: ceilometer
+  name: compute-133
+- swift_zone: '22'
+  uid: '22'
+  ip: 10.20.0.9
+  fqdn: compute-133.domain.tld
+  role: heat
+  name: compute-133
+- swift_zone: '22'
+  uid: '22'
+  ip: 10.20.0.9
+  fqdn: compute-133.domain.tld
+  role: keystone
+  name: compute-133
+- swift_zone: '22'
+  uid: '22'
+  ip: 10.20.0.9
+  fqdn: compute-133.domain.tld
+  role: mongodb
+  name: compute-133
+- swift_zone: '22'
+  uid: '22'
+  ip: 10.20.0.9
+  fqdn: compute-133.domain.tld
+  role: mysql
+  name: compute-133
+- swift_zone: '22'
+  uid: '22'
+  ip: 10.20.0.9
+  fqdn: compute-133.domain.tld
+  role: rabbitmq
+  name: compute-133
+heat:  
+  heat_vip_interface: eth0
+  heat_mysql_password: '123456'
+  install: true
+  heat_mysql_user: heat
+  heat_vip: 10.20.0.111
+deployment_id: 8

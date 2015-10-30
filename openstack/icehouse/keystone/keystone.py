@@ -617,6 +617,14 @@ vrrp_instance 42 {
             else :
                 ShellCmdExecutor.execCmd('service keepalived start')
                 pass
+            
+            #refactor===============
+            isMasterNode = True
+            if isMasterNode == True :
+                KeystoneHA.addVIP(keystone_vip, keystone_vip_interface)
+            else :
+                KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
+                pass
             pass
         pass
     
