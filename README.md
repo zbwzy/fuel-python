@@ -4,10 +4,10 @@
 
 2).Use real env:
 In conf/openstack_env.conf:
-OPENSTACK_CONF_BASE_DIR = /etc/puppet/openstack_conf
+OPENSTACK_CONF_BASE_DIR = /opt/openstack_conf
 
 3).Before execute this project:
-init openstack params, and the parameters are put into /etc/puppet/openstack_conf/openstack_params.json like below:
+init openstack params, and the parameters are put into /opt/openstack_conf/openstack_params.json like below:
 {
     "mysql_vip": "192.168.11.128",
     "rabbit_host": "192.168.11.128",
@@ -27,6 +27,6 @@ init openstack params, and the parameters are put into /etc/puppet/openstack_con
 debug = False
 
 5).Prepare local ip on localhost:
-/etc/puppet/localip
+/opt/localip
 
 

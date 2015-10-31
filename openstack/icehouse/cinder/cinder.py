@@ -1,5 +1,5 @@
 '''
-Created on Sep 29, 2015
+Created on Oct 8, 2015
 
 @author: zhangbai
 '''
@@ -171,7 +171,7 @@ admin_password=123456
         #controller: Horizon, Neutron-server
         controller_vip = JSONUtility.getValue("controller_vip")
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /etc/puppet/localip')
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
         print 'ddddddddddddddd========='
@@ -239,7 +239,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     argv = sys.argv
     argv.pop(0)
     print "agrv=%s--" % argv

@@ -153,6 +153,94 @@ class MySQL(object):
         output, exitcode = ShellCmdExecutor.execCmd(myqlCmd)
         print 'output=%s--' % output
         pass
+    
+class VIP(object):
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def isExistVIP(vip, interface):
+        cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == None or output == '':
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        
+        if debug == True :
+            output = '''
+            xxxx
+            inet 192.168.11.100/32 scope global eth0
+            xxxx
+            '''
+            pass
+        
+        newString = vip + '/'
+        if newString in output :
+            print 'exist vip %s on interface %s.' % (vip, interface)
+            return True
+        else :
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        pass
+    
+    #return value: 192.168.11.100/32
+    @staticmethod
+    def getVIPFormatString(vip, interface):
+        vipFormatString = ''
+        if VIP.isExistVIP(vip, interface) :
+            print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
+            cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+            output, exitcode = ShellCmdExecutor.execCmd(cmd)
+            vipFormatString = output.strip()
+            if debug == True :
+                fakeVIPFormatString = 'inet 192.168.11.100/32 scope global eth0'
+                vipFormatString = fakeVIPFormatString
+                pass
+            
+            result = vipFormatString.split(' ')[1]
+            pass
+        else :
+            #construct vip format string
+            print 'getVIPFormatString====do not exist vip %s on interface %s, to construct vip format string' % (vip, interface) 
+            vipFormatString = '{vip}/32'.format(vip=vip)
+            print 'vipFormatString=%s--' % vipFormatString
+            result = vipFormatString
+            pass
+        
+        return result
+    
+    @staticmethod
+    def addVIP(vip, interface):
+        result = VIP.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if not VIP.isExistVIP(vip, interface) :
+            print 'NOT exist vip %s on interface %s.' % (vip, interface)
+            addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'addVIPCmd=%s--' % addVIPCmd
+            ShellCmdExecutor.execCmd(addVIPCmd)
+            pass
+        else :
+            print 'The VIP %s already exists on interface %s.' % (vip, interface)
+            pass
+        pass
+    
+    @staticmethod
+    def deleteVIP(vip, interface):
+        result = VIP.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if VIP.isExistVIP(vip, interface) :
+            deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'deleteVIPCmd=%s--' % deleteVIPCmd
+            ShellCmdExecutor.execCmd(deleteVIPCmd)
+            pass
+        else :
+            print 'The VIP %s does not exist on interface %s.' % (vip, interface)
+            pass
+        pass
 
 class Network(object):
     '''
@@ -336,8 +424,10 @@ class Keystone(object):
     
     @staticmethod
     def getLocalIP():
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        local_ip_file_path = '/opt/localip'
+#         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+#         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        localIP = ''
         output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
         localIP = output.strip()
         return localIP
@@ -623,7 +713,7 @@ admin_password=123456
         #controller: Horizon, Neutron-server
         controller_vip = JSONUtility.getValue("controller_vip")
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /etc/puppet/localip')
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
         print 'ddddddddddddddd========='
@@ -742,7 +832,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     argv = sys.argv
     argv.pop(0)
     print "agrv=%s--" % argv
@@ -822,10 +912,18 @@ if __name__ == '__main__':
     .format(init_passwd=initPasswd)
     MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
     MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+    
+    #VIP handling
+    mysql_vip = JSONUtility.getValue('mysql_vip')
+    mysql_vip_interface = JSONUtility.getValue('mysql_vip_interface')
+    
+    isExistMySQLVIP = VIP.isExistVIP(mysql_vip, mysql_vip_interface)
+    
+    VIP.addVIP(mysql_vip, mysql_vip_interface)
 #     
 #     ########
-    Keystone.install()
-    Keystone.configConfFile()
+#     Keystone.install()
+#     Keystone.configConfFile()
      
     Keystone.importKeystoneDBSchema()
     Keystone.supportPKIToken()
@@ -859,6 +957,10 @@ if __name__ == '__main__':
     ShellCmdExecutor.execCmd(killGlanceCmd)
     ShellCmdExecutor.execCmd(killNovaCmd)
     ShellCmdExecutor.execCmd(killNeutronCmd)
+    
+    if not isExistMySQLVIP == True :
+        VIP.deleteVIP(mysql_vip, mysql_vip_interface)
+        pass
     
     #mark: db is initted
     os.system('touch %s' % INSTALL_TAG_FILE)

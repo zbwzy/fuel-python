@@ -7,6 +7,7 @@ Created on Oct 29, 2015
 import sys
 import os
 import time
+import string
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -57,6 +58,14 @@ class YAMLUtil(object):
         pass
     
     @staticmethod
+    def hasRole(role):
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        if dataMap.has_key(role) :
+            return True
+        
+        return False
+    
+    @staticmethod
     def getMap(yaml_file_path):
         dataMap = {}
         if not os.path.exists(yaml_file_path) :
@@ -83,8 +92,11 @@ class YAMLUtil(object):
     def getValue(role, key):
         value = ''
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
-        if dataMap.has_key(component_name) :
-            value = dataMap[component_name][key]
+        if dataMap.has_key(role) :
+            if dataMap[role].has_key(key) :
+                value = dataMap[role][key]
+            else :
+                print 'No key %s.' % key
             pass
         else :
             print 'ERROR:not exist role %s in the file %s.' % (role, YAMLUtil.ASTUTE_YAML_FILE_PATH)
@@ -114,15 +126,56 @@ class YAMLUtil(object):
     @staticmethod
     def writeIPList(role):
         #Default, in /opt/{role}_ip_list
-        ipList = YAMLUtil.getIPList(role)
+        ipList = YAMLUtil.getRoleIPList(role)
         ipListContent = ','.join(ipList)
-        ip_list_file_path = '/opt/{role}_ip_list'.format(role=role)
+        ip_list_file_path = '/opt/{role}_ip_list'.format(role=role).replace('-', '_')
         
         if os.path.exists(ip_list_file_path) :
             ShellCmdExecutor.execCmd('sudo rm -rf %s' % ip_list_file_path)
             pass
         
         FileUtil.writeContent(ip_list_file_path, ipListContent)
+        pass
+    
+    
+    @staticmethod
+    def getRoleIPList(role): #acsend by role uid
+        nodesMap = YAMLUtil.getNodesMap()
+        uid_list = []
+        node_map_list = []
+        for nodeMap in nodesMap :
+            if nodeMap['role'] == role :
+                uid = string.atoi(nodeMap['uid'])
+                uid_list.append(uid)
+                node_map_list.append(nodeMap)
+                pass
+            pass
+        
+        uid_list.sort()
+        sorted_role_ip_list = [] #ascend by role uid
+        for uid in uid_list :
+            for nodeMap in node_map_list :
+                if nodeMap['uid'] == str(uid) :
+                    sorted_role_ip_list.append(nodeMap['ip'])
+                    pass
+                pass
+            pass
+        
+        return sorted_role_ip_list
+            
+    @staticmethod
+    def hasRoleInNodes(role):
+        nodesMap = YAMLUtil.getNodesMap()
+        for nodeMap in nodesMap :
+            if nodeMap['role'] == role :
+                return True
+            pass
+        return False
+    
+    @staticmethod
+    def getLocalIP():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        return dataMap['ip']
         pass
         
     
@@ -136,8 +189,17 @@ if __name__ == "__main__":
     print 'mysql_vip=%s------' % value
     print 'mysql_vip_interface=%s--------' % YAMLUtil.getValue(component_name, 'mysql_vip_interface')
     print 'mysql_ip_list=%s--' % YAMLUtil.getIPList('mysql')
-    print YAMLUtil.writeIPList('mysql')
     YAMLUtil.writeIPList('mysql')
+    print 'debug--------------'
+    nodesMap = YAMLUtil.getNodesMap()
+    print YAMLUtil.hasRoleInNodes('mysql')
+    print 'get role ip list ascend by uid==========='
+    print YAMLUtil.getRoleIPList('mysql')
+    print 'has role========================='
+    print YAMLUtil.hasRole('cinder')
+
+    
+    
         
         
     

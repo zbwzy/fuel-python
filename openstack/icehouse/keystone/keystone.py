@@ -15,6 +15,9 @@ import sys
 import os
 import time
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
@@ -641,7 +644,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     argv = sys.argv
     argv.pop(0)
     print "agrv=%s--" % argv

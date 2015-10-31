@@ -134,6 +134,9 @@ class Dashboard(object):
         if os.path.exists(Dashboard.DASHBOARD_CONF_FILE_PATH) :
             ShellCmdExecutor.execCmd("rm -rf %s" % Dashboard.DASHBOARD_CONF_FILE_PATH)
             pass
+        else :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % os.path.dirname(Dashboard.DASHBOARD_CONF_FILE_PATH))
+            pass
         
         print 'localSettingsFileTemplatePath=%s--' % localSettingsFileTemplatePath
         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (localSettingsFileTemplatePath, Dashboard.DASHBOARD_CONF_FILE_PATH))
@@ -552,6 +555,7 @@ if __name__ == '__main__':
     DashboardHA.configure()
     DashboardHA.start()
     #
+    ShellCmdExecutor.execCmd('service haproxy restart')
     #mark: nova-compute is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:dashboard installed#######'
