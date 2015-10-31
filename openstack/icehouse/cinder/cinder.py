@@ -127,11 +127,8 @@ class Cinder(object):
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
-        glance_vip = JSONUtility.getValue("glance_vip")
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        
-        virt_type = JSONUtility.getValue("virt_type")
-        
+        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
@@ -170,6 +167,8 @@ class Cinder(object):
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
