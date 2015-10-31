@@ -44,6 +44,7 @@ class ParamsProducer(object):
     '''
     OPENSTACK_ROLES = ['mysql', 'rabbitmq', 'mongodb', 'keystone', 'glance', 'nova-api', 'nova-compute',
                        'ceilometer', 'neutron-server', 'neutron', 'dashboard', 'cinder', 'cinder-storage']
+    
     def __init__(self):
         '''
         Constructor
@@ -66,10 +67,14 @@ if __name__ == '__main__':
             pass
         pass
     
+    
     print 'produce localip in /opt/localip'
     localIPPath = '/opt/localip'
     FileUtil.writeContent(localIPPath, YAMLUtil.getLocalIP())    
+    
+    
     print 'produce all params in /opt/openstack_conf/openstack_params.json'
+    paramsMap = {}
     print 'mysql============================'
     role = 'mysql'
     if YAMLUtil.hasRole(role) :
@@ -88,6 +93,12 @@ if __name__ == '__main__':
         mysql_ips_list = YAMLUtil.getRoleIPList(role)
         mysql_ips = ','.join(mysql_ips_list)
         print 'mysql_ips=%s' % mysql_ips
+        paramsMap['mysql_vip'] = mysql_vip
+        paramsMap['mysql_vip_interface'] = mysql_vip_interface
+        paramsMap['mysql_password'] = mysql_root_password
+        paramsMap['mysql_ips'] = mysql_ips
+        
+        
     
     print 'rabbitmq========================'
     role = 'rabbitmq'
@@ -112,6 +123,20 @@ if __name__ == '__main__':
         print 'rabbit_vip_interface=%s--' % rabbit_vip_interface
         print 'rabbit_password=%s--' % rabbit_password
         print 'rabbit_ips=%s--' % rabbit_ips
+        
+        rabbit_hosts_list = [] #rabbit_ip1:5672,rabbit_ip2:5672
+        
+        for ip in rabbit_ips_list :
+            rabbit_with_port = '%s:5672' % ip
+            rabbit_hosts_list.append(rabbit_with_port)
+            pass
+        paramsMap['rabbit_hosts'] = ','.join(rabbit_hosts_list)
+        paramsMap['rabbit_host'] = rabbit_ips_list[0]
+        paramsMap['rabbit_vip'] = rabbit_vip
+        paramsMap['rabbit_vip_interface'] = rabbit_vip_interface
+        paramsMap['rabbit_userid'] = rabbit_userid
+        paramsMap['rabbit_password'] = rabbit_password
+        
         pass
     
     print 'keystone========================='
@@ -136,6 +161,13 @@ if __name__ == '__main__':
         print 'keystone_vip_interface=%s--' % keystone_vip_interface
         print 'keystone_mysql_user=%s--' % keystone_mysql_user 
         print 'keystone_ips=%s--' % keystone_ips
+        
+        paramsMap['keystone_vip'] = keystone_vip
+        paramsMap['keystone_vip_interface'] = keystone_vip_interface
+        paramsMap['keystone_mysql_user'] = keystone_mysql_user
+        paramsMap['keystone_mysql_password'] = keystone_mysql_password
+        paramsMap['keystone_ips'] = keystone_ips
+        
         pass
     
     #NOT TEST
@@ -162,6 +194,11 @@ if __name__ == '__main__':
         print 'glance_mysql_user=%s--' % glance_mysql_user
         print 'glance_mysql_password=%s--' % glance_mysql_password 
         print 'glance_ips=%s--' % glance_ips
+        paramsMap['glance_vip'] = glance_vip
+        paramsMap['glance_vip_interface'] = glance_vip_interface
+        paramsMap['glance_mysql_user'] = glance_mysql_user
+        paramsMap['glance_mysql_password'] = glance_mysql_password
+        paramsMap['glance_ips'] = glance_ips
         pass
     #NOT TEST
     print 'neutron-server========================================='
@@ -179,7 +216,7 @@ if __name__ == '__main__':
         key = 'neutron_server_mysql_user'
         neutron_mysql_user = YAMLUtil.getValue(role, key)
         key = 'neutron_server_mysql_password'
-        neutron_mysql_user_password = YAMLUtil.getValue(role, key)
+        neutron_mysql_password = YAMLUtil.getValue(role, key)
         
         neutron_server_ip_list = YAMLUtil.getRoleIPList(role)
         neutron_server_ips = ','.join(neutron_server_ip_list)
@@ -189,9 +226,15 @@ if __name__ == '__main__':
         print 'network_mode=%s--' % network_mode
         
         print 'neutron_mysql_user=%s--' % neutron_mysql_user
-        print 'neutron_mysql_user_password=%s--' % neutron_mysql_user_password
+        print 'neutron_mysql_user_password=%s--' % neutron_mysql_password
         
         print 'neutron_server_ips=%s--' % neutron_server_ips
+        paramsMap['neutron_server_vip'] = neutron_server_vip
+        paramsMap['neutron_server_vip_interface'] = neutron_server_vip_interface
+        paramsMap['neutron_mysql_user'] = neutron_mysql_user
+        paramsMap['neutron_mysql_password'] = neutron_mysql_password
+        paramsMap['network_mode'] = network_mode
+        paramsMap['neutron_server_ips'] = neutron_server_ips
         pass
     
     print 'nova-api========================================='
@@ -219,6 +262,13 @@ if __name__ == '__main__':
         
         print 'nova_api_ips=%s--' % nova_api_ips
         print YAMLUtil.hasRoleInNodes('nova-api')
+        paramsMap['nova_api_vip'] = nova_api_vip
+        paramsMap['nova_api_vip_interface'] = nova_api_vip_interface
+        paramsMap['nova_api_mysql_user'] = nova_api_mysql_user
+        paramsMap['nova_api_mysql_password'] = nova_api_mysql_password
+        paramsMap['nova_api_ips'] = nova_api_ips
+        pass
+          
     
     print 'nova-compute============================================='
     role = 'nova-compute'
@@ -230,18 +280,100 @@ if __name__ == '__main__':
         nova_compute_ip_list = YAMLUtil.getRoleIPList(role)
         nova_compute_ips = ','.join(nova_compute_ip_list)
         print 'nova_compute_ips=%s--' % nova_compute_ips
-        
-    print 'local_ip=%s--' % YAMLUtil.getLocalIP()
+        paramsMap['virt_type'] = virt_type
+        paramsMap['nova_compute_ips'] = nova_compute_ips
+        pass
     
+    role = 'dashboard'
+    if YAMLUtil.hasRole(role): 
+        key = 'dashboard_vip'
+        dashboard_vip= YAMLUtil.getValue(role, key)
+        key = 'dashboard_vip_interface'
+        dashboard_vip_interface = YAMLUtil.getValue(role, key)
+        
+        dashboard_ips_list = YAMLUtil.getRoleIPList(role)
+        dashboard_ips = ','.join(dashboard_ips_list)
+        print 'dashboard_vip=%s--' % dashboard_vip
+        print 'dashboard_vip_interface=%s--' % dashboard_vip_interface
+        print 'dashboard_ips=%s--' % dashboard_ips
+        paramsMap['dashboard_vip'] = dashboard_vip
+        paramsMap['dashboard_vip_interface'] = dashboard_vip_interface
+        paramsMap['dashboard_ips'] = dashboard_ips
+        pass
+        
     print 'cinder============================================'
-    
-    
+    role = 'cinder'
+    if YAMLUtil.hasRole(role) :
+        key = 'cinder_vip'
+        cinder_vip = YAMLUtil.getValue(role, key)
         
-    
-    
-    
-    
+        key = 'cinder_vip_interface'
+        cinder_vip_interface = YAMLUtil.getValue(role, key)
         
-    
+        key = 'cinder_mysql_user'
+        cinder_mysql_user = YAMLUtil.getValue(role, key)
         
+        key = 'cinder_mysql_password'
+        cinder_mysql_password = YAMLUtil.getValue(role, key)
+        
+        cinder_ips_list = YAMLUtil.getRoleIPList(role)
+        cinder_ips = ','.join(cinder_ips_list)
+        print 'cinder_vip=%s-' % cinder_vip
+        print 'cinder_vip_interface=%s--' % cinder_vip_interface
+        print 'cinder_mysql_user=%s--' % cinder_mysql_user
+        print 'cinder_mysql_password=%s--' % cinder_mysql_password
+        print 'cinder_ips=%s--' % cinder_ips
+        paramsMap['cinder_vip_interface'] = cinder_vip_interface
+        paramsMap['cinder_mysql_user'] = cinder_mysql_user
+        paramsMap['cinder_mysql_password'] = cinder_mysql_password
+        paramsMap['cinder_ips'] = cinder_ips
+        pass
+    
+    print 'ceilometer==========================================='
+    role = 'ceilometer'
+    if YAMLUtil.hasRole(role) :
+        key = 'ceilometer_vip'
+        ceilometer_vip = YAMLUtil.getValue(role, key)
+        
+        key = 'ceilometer_vip_interface'
+        ceilometer_vip_interface = YAMLUtil.getValue(role, key)
+        
+        key = 'ceilometer_mongo_user'
+        ceilometer_mongo_user = YAMLUtil.getValue(role, key)
+        
+        key = 'ceilometer_mongo_password'
+        ceilometer_mongo_password = YAMLUtil.getValue(role, key)
+        
+        ceilometer_ips_list = YAMLUtil.getRoleIPList(role)
+        ceilometer_ips = ','.join(ceilometer_ips_list)
+        print 'ceilometer_vip=%s-' % ceilometer_vip
+        print 'ceilometer_vip_interface=%s--' % ceilometer_vip_interface
+        print 'ceilometer_mongo_user=%s--' % ceilometer_mongo_user
+        print 'ceilometer_mongo_password=%s--' % ceilometer_mongo_password
+        print 'ceilometer_ips=%s--' % ceilometer_ips
+        paramsMap['ceilometer_vip'] = ceilometer_vip
+        paramsMap['ceilometer_vip_interface'] = ceilometer_vip_interface
+        paramsMap['ceilometer_mongo_user'] = ceilometer_mongo_user
+        paramsMap['ceilometer_mongo_password'] = ceilometer_mongo_password
+        paramsMap['ceilometer_ips'] = ceilometer_ips
+        pass
+    
+    openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+    admin_email = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'ADMIN_EMAIL')
+    
+    paramsMap['admin_email'] = admin_email
+    
+    import json
+    jsonParams = json.dumps(paramsMap,indent=4)
+    print jsonParams
+    print type(jsonParams)
+    
+    openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+    openstackConfBaseDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_CONF_BASE_DIR')
+    if not os.path.exists(openstackConfBaseDir) :
+        ShellCmdExecutor.execCmd("mkdir %s" % openstackConfBaseDir)
+        pass
+    openstackParamsFilePath = os.path.join(openstackConfBaseDir, 'openstack_params.json')
+    FileUtil.writeContent(openstackParamsFilePath, jsonParams)
     print 'produce role list done#######'
+    

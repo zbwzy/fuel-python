@@ -192,9 +192,9 @@ class Keystone(object):
         localIP = Keystone.getLocalIP()
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
         
-        keystoneAdminEmail = JSONUtility.getValue("keystone_admin_email")
+        keystoneAdminEmail = JSONUtility.getValue("admin_email")
         print 'keystoneAdminEmail=%s' % keystoneAdminEmail
-        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_ADMIN_EMAIL>', keystoneAdminEmail)
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<ADMIN_EMAIL>', keystoneAdminEmail)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)

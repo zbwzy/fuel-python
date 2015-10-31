@@ -2,7 +2,7 @@
 
 echo 'start to init cinder db==========='
 
-keystone user-create --name=cinder --pass=<CINDER_MYSQL_PASSWORD>
+keystone user-create --name=cinder --pass=<MYSQL_PASSWORD>
 
 keystone user-role-add --user=cinder --tenant=service --role=admin
 

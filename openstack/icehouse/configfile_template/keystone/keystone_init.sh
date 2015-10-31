@@ -7,7 +7,7 @@ export OS_SERVICE_TOKEN=123456
 export OS_SERVICE_ENDPOINT=http://<KEYSTONE_VIP>:35357/v2.0
 
 ## create an admin user
-keystone user-create --name=admin --pass=123456 --email=<KEYSTONE_ADMIN_EMAIL>
+keystone user-create --name=admin --pass=123456 --email=<ADMIN_EMAIL>
 keystone role-create --name=admin
 keystone role-create --name=_member_
 keystone tenant-create --name=admin --description="Admin Tenant"

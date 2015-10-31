@@ -4,7 +4,7 @@ echo 'start to init glance db==========='
 
 su -s /bin/sh -c "glance-manage db_sync" glance
 
-keystone user-create --name=glance --pass=123456  --email=<GLANCE_ADMIN_EMAIL>
+keystone user-create --name=glance --pass=123456  --email=<ADMIN_EMAIL>
 keystone user-role-add --user=glance --tenant=service --role=admin 
 
 keystone service-create --name=glance --type=image --description="OpenStack Image Service" 

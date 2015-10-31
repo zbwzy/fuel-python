@@ -1001,7 +1001,6 @@ OPENSTACK_NEUTRON_NETWORK = {
 if __name__ == '__main__':
     print 'openstack-icehouse:controller install============'
     print 'start time: %s' % time.ctime()
-    #when execute script,exec: python <this file absolute path> LOCAL_IP GLANCE_USER_EMAIL NOVA_USER_EMAIL
     argv = sys.argv
     argv.pop(0)
     print "agrv=%s--" % argv

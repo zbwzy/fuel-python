@@ -118,45 +118,10 @@ class Cinder(object):
     
     @staticmethod
     def configConfFile():
-        #use conf template file to replace <CONTROLLER_IP>
-        '''
-        #modify nova.conf:
-
-[database]
-connection=mysql://nova:123456@controller/nova
-
-[DEFAULT]
-rpc_backend=rabbit
-rabbit_host=<CONTROLLER_IP>
-rabbit_password=123456
-my_ip=<CONTROLLER_IP>
-vncserver_listen=<CONTROLLER_IP>
-vncserver_proxyclient_address=<CONTROLLER_IP>
-#########
-#
-rpc_backend=rabbit
-rabbit_host=<CONTROLLER_IP>
-rabbit_password=123456
-my_ip=<CONTROLLER_IP>
-vncserver_listen=<CONTROLLER_IP>
-vncserver_proxyclient_address=<CONTROLLER_IP>
-
-5).modify nova.conf: set the auth info of keystone:
-
-[DEFAULT]
-auth_strategy=keystone
-
-[keystone_authtoken]
-auth_uri=http://controller:5000
-auth_host=<CONTROLLER_IP>
-auth_protocal=http
-auth_port=35357
-admin_tenant_name=service
-admin_user=nova
-admin_password=123456
-        '''
         mysql_vip = JSONUtility.getValue("mysql_vip")
         mysql_password = JSONUtility.getValue("mysql_password")
+        
+        rabbit_host = JSONUtility.getValue("rabbit_host")
         
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
@@ -164,76 +129,60 @@ admin_password=123456
         
         glance_vip = JSONUtility.getValue("glance_vip")
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        nova_api_vip = JSONUtility.getValue("nova_api_vip")
         
         virt_type = JSONUtility.getValue("virt_type")
         
-        #controller: Horizon, Neutron-server
-        controller_vip = JSONUtility.getValue("controller_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
         localIP = output.strip()
         
-        print 'ddddddddddddddd========='
         print 'mysql_vip=%s' % mysql_vip
         print 'mysql_password=%s' % mysql_password
+        print 'rabbit_host=%s' % rabbit_host
         print 'rabbit_hosts=%s' % rabbit_hosts
         print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
         print 'keystone_vip=%s' % keystone_vip
-        print 'nova_api_vip=%s' % nova_api_vip
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        nova_api_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'nova.conf')
-        print 'nova_api_conf_template_file_path=%s' % nova_api_conf_template_file_path
+        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
+        print 'nova_api_conf_template_file_path=%s' % cinder_conf_template_file_path
         
-        novaConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'NOVA_CONF_DIR')
-        print 'novaConfDir=%s' % novaConfDir #/etc/keystone
+        cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
+        print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
         
-        nova_conf_file_path = os.path.join(novaConfDir, 'nova.conf')
-        print 'nova_conf_file_path=%s' % nova_conf_file_path
+        cinder_conf_file_path = os.path.join(cinderConfDir, 'cinder.conf')
+        print 'cinder_conf_file_path=%s' % cinder_conf_file_path
         
-        if not os.path.exists(novaConfDir) :
-            ShellCmdExecutor.execCmd("sudo mkdir %s" % novaConfDir)
+        if not os.path.exists(cinderConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
             pass
         
-        if os.path.exists(nova_conf_file_path) :
-            ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
+        if os.path.exists(cinder_conf_file_path) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % cinder_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (nova_api_conf_template_file_path, novaConfDir))
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_API_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_HOST>', glance_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
-        
-        FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_IP>', localIP)
-        
-        FileUtil.replaceFileContent(nova_conf_file_path, '<PUBLIC_LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<MANAGEMENT_LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_SERVER_VIP>', localIP)
-        
-        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
         pass
     
-    @staticmethod
-    def configDB():
-        pass
-
     
 if __name__ == '__main__':
     
@@ -242,25 +191,19 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
+#     argv = sys.argv
+#     argv.pop(0)
+#     print "agrv=%s--" % argv
+#     LOCAL_IP = ''
+#     if len(argv) > 0 :
+#         LOCAL_IP = argv[0]
+#         pass
+#     else :
+#         print "ERROR:no params."
+#         pass
     
     ###############################
     INSTALL_TAG_FILE = '/opt/cinder_installed'
-    if os.path.exists(INSTALL_TAG_FILE) :
-        print 'cinder installed####'
-        print 'exit===='
-        exit()
-        pass
-    
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'cinder installed####'
         print 'exit===='
@@ -271,7 +214,7 @@ if __name__ == '__main__':
     Cinder.configConfFile()
     Cinder.start()
     #
-    #mark: nova-compute is installed
+    #mark: cinder is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:cinder#######'
     pass

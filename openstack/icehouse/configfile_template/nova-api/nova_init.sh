@@ -4,7 +4,7 @@ echo 'start to init nova db==========='
 su -s /bin/sh -c "nova-manage db sync" nova 
 
 #create nova user & role
-keystone user-create --name=nova --pass=123456 --email=<NOVA_ADMIN_EMAIL>
+keystone user-create --name=nova --pass=123456 --email=<ADMIN_EMAIL>
 keystone user-role-add --user=nova --tenant=service --role=admin
 
 #set Keystone: create nova service & endpoint

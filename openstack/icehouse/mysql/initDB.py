@@ -360,9 +360,9 @@ class Keystone(object):
         localIP = Keystone.getLocalIP()
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
         
-        keystoneAdminEmail = JSONUtility.getValue("keystone_admin_email")
+        keystoneAdminEmail = JSONUtility.getValue("admin_email")
         print 'keystoneAdminEmail=%s' % keystoneAdminEmail
-        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_ADMIN_EMAIL>', keystoneAdminEmail)
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<ADMIN_EMAIL>', keystoneAdminEmail)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)
@@ -581,9 +581,9 @@ class Glance(object):
         
         localIP = Keystone.getLocalIP()
         
-        glanceAdminEmail = JSONUtility.getValue("glance_admin_email")
+        glanceAdminEmail = JSONUtility.getValue("admin_email")
         print 'glanceAdminEmail=%s' % glanceAdminEmail
-        FileUtil.replaceFileContent('/opt/glance_init.sh', '<GLANCE_ADMIN_EMAIL>', glanceAdminEmail)
+        FileUtil.replaceFileContent('/opt/glance_init.sh', '<ADMIN_EMAIL>', glanceAdminEmail)
         
         glance_vip = JSONUtility.getValue("glance_vip")
         FileUtil.replaceFileContent('/opt/glance_init.sh', '<GLANCE_VIP>', glance_vip)
@@ -716,7 +716,6 @@ admin_password=123456
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
-        print 'ddddddddddddddd========='
         print 'mysql_vip=%s' % mysql_vip
         print 'mysql_password=%s' % mysql_password
         print 'rabbit_hosts=%s' % rabbit_hosts
@@ -768,10 +767,6 @@ admin_password=123456
         pass
     
     @staticmethod
-    def configDB():
-        pass
-    
-    @staticmethod
     def initNova():
         novaInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'nova_init.sh')
         print 'novaInitScriptPath=%s' % novaInitScriptPath
@@ -784,9 +779,9 @@ admin_password=123456
         
         localIP = Keystone.getLocalIP()
         
-        novaAdminEmail = JSONUtility.getValue("nova_admin_email")
+        novaAdminEmail = JSONUtility.getValue("admin_email")
         print 'novaAdminEmail=%s' % novaAdminEmail
-        FileUtil.replaceFileContent('/opt/nova_init.sh', '<NOVA_ADMIN_EMAIL>', novaAdminEmail)
+        FileUtil.replaceFileContent('/opt/nova_init.sh', '<ADMIN_EMAIL>', novaAdminEmail)
         
         nova_api_vip = JSONUtility.getValue("nova_api_vip")
         FileUtil.replaceFileContent('/opt/nova_init.sh', '<NOVA_API_VIP>', nova_api_vip)
@@ -816,33 +811,170 @@ class Neutron(object):
         
         ShellCmdExecutor.execCmd('cp -rf %s /opt/' % neutronInitScriptPath)
         
-        neutronAdminEmail = JSONUtility.getValue("neutron_admin_email")
+        neutronAdminEmail = JSONUtility.getValue("admin_email")
         print 'neutronAdminEmail=%s' % neutronAdminEmail
-        FileUtil.replaceFileContent('/opt/neutron_init.sh', '<NEUTRON_ADMIN_EMAIL>', neutronAdminEmail)
+        FileUtil.replaceFileContent('/opt/neutron_init.sh', '<ADMIN_EMAIL>', neutronAdminEmail)
         
         neutron_server_vip = JSONUtility.getValue("neutron_server_vip")
         FileUtil.replaceFileContent('/opt/neutron_init.sh', '<NEUTRON_SERVER_VIP>', neutron_server_vip)
         ShellCmdExecutor.execCmd('bash /opt/neutron_init.sh')
         pass
+    pass
+
+
+class Cinder(object):
+    '''
+    classdocs
+    '''
+    NOVA_CONF_FILE_PATH = "/etc/cinder/cinder.conf"
+    
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def install():
+        print 'Cinder.install start===='
+        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db -y'
+        ShellCmdExecutor.execCmd(yumCmd)
+        print 'Cinder.install done####'
+        pass
+
+    @staticmethod
+    def restart():
+        #restart cinder service
+        ShellCmdExecutor.execCmd("service openstack-cinder-api restart")
+        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler restart")
+        pass
+    
+    @staticmethod
+    def start():        
+        ShellCmdExecutor.execCmd("service openstack-cinder-api start")
+        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler start")
+        pass
+    
+    @staticmethod
+    def configConfFile():
+        mysql_vip = JSONUtility.getValue("mysql_vip")
+        mysql_password = JSONUtility.getValue("mysql_password")
+        
+        rabbit_host = JSONUtility.getValue("rabbit_host")
+        
+        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
+        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_password = JSONUtility.getValue("rabbit_password")
+        
+        glance_vip = JSONUtility.getValue("glance_vip")
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        
+        virt_type = JSONUtility.getValue("virt_type")
+        
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        localIP = output.strip()
+        
+        print 'mysql_vip=%s' % mysql_vip
+        print 'mysql_password=%s' % mysql_password
+        print 'rabbit_host=%s' % rabbit_host
+        print 'rabbit_hosts=%s' % rabbit_hosts
+        print 'rabbit_userid=%s' % rabbit_userid
+        print 'rabbit_password=%s' % rabbit_password
+        print 'keystone_vip=%s' % keystone_vip
+        print 'locaIP=%s' % localIP
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
+        print 'nova_api_conf_template_file_path=%s' % cinder_conf_template_file_path
+        
+        cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
+        print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
+        
+        cinder_conf_file_path = os.path.join(cinderConfDir, 'cinder.conf')
+        print 'cinder_conf_file_path=%s' % cinder_conf_file_path
+        
+        if not os.path.exists(cinderConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
+            pass
+        
+        if os.path.exists(cinder_conf_file_path) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % cinder_conf_file_path)
+            pass
+        
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
+        
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
+        pass
+    
+    @staticmethod
+    def initCinder():
+        cinderInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_init.sh')
+        print 'cinderInitScriptPath=%s' % cinderInitScriptPath
+        
+        if os.path.exists('/opt/cinder_init.sh') :
+            ShellCmdExecutor.execCmd('sudo rm -rf /opt/cinder_init.sh')
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % cinderInitScriptPath)
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        localIP = output.strip()
+        
+        cinderAdminEmail = JSONUtility.getValue("admin_email")
+        print 'cinderAdminEmail=%s' % cinderAdminEmail
+        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<ADMIN_EMAIL>', cinderAdminEmail)
+        
+        cinder_vip = JSONUtility.getValue("cinder_vip")
+        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<CINDER_VIP>', cinder_vip)
+        
+        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
+        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        
+        ShellCmdExecutor.execCmd('bash /opt/cinder_init.sh')
+        pass
+    pass
     
     
 if __name__ == '__main__':
-    
+    debug = True
     print 'hello openstack-icehouse:glance============'
     
     print 'start time: %s' % time.ctime()
+    if debug :
+        print 'debug====================='
+        
+        print 'debug#########'
+        exit()
+    
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
+#     argv = sys.argv
+#     argv.pop(0)
+#     print "agrv=%s--" % argv
+#     LOCAL_IP = ''
+#     if len(argv) > 0 :
+#         LOCAL_IP = argv[0]
+#         pass
+#     else :
+#         print "ERROR:no params."
+#         pass
     
     INSTALL_TAG_FILE = '/opt/db_init'
     
@@ -913,6 +1045,18 @@ if __name__ == '__main__':
     MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
     MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
     
+    #cinder
+    createDBCmd = 'CREATE DATABASE cinder'
+    MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+    
+    grantCmd1 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+    .format(init_passwd=initPasswd)
+    
+    grantCmd2 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+    .format(init_passwd=initPasswd)
+    MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+    MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+    
     #VIP handling
     mysql_vip = JSONUtility.getValue('mysql_vip')
     mysql_vip_interface = JSONUtility.getValue('mysql_vip_interface')
@@ -946,6 +1090,9 @@ if __name__ == '__main__':
      
     ##neutron
     Neutron.initNeutron()
+    
+    ##cinder
+    
     
     #destroy
     killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'
