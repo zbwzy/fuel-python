@@ -205,8 +205,9 @@ admin_password=123456
         
         #controller: Horizon, Neutron-server
         controller_vip = JSONUtility.getValue("controller_vip")
-        
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH') 
+        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
         localIP = output.strip()
         
         print 'ddddddddddddddd========='
