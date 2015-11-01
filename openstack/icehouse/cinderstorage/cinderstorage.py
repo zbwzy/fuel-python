@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = False
+debug = True
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'

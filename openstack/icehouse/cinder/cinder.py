@@ -526,8 +526,6 @@ vrrp_instance 42 {
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-            CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
-            
             if CinderHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
             else :
@@ -541,6 +539,8 @@ vrrp_instance 42 {
                 CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
                 pass
             pass
+        
+        ShellCmdExecutor.execCmd('service haproxy restart')
         pass
     
     @staticmethod

@@ -600,8 +600,7 @@ vrrp_instance 42 {
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-            GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
-            
+#             GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
             if GlanceHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
             else :

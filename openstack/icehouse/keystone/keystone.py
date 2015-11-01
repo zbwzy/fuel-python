@@ -635,7 +635,7 @@ vrrp_instance 42 {
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-            KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
+#             KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
             
             if KeystoneHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
@@ -644,9 +644,7 @@ vrrp_instance 42 {
                 pass
             
             isMasterNode = KeystoneHA.isMasterNode()
-            if isMasterNode == True :
-                KeystoneHA.addVIP(keystone_vip, keystone_vip_interface)
-            else :
+            if isMasterNode == False :
                 KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
                 pass
             pass

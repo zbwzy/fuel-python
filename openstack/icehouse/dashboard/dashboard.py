@@ -521,7 +521,7 @@ vrrp_instance 42 {
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-            DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
+#             DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
             
             if DashboardHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
@@ -531,10 +531,9 @@ vrrp_instance 42 {
             
             #Ensure only one VIP exists.
             isMasterNode = DashboardHA.isMasterNode()
-            if isMasterNode == True :
-                DashboardHA.addVIP(dashboard_vip, dashboard_vip_interface)
-            else :
+            if isMasterNode == False :
                 DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
+                pass
             pass
         ShellCmdExecutor.execCmd('service haproxy restart')
         pass
