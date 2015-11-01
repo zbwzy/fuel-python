@@ -610,11 +610,11 @@ vrrp_instance 42 {
             #Ensure only one VIP exists.
             isMasterNode = GlanceHA.isMasterNode()
             if isMasterNode == True :
-                GlanceHA.addVIP(glance_vip, glance_vip_interface)
+                GlanceHA.restart()
             else :
                 GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
             pass
-        ShellCmdExecutor.execCmd('service haproxy restart')
+        ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
     @staticmethod

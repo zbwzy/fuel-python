@@ -1,5 +1,5 @@
 '''
-Created on Aug 26, 2015
+Created on Oct 18, 2015
 
 @author: zhangbai
 '''
@@ -7,16 +7,13 @@ Created on Aug 26, 2015
 '''
 usage:
 
-python keystone.py
+python heat.py
 
 NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
 import sys
 import os
 import time
-
-reload(sys)
-sys.setdefaultencoding('utf8')
 
 debug = False
 if debug == True :
@@ -30,7 +27,7 @@ else :
 
 OPENSTACK_VERSION_TAG = 'icehouse'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
-SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone.conf')
+SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
 sys.path.append(PROJ_HOME_DIR)
 
@@ -48,10 +45,6 @@ class Prerequisites(object):
         '''
         Constructor
         '''
-        pass
-    
-    @staticmethod
-    def prepare():
         Network.Prepare()
         
         cmd = 'yum install openstack-utils -y'
@@ -82,12 +75,6 @@ class Network(object):
         pass
     
     @staticmethod
-    def stopIPTables():
-        stopCmd = "service iptables stop"
-        ShellCmdExecutor.execCmd(stopCmd)
-        pass
-    
-    @staticmethod
     def stopNetworkManager():
         stopCmd = "service NetworkManager stop"
         chkconfigOffCmd = "chkconfig NetworkManager off"
@@ -96,10 +83,11 @@ class Network(object):
         ShellCmdExecutor.execCmd(chkconfigOffCmd)
         pass
 
-class Keystone(object):
+class Heat(object):
     '''
     classdocs
     '''
+    NOVA_CONF_FILE_PATH = "/etc/cinder/cinder.conf"
     
     def __init__(self):
         '''
@@ -109,175 +97,94 @@ class Keystone(object):
     
     @staticmethod
     def install():
-        print 'Keystone node install start========'
-        #Enable 
-        if debug == True:
-            print 'DEBUG is True.On local dev env, do test====='
-            yumCmd = "ls -lt"
-        else :
-            yumCmd = "yum install openstack-keystone python-keystoneclient -y"
-            
-        output, exitcode = ShellCmdExecutor.execCmd(yumCmd)
-        print 'output=\n%s--' % output
-        Keystone.configConfFile()
-        Keystone.start()
-        
-        print 'Keystone node install done####'
+        print 'Cinder.install start===='
+        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db -y'
+        ShellCmdExecutor.execCmd(yumCmd)
+        print 'Cinder.install done####'
         pass
-    
-    @staticmethod
-    def start():
-        print "start keystone========="
-        if debug == True :
-            print 'DEBUG=True.On local dev env, do test===='
-            pass
-        else :
-            ShellCmdExecutor.execCmd('service openstack-keystone start')
-            ShellCmdExecutor.execCmd('chkconfig openstack-keystone on')
-        print "start keystone done####"
-        pass
-    
+
     @staticmethod
     def restart():
-        print "restart keystone========="
-        if debug == True :
-            print 'DEBUG=True.On local dev env, do test===='
-            pass
-        else :
-            ShellCmdExecutor.execCmd('service openstack-keystone restart')
-            pass
-        
-        print "restart keystone done####"
+        #restart cinder service
+        ShellCmdExecutor.execCmd("service openstack-cinder-api restart")
+        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler restart")
         pass
     
     @staticmethod
-    def importKeystoneDBSchema():
-        importCmd = 'su -s /bin/sh -c "keystone-manage db_sync" keystone'
-        ShellCmdExecutor.execCmd(importCmd)
-        pass
-    
-    @staticmethod
-    def supportPKIToken():
-        cmd0 = 'keystone-manage pki_setup --keystone-user keystone --keystone-group keystone'
-        cmd1 = 'chown -R keystone:keystone /var/log/keystone'
-        cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
-        cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'
-        ShellCmdExecutor.execCmd(cmd0)
-        ShellCmdExecutor.execCmd(cmd1)
-        ShellCmdExecutor.execCmd(cmd2)
-        ShellCmdExecutor.execCmd(cmd3)
-        pass
-    
-    @staticmethod
-    def configureEnvVar():
-        ShellCmdExecutor.execCmd('export OS_SERVICE_TOKEN=123456')
-        template_string = 'export OS_SERVICE_ENDPOINT=http://<KEYSTONE_VIP>:35357/v2.0'
-        keystone_vip = JSONUtility.getValue('keystone_vip')
-        cmd = template_string.replace('<KEYSTONE_VIP>', keystone_vip)
-        ShellCmdExecutor.execCmd(cmd)
-        pass
-    
-    @staticmethod
-    def initKeystone():
-        keystoneInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keystone_init.sh')
-        print 'keystoneInitScriptPath=%s' % keystoneInitScriptPath
-#         os.system('bash %s' % keystoneInitScriptPath)
-
-        if os.path.exists('/opt/keystone_init.sh') :
-            ShellCmdExecutor.execCmd('sudo rm -rf /opt/keystone_init.sh')
-            pass
-        
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % keystoneInitScriptPath)
-        
-        localIP = Keystone.getLocalIP()
-        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
-        
-        keystoneAdminEmail = JSONUtility.getValue("admin_email")
-        print 'keystoneAdminEmail=%s' % keystoneAdminEmail
-        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<ADMIN_EMAIL>', keystoneAdminEmail)
-        
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)
-        ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
-        pass
-        ##
-        
-    @staticmethod
-    def sourceAdminOpenRC():
-        adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
-        print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
-        
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
-        
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
-        time.sleep(2)
-        ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
+    def start():        
+        ShellCmdExecutor.execCmd("service openstack-cinder-api start")
+        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler start")
         pass
     
     @staticmethod
     def configConfFile():
-        print "configure keystone conf file======"
         mysql_vip = JSONUtility.getValue("mysql_vip")
         mysql_password = JSONUtility.getValue("mysql_password")
         
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        keystoneConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEYSTONE_CONF_DIR')
-        print 'keystoneConfDir=%s' % keystoneConfDir #/etc/keystone
+        rabbit_host = JSONUtility.getValue("rabbit_host")
         
-        keystone_conf_file_path = os.path.join(keystoneConfDir, 'keystone.conf')
+        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
+        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_password = JSONUtility.getValue("rabbit_password")
         
-        if not os.path.exists(keystoneConfDir) :
-            os.system("sudo mkdir -p %s" % keystoneConfDir)
-            pass
-        #if exist, remove original conf files
-        if os.path.exists(keystone_conf_file_path) :
-            os.system("sudo rm -rf %s" % keystone_conf_file_path)
-            pass
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        glance_vip = JSONUtility.getValue("glance_vip")
+        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
         
-        os.system("sudo cp -rf %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
-        
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
-        ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
-        localIP = Keystone.getLocalIP()
-        print 'localip=%s--' % localIP
-        
-#         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<LOCAL_IP>', localIP)
-#         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        
-        FileUtil.replaceFileContent(keystone_conf_file_path, '<LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
-        
-        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keystone_conf_file_path)
-        print "configure keystone conf file done####"
-        pass
-    
-    @staticmethod
-    def getLocalIP():
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
-        return localIP
-    
-    @staticmethod
-    def getWeightCounter():
-        print 'refactor later================'
-        print 'get keystone weight=================='
         
-        return 299
-    
-    @staticmethod
-    def isMasterNode():
-        print 'go into Master======'
-        if Keystone.getWeightCounter() == 300 :
-            return True
-        else :
-            return False
+        print 'mysql_vip=%s' % mysql_vip
+        print 'mysql_password=%s' % mysql_password
+        print 'rabbit_host=%s' % rabbit_host
+        print 'rabbit_hosts=%s' % rabbit_hosts
+        print 'rabbit_userid=%s' % rabbit_userid
+        print 'rabbit_password=%s' % rabbit_password
+        print 'keystone_vip=%s' % keystone_vip
+        print 'locaIP=%s' % localIP
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
+        print 'cinder_conf_template_file_path=%s' % cinder_conf_template_file_path
+        
+        cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
+        print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
+        
+        cinder_conf_file_path = os.path.join(cinderConfDir, 'cinder.conf')
+        print 'cinder_conf_file_path=%s' % cinder_conf_file_path
+        
+        if not os.path.exists(cinderConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
+            pass
+        
+        if os.path.exists(cinder_conf_file_path) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % cinder_conf_file_path)
+            pass
+        
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<GLANCE_VIP>', glance_vip)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
+        
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
         pass
-
-class KeystoneHA(object):
+    
+class HeatHA(object):
     '''
     classdocs
     '''
@@ -318,7 +225,7 @@ class KeystoneHA(object):
     @staticmethod
     def getVIPFormatString(vip, interface):
         vipFormatString = ''
-        if KeystoneHA.isExistVIP(vip, interface) :
+        if CinderHA.isExistVIP(vip, interface) :
             print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
             cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
             output, exitcode = ShellCmdExecutor.execCmd(cmd)
@@ -342,9 +249,9 @@ class KeystoneHA(object):
     
     @staticmethod
     def addVIP(vip, interface):
-        result = KeystoneHA.getVIPFormatString(vip, interface)
+        result = CinderHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if not KeystoneHA.isExistVIP(vip, interface) :
+        if not CinderHA.isExistVIP(vip, interface) :
             print 'NOT exist vip %s on interface %s.' % (vip, interface)
             addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'addVIPCmd=%s--' % addVIPCmd
@@ -357,9 +264,9 @@ class KeystoneHA(object):
     
     @staticmethod
     def deleteVIP(vip, interface):
-        result = KeystoneHA.getVIPFormatString(vip, interface)
+        result = CinderHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if KeystoneHA.isExistVIP(vip, interface) :
+        if CinderHA.isExistVIP(vip, interface) :
             deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'deleteVIPCmd=%s--' % deleteVIPCmd
             ShellCmdExecutor.execCmd(deleteVIPCmd)
@@ -393,12 +300,12 @@ class KeystoneHA(object):
             ShellCmdExecutor.execCmd(yumCmd)
             pass
         else :
-            if not KeystoneHA.isKeepalivedInstalled() :
+            if not CinderHA.isKeepalivedInstalled() :
                 keepalivedInstallCmd = "yum install keepalived -y"
                 ShellCmdExecutor.execCmd(keepalivedInstallCmd)
                 pass
             
-            if not KeystoneHA.isHAProxyInstalled() :
+            if not CinderHA.isHAProxyInstalled() :
                 haproxyInstallCmd = 'yum install haproxy -y'
                 ShellCmdExecutor.execCmd(haproxyInstallCmd)
                 
@@ -419,15 +326,15 @@ class KeystoneHA(object):
     
     @staticmethod
     def configure():
-        KeystoneHA.configureHAProxy()
-        KeystoneHA.configureKeepalived()
+        CinderHA.configureHAProxy()
+        CinderHA.configureKeepalived()
         pass
     
     @staticmethod
     def configureHAProxy():
         ####################configure haproxy
         #server keystone-01 192.168.1.137:35357 check inter 10s
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        cinder_vip = JSONUtility.getValue("cinder_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
@@ -443,60 +350,43 @@ class KeystoneHA(object):
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
-        ####
-        ##############new
-        keystoneBackendAdminApiStringTemplate = '''
-listen keystone_admin_cluster
-  bind <KEYSTONE_VIP>:35357
+        #############
+        cinderBackendAdminApiStringTemplate = '''
+listen cinder_api_cluster
+  bind <CINDER_VIP>:8776
   balance source
-  <KEYSTONE_ADMIN_API_SERVER_LIST>
+  <CINDER_API_SERVER_LIST>
   '''
-        keystoneBackendPublicApiStringTemplate = '''
-listen keystone_public_internal_cluster
-  bind <KEYSTONE_VIP>:5000
-  <KEYSTONE_PUBLIC_API_SERVER_LIST>
-  '''
-        keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
-        keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
+        cinderBackendAdminApiString = cinderBackendAdminApiStringTemplate.replace('<CINDER_VIP>', cinder_vip)
         
         ################new
-        keystone_ips = JSONUtility.getValue("keystone_ips")
-        keystone_ip_list = keystone_ips.strip().split(',')
+        cinder_ips = JSONUtility.getValue("cinder_ips")
+        cinder_ip_list = cinder_ips.strip().split(',')
         
-        serverKeystoneAdminAPIBackendTemplate   = 'server keystone-<INDEX> <SERVER_IP>:35357 check inter 2000 rise 2 fall 5'
-        serverKeystonePublicAPIBackendTemplate  = 'server keystone-<INDEX> <SERVER_IP>:5000 check inter 2000 rise 2 fall 5'
+        serverCinderAPIBackendTemplate   = 'server cinder-<INDEX> <SERVER_IP>:8776 check inter 2000 rise 2 fall 5'
         
-        keystoneAdminAPIServerListContent = ''
-        keystonePublicAPIServerListContent = ''
+        cinderAPIServerListContent = ''
         
         index = 1
-        for keystone_ip in keystone_ip_list:
-            print 'keystone_ip=%s' % keystone_ip
-            keystoneAdminAPIServerListContent += serverKeystoneAdminAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', keystone_ip)
-            keystonePublicAPIServerListContent += serverKeystonePublicAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', keystone_ip)
+        for cinder_ip in cinder_ip_list:
+            print 'cinder_ip=%s' % cinder_ip
+            cinderAPIServerListContent += serverCinderAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', cinder_ip)
             
-            keystoneAdminAPIServerListContent += '\n'
-            keystoneAdminAPIServerListContent += '  '
+            cinderAPIServerListContent += '\n'
+            cinderAPIServerListContent += '  '
             
-            keystonePublicAPIServerListContent += '\n'
-            keystonePublicAPIServerListContent += '  '
             index += 1
             pass
         
-        keystoneAdminAPIServerListContent = keystoneAdminAPIServerListContent.strip()
-        keystonePublicAPIServerListContent = keystonePublicAPIServerListContent.strip()
-        print 'keystoneAdminAPIServerListContent=%s--' % keystoneAdminAPIServerListContent
-        print 'keystonePublicAPIServerListContent=%s--' % keystonePublicAPIServerListContent
+        cinderAPIServerListContent = cinderAPIServerListContent.strip()
+        print 'cinderAPIServerListContent=%s--' % cinderAPIServerListContent
         
-        keystoneBackendAdminApiString = keystoneBackendAdminApiString.replace('<KEYSTONE_ADMIN_API_SERVER_LIST>', keystoneAdminAPIServerListContent)
-        keystoneBackendPublicApiString = keystoneBackendPublicApiString.replace('<KEYSTONE_PUBLIC_API_SERVER_LIST>', keystonePublicAPIServerListContent)
+        cinderBackendAdminApiString = cinderBackendAdminApiString.replace('<CINDER_API_SERVER_LIST>', cinderAPIServerListContent)
         
-        print 'keystoneBackendAdminApiString=%s--' % keystoneBackendAdminApiString
-        print 'keystoneBackendPublicApiString=%s--' % keystoneBackendPublicApiString
+        print 'cinderBackendAdminApiString=%s--' % cinderBackendAdminApiString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendAdminApiString, haproxyConfFilePath))
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendPublicApiString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (cinderBackendAdminApiString, haproxyConfFilePath))
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -551,24 +441,24 @@ vrrp_instance 42 {
         '''
         #GLANCE_WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
+        cinder_vip = JSONUtility.getValue("cinder_vip")
+        cinder_vip_interface = JSONUtility.getValue("cinder_vip_interface")
         
         weight_counter = 300
-        if KeystoneHA.isMasterNode() :
+        if CinderHA.isMasterNode() :
             weight_counter = 300
             state = 'MASTER'
             pass
         else :
-            index = KeystoneHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
+            index = CinderHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
             weight_counter = 300 - index
             state = 'SLAVE' + str(index)
             pass
-            
+        
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', cinder_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', cinder_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -595,26 +485,27 @@ vrrp_instance 42 {
             return False
         else :
             return True
+        pass
     
     @staticmethod
     def getIndex(): #get host index, the ips has been sorted ascended.
-        print 'To get this host index of role %s==============' % "keystone" 
-        keystone_ips = JSONUtility.getValue('keystone_ips')
-        keystone_ip_list = keystone_ips.split(',')
+        print 'To get this host index of role %s==============' % "cinder" 
+        cinder_ips = JSONUtility.getValue('cinder_ips')
+        cinder_ip_list = cinder_ips.split(',')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
         localIP = output.strip()
         print 'localIP=%s---------------------' % localIP
-        print 'keystone_ip_list=%s--------------' % keystone_ip_list
-        index = keystone_ip_list.index(localIP)
+        print 'cinder_ip_list=%s--------------' % cinder_ip_list
+        index = cinder_ip_list.index(localIP)
         print 'index=%s-----------' % index
         return index
         
     @staticmethod
     def isMasterNode():
-        if KeystoneHA.getIndex() == 0 :
+        if CinderHA.getIndex() == 0 :
             return True
         
         return False
@@ -624,34 +515,32 @@ vrrp_instance 42 {
         if debug == True :
             pass
         else :
-            keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
-            keystone_vip = JSONUtility.getValue("keystone_vip")
+            cinder_vip_interface = JSONUtility.getValue("cinder_vip_interface")
+            cinder_vip = JSONUtility.getValue("cinder_vip")
             
-            KeystoneHA.addVIP(keystone_vip, keystone_vip_interface)
+            CinderHA.addVIP(cinder_vip, cinder_vip_interface)
             
-            if KeystoneHA.isHAProxyRunning() :
+            if CinderHA.isHAProxyRunning() :
                 ShellCmdExecutor.execCmd('service haproxy restart')
             else :
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-#             KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
-            
-            if KeystoneHA.isKeepalivedRunning() :
+            if CinderHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
             else :
                 ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             
-            isMasterNode = KeystoneHA.isMasterNode()
-            if isMasterNode == True :
-                KeystoneHA.restart()
-                pass
-            else :
-                KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
+            ShellCmdExecutor.execCmd('service haproxy restart')
+            
+            isMasterNode = CinderHA.isMasterNode()
+            if isMasterNode == False :
+                CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
                 pass
             pass
-        ShellCmdExecutor.execCmd('service keepalived restart')
+        
+        ShellCmdExecutor.execCmd('service haproxy restart')
         pass
     
     @staticmethod
@@ -659,59 +548,39 @@ vrrp_instance 42 {
         ShellCmdExecutor.execCmd('service haproxy restart')
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
-
-
+    
+    
 if __name__ == '__main__':
-    
-    print 'hello openstack-icehouse:keystone============'
-    
+    print 'hello openstack-icehouse:cinder============'
     print 'start time: %s' % time.ctime()
+    
+    debug = False
+    if debug :
+        print 'start to debug======'
+        
+        print CinderHA.getIndex()
+        print 'end debug######'
+        exit()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
-    
     ###############################
-    INSTALL_TAG_FILE = '/opt/keystone_installed'
-    
+    INSTALL_TAG_FILE = '/opt/cinder_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'keystone installed####'
+        print 'cinder installed####'
         print 'exit===='
         exit()
         pass
-        
-    print 'start to install======='
-    Prerequisites.prepare()
-    Keystone.install()
-    Keystone.configConfFile()
-          
-#     if Keystone.isMasterNode()  == True :
-#         Keystone.importKeystoneDBSchema()
-#         Keystone.supportPKIToken()
-#         pass
-          
-    Keystone.start()
-        
-#     if Keystone.isMasterNode() == True :
-#         Keystone.configureEnvVar()
-#         Keystone.initKeystone()
-#         pass
-    Keystone.sourceAdminOpenRC()
-    #add HA
-    KeystoneHA.install()
-    KeystoneHA.configure()
-    KeystoneHA.start()
     
-    #mark: keystone is installed
+    Cinder.install()
+    Cinder.configConfFile()
+    Cinder.start()
+    
+    ## Cinder HA
+    CinderHA.install()
+    CinderHA.configure()
+    CinderHA.start()
+    #
+    #mark: cinder is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:keystone#######'
+    print 'hello openstack-icehouse:cinder#######'
     pass
 

@@ -946,6 +946,132 @@ class Cinder(object):
         ShellCmdExecutor.execCmd('bash /opt/cinder_init.sh')
         pass
     pass
+
+class Heat(object):
+    '''
+    classdocs
+    '''
+    HEAT_CONF_FILE_PATH = "/etc/heat/heat.conf"
+    
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def install():
+        print 'Heat.install start===='
+        yumCmd = 'yum install openstack-heat-api openstack-heat-api-cfn openstack-heat-engine python-heatclient -y'
+        ShellCmdExecutor.execCmd(yumCmd)
+        print 'Heat.install done####'
+        pass
+
+    @staticmethod
+    def restart():
+        #restart heat service
+        ShellCmdExecutor.execCmd("service openstack-heat-api start")
+        pass
+    
+    @staticmethod
+    def start():        
+        ShellCmdExecutor.execCmd("service openstack-heat-api start")
+        ShellCmdExecutor.execCmd("chkconfig openstack-heat-api on")
+        pass
+    
+    @staticmethod
+    def configConfFile():
+        mysql_vip = JSONUtility.getValue("mysql_vip")
+        mysql_password = JSONUtility.getValue("mysql_password")
+        
+        rabbit_host = JSONUtility.getValue("rabbit_host")
+        
+        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
+        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_password = JSONUtility.getValue("rabbit_password")
+        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        heat_mysql_password = JSONUtility.getValue("heat_mysql_password")
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
+        localIP = output.strip()
+        
+        print 'mysql_vip=%s' % mysql_vip
+        print 'mysql_password=%s' % mysql_password
+        print 'rabbit_host=%s' % rabbit_host
+        print 'rabbit_hosts=%s' % rabbit_hosts
+        print 'rabbit_userid=%s' % rabbit_userid
+        print 'rabbit_password=%s' % rabbit_password
+        print 'keystone_vip=%s' % keystone_vip
+        print 'locaIP=%s' % localIP
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
+        print 'nova_api_conf_template_file_path=%s' % cinder_conf_template_file_path
+        
+        cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
+        print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
+        
+        cinder_conf_file_path = os.path.join(cinderConfDir, 'cinder.conf')
+        print 'cinder_conf_file_path=%s' % cinder_conf_file_path
+        
+        if not os.path.exists(cinderConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
+            pass
+        
+        if os.path.exists(cinder_conf_file_path) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % cinder_conf_file_path)
+            pass
+        
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
+        
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
+        pass
+    
+    @staticmethod
+    def initCinder():
+        cinderInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_init.sh')
+        print 'cinderInitScriptPath=%s' % cinderInitScriptPath
+        
+        if os.path.exists('/opt/cinder_init.sh') :
+            ShellCmdExecutor.execCmd('sudo rm -rf /opt/cinder_init.sh')
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % cinderInitScriptPath)
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
+        localIP = output.strip()
+        
+        cinderAdminEmail = JSONUtility.getValue("admin_email")
+        print 'cinderAdminEmail=%s' % cinderAdminEmail
+        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<ADMIN_EMAIL>', cinderAdminEmail)
+        
+        cinder_vip = JSONUtility.getValue("cinder_vip")
+        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<CINDER_VIP>', cinder_vip)
+        
+        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
+        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        
+        ShellCmdExecutor.execCmd('bash /opt/cinder_init.sh')
+        pass
+    pass
     
     
 if __name__ == '__main__':
@@ -958,20 +1084,6 @@ if __name__ == '__main__':
         
         print 'debug#########'
         exit()
-    
-    #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-#     argv = sys.argv
-#     argv.pop(0)
-#     print "agrv=%s--" % argv
-#     LOCAL_IP = ''
-#     if len(argv) > 0 :
-#         LOCAL_IP = argv[0]
-#         pass
-#     else :
-#         print "ERROR:no params."
-#         pass
-    
     INSTALL_TAG_FILE = '/opt/db_init'
     
     if os.path.exists(INSTALL_TAG_FILE) :
@@ -1091,6 +1203,10 @@ if __name__ == '__main__':
     Cinder.install()
     Cinder.configConfFile()
     Cinder.initCinder()
+    
+    ##heat
+    
+    
     
     #destroy
     killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'

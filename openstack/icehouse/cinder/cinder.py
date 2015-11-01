@@ -540,7 +540,7 @@ vrrp_instance 42 {
                 pass
             pass
         
-        ShellCmdExecutor.execCmd('service haproxy restart')
+        ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
     @staticmethod
