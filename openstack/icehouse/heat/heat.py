@@ -15,6 +15,7 @@ import sys
 import os
 import time
 
+#DEBUG
 debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
@@ -58,6 +59,7 @@ class Prerequisites(object):
         pass
     pass
 
+
 class Network(object):
     '''
     classdocs
@@ -82,12 +84,21 @@ class Network(object):
         ShellCmdExecutor.execCmd(stopCmd)
         ShellCmdExecutor.execCmd(chkconfigOffCmd)
         pass
+    
+'''
+TODO:
+in /etc/heat/heat.conf======
+[DEFAULT]
+...
+heat_metadata_server_url = http://controller:8000
+heat_waitcondition_server_url = http://controller:8000/v1/waitcondition
 
+'''
 class Heat(object):
     '''
     classdocs
     '''
-    NOVA_CONF_FILE_PATH = "/etc/cinder/cinder.conf"
+    HEAT_CONF_FILE_PATH = "/etc/heat/heat.conf"
     
     def __init__(self):
         '''
@@ -97,23 +108,30 @@ class Heat(object):
     
     @staticmethod
     def install():
-        print 'Cinder.install start===='
-        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db -y'
+        print 'Heat.install start===='
+        yumCmd = 'yum install openstack-heat-api openstack-heat-api-cfn openstack-heat-engine python-heatclient -y'
         ShellCmdExecutor.execCmd(yumCmd)
-        print 'Cinder.install done####'
+        print 'Heat.install done####'
         pass
 
     @staticmethod
     def restart():
-        #restart cinder service
-        ShellCmdExecutor.execCmd("service openstack-cinder-api restart")
-        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler restart")
+        #restart heat service
+        ShellCmdExecutor.execCmd("service openstack-heat-api restart")
+        ShellCmdExecutor.execCmd("service openstack-heat-api-cfn restart")
+        ShellCmdExecutor.execCmd("service  openstack-heat-engine  restart")
         pass
     
+    
     @staticmethod
-    def start():        
-        ShellCmdExecutor.execCmd("service openstack-cinder-api start")
-        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler start")
+    def start():    
+        ShellCmdExecutor.execCmd("service openstack-heat-api start")
+        ShellCmdExecutor.execCmd("service openstack-heat-api-cfn start")
+        ShellCmdExecutor.execCmd("service  openstack-heat-engine  start")
+            
+        ShellCmdExecutor.execCmd("chkconfig openstack-heat-api on")
+        ShellCmdExecutor.execCmd("chkconfig openstack-heat-api-cfn on")
+        ShellCmdExecutor.execCmd("chkconfig  openstack-heat-engine on")
         pass
     
     @staticmethod
@@ -129,7 +147,7 @@ class Heat(object):
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         glance_vip = JSONUtility.getValue("glance_vip")
-        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
+        heat_mysql_password = JSONUtility.getValue("heat_mysql_password")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
@@ -146,43 +164,45 @@ class Heat(object):
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
-        print 'cinder_conf_template_file_path=%s' % cinder_conf_template_file_path
+        heat_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'heat', 'heat.conf')
+        print 'heat_conf_template_file_path=%s' % heat_conf_template_file_path
         
-        cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
-        print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
+        heatConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HEAT_CONF_DIR')
+        print 'heatConfDir=%s' % heatConfDir #/etc/heat
         
-        cinder_conf_file_path = os.path.join(cinderConfDir, 'cinder.conf')
-        print 'cinder_conf_file_path=%s' % cinder_conf_file_path
+        heat_conf_file_path = os.path.join(heatConfDir, 'heat.conf')
+        print 'heat_conf_file_path=%s' % heat_conf_file_path
         
-        if not os.path.exists(cinderConfDir) :
-            ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
+        if not os.path.exists(heatConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % heatConfDir)
             pass
         
-        if os.path.exists(cinder_conf_file_path) :
-            ShellCmdExecutor.execCmd("rm -rf %s" % cinder_conf_file_path)
+        if os.path.exists(heat_conf_file_path) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % heat_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
+        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (heat_conf_template_file_path, heatConfDir))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % heat_conf_file_path)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<HEAT_MYSQL_PASSWORD>', heat_mysql_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<GLANCE_VIP>', glance_vip)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<GLANCE_VIP>', glance_vip)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<LOCAL_IP>', localIP)
         
-        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % heat_conf_file_path)
         pass
+    pass
+
     
 class HeatHA(object):
     '''
@@ -225,7 +245,7 @@ class HeatHA(object):
     @staticmethod
     def getVIPFormatString(vip, interface):
         vipFormatString = ''
-        if CinderHA.isExistVIP(vip, interface) :
+        if HeatHA.isExistVIP(vip, interface) :
             print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
             cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
             output, exitcode = ShellCmdExecutor.execCmd(cmd)
@@ -249,9 +269,9 @@ class HeatHA(object):
     
     @staticmethod
     def addVIP(vip, interface):
-        result = CinderHA.getVIPFormatString(vip, interface)
+        result = HeatHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if not CinderHA.isExistVIP(vip, interface) :
+        if not HeatHA.isExistVIP(vip, interface) :
             print 'NOT exist vip %s on interface %s.' % (vip, interface)
             addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'addVIPCmd=%s--' % addVIPCmd
@@ -264,9 +284,9 @@ class HeatHA(object):
     
     @staticmethod
     def deleteVIP(vip, interface):
-        result = CinderHA.getVIPFormatString(vip, interface)
+        result = HeatHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if CinderHA.isExistVIP(vip, interface) :
+        if HeatHA.isExistVIP(vip, interface) :
             deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'deleteVIPCmd=%s--' % deleteVIPCmd
             ShellCmdExecutor.execCmd(deleteVIPCmd)
@@ -300,12 +320,12 @@ class HeatHA(object):
             ShellCmdExecutor.execCmd(yumCmd)
             pass
         else :
-            if not CinderHA.isKeepalivedInstalled() :
+            if not HeatHA.isKeepalivedInstalled() :
                 keepalivedInstallCmd = "yum install keepalived -y"
                 ShellCmdExecutor.execCmd(keepalivedInstallCmd)
                 pass
             
-            if not CinderHA.isHAProxyInstalled() :
+            if not HeatHA.isHAProxyInstalled() :
                 haproxyInstallCmd = 'yum install haproxy -y'
                 ShellCmdExecutor.execCmd(haproxyInstallCmd)
                 
@@ -326,15 +346,15 @@ class HeatHA(object):
     
     @staticmethod
     def configure():
-        CinderHA.configureHAProxy()
-        CinderHA.configureKeepalived()
+        HeatHA.configureHAProxy()
+        HeatHA.configureKeepalived()
         pass
     
     @staticmethod
     def configureHAProxy():
         ####################configure haproxy
-        #server keystone-01 192.168.1.137:35357 check inter 10s
-        cinder_vip = JSONUtility.getValue("cinder_vip")
+        #server heat-01 192.168.1.137:8004 check inter 10s
+        heat_vip = JSONUtility.getValue("heat_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
@@ -351,42 +371,42 @@ class HeatHA(object):
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
         #############
-        cinderBackendAdminApiStringTemplate = '''
-listen cinder_api_cluster
-  bind <CINDER_VIP>:8776
+        heatBackendApiStringTemplate = '''
+listen heat_api_cluster
+  bind <HEAT_VIP>:8004
   balance source
-  <CINDER_API_SERVER_LIST>
+  <HEAT_API_SERVER_LIST>
   '''
-        cinderBackendAdminApiString = cinderBackendAdminApiStringTemplate.replace('<CINDER_VIP>', cinder_vip)
+        heatBackendApiString = heatBackendApiStringTemplate.replace('<HEAT_VIP>', heat_vip)
         
         ################new
-        cinder_ips = JSONUtility.getValue("cinder_ips")
-        cinder_ip_list = cinder_ips.strip().split(',')
+        heat_ips = JSONUtility.getValue("heat_ips")
+        heat_ip_list = heat_ips.strip().split(',')
         
-        serverCinderAPIBackendTemplate   = 'server cinder-<INDEX> <SERVER_IP>:8776 check inter 2000 rise 2 fall 5'
+        serverHeatAPIBackendTemplate   = 'server heat-<INDEX> <SERVER_IP>:8004 check inter 2000 rise 2 fall 5'
         
-        cinderAPIServerListContent = ''
+        heatAPIServerListContent = ''
         
         index = 1
-        for cinder_ip in cinder_ip_list:
-            print 'cinder_ip=%s' % cinder_ip
-            cinderAPIServerListContent += serverCinderAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', cinder_ip)
+        for heat_ip in heat_ip_list:
+            print 'heat_ip=%s' % heat_ip
+            heatAPIServerListContent += serverHeatAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', heat_ip)
             
-            cinderAPIServerListContent += '\n'
-            cinderAPIServerListContent += '  '
+            heatAPIServerListContent += '\n'
+            heatAPIServerListContent += '  '
             
             index += 1
             pass
         
-        cinderAPIServerListContent = cinderAPIServerListContent.strip()
-        print 'cinderAPIServerListContent=%s--' % cinderAPIServerListContent
+        heatAPIServerListContent = heatAPIServerListContent.strip()
+        print 'heatAPIServerListContent=%s--' % heatAPIServerListContent
         
-        cinderBackendAdminApiString = cinderBackendAdminApiString.replace('<CINDER_API_SERVER_LIST>', cinderAPIServerListContent)
+        heatBackendApiString = heatBackendApiString.replace('<HEAT_API_SERVER_LIST>', heatAPIServerListContent)
         
-        print 'cinderBackendAdminApiString=%s--' % cinderBackendAdminApiString
+        print 'heatBackendApiString=%s--' % heatBackendApiString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (cinderBackendAdminApiString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (heatBackendApiString, haproxyConfFilePath))
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -439,26 +459,26 @@ vrrp_instance 42 {
   }
 }
         '''
-        #GLANCE_WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
+        #WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        cinder_vip = JSONUtility.getValue("cinder_vip")
-        cinder_vip_interface = JSONUtility.getValue("cinder_vip_interface")
+        heat_vip = JSONUtility.getValue("heat_vip")
+        heat_vip_interface = JSONUtility.getValue("heat_vip_interface")
         
         weight_counter = 300
-        if CinderHA.isMasterNode() :
+        if HeatHA.isMasterNode() :
             weight_counter = 300
             state = 'MASTER'
             pass
         else :
-            index = CinderHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
+            index = HeatHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
             weight_counter = 300 - index
             state = 'SLAVE' + str(index)
             pass
         
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', cinder_vip_interface)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', cinder_vip)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', heat_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', heat_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -489,23 +509,23 @@ vrrp_instance 42 {
     
     @staticmethod
     def getIndex(): #get host index, the ips has been sorted ascended.
-        print 'To get this host index of role %s==============' % "cinder" 
-        cinder_ips = JSONUtility.getValue('cinder_ips')
-        cinder_ip_list = cinder_ips.split(',')
+        print 'To get this host index of role %s==============' % "heat" 
+        heat_ips = JSONUtility.getValue('heat_ips')
+        heat_ip_list = heat_ips.split(',')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
         localIP = output.strip()
         print 'localIP=%s---------------------' % localIP
-        print 'cinder_ip_list=%s--------------' % cinder_ip_list
-        index = cinder_ip_list.index(localIP)
+        print 'heat_ip_list=%s--------------' % heat_ip_list
+        index = heat_ip_list.index(localIP)
         print 'index=%s-----------' % index
         return index
         
     @staticmethod
     def isMasterNode():
-        if CinderHA.getIndex() == 0 :
+        if HeatHA.getIndex() == 0 :
             return True
         
         return False
@@ -515,18 +535,18 @@ vrrp_instance 42 {
         if debug == True :
             pass
         else :
-            cinder_vip_interface = JSONUtility.getValue("cinder_vip_interface")
-            cinder_vip = JSONUtility.getValue("cinder_vip")
+            heat_vip_interface = JSONUtility.getValue("heat_vip_interface")
+            heat_vip = JSONUtility.getValue("heat_vip")
             
-            CinderHA.addVIP(cinder_vip, cinder_vip_interface)
+            HeatHA.addVIP(heat_vip, heat_vip_interface)
             
-            if CinderHA.isHAProxyRunning() :
+            if HeatHA.isHAProxyRunning() :
                 ShellCmdExecutor.execCmd('service haproxy restart')
             else :
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-            if CinderHA.isKeepalivedRunning() :
+            if HeatHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
             else :
                 ShellCmdExecutor.execCmd('service keepalived start')
@@ -534,13 +554,16 @@ vrrp_instance 42 {
             
             ShellCmdExecutor.execCmd('service haproxy restart')
             
-            isMasterNode = CinderHA.isMasterNode()
-            if isMasterNode == False :
-                CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
+            isMasterNode = HeatHA.isMasterNode()
+            if isMasterNode == True :
+                HeatHA.restart()
+                pass
+            else :
+                HeatHA.deleteVIP(heat_vip, heat_vip_interface)
                 pass
             pass
         
-        ShellCmdExecutor.execCmd('service haproxy restart')
+        ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
     @staticmethod
@@ -551,36 +574,41 @@ vrrp_instance 42 {
     
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:cinder============'
+    print 'hello openstack-icehouse:heat============'
     print 'start time: %s' % time.ctime()
     
+    #DEBUG
     debug = False
     if debug :
         print 'start to debug======'
         
-        print CinderHA.getIndex()
         print 'end debug######'
         exit()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/cinder_installed'
+    INSTALL_TAG_FILE = '/opt/heat_installed'
+    #DEBUG
+    if False :
+        ShellCmdExecutor.execCmd('rm -rf %s' % INSTALL_TAG_FILE)
+        pass
+        
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'cinder installed####'
+        print 'heat installed####'
         print 'exit===='
         exit()
         pass
     
-    Cinder.install()
-    Cinder.configConfFile()
-    Cinder.start()
+    Heat.install()
+    Heat.configConfFile()
+    Heat.start()
     
-    ## Cinder HA
-    CinderHA.install()
-    CinderHA.configure()
-    CinderHA.start()
+    ## Heat HA
+    HeatHA.install()
+    HeatHA.configure()
+    HeatHA.start()
     #
-    #mark: cinder is installed
+    #mark: heat is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:cinder#######'
+    print 'hello openstack-icehouse:heat#######'
     pass
 
