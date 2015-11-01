@@ -101,8 +101,20 @@ class CinderStorage(object):
         yumCmd = 'yum install lvm2 -y'
         ShellCmdExecutor.execCmd(yumCmd)
         
+        ShellCmdExecutor.execCmd("service lvm2-lvmetad start")
+        ShellCmdExecutor.execCmd("chkconfig lvm2-lvmetad on")
+        
+        #Default create volume
+        #Create the LVM physical volume /dev/sdb1:
+        createCmd = 'pvcreate /dev/sdb1' 
+        ShellCmdExecutor.execCmd(createCmd)
+        
+        createCmd = 'vgcreate cinder-volumes /dev/sdb1'
+        ShellCmdExecutor.execCmd(createCmd)
+       
         yumCmd = 'yum install openstack-cinder targetcli python-oslo-db MySQL-python -y'
         ShellCmdExecutor.execCmd(yumCmd)
+        
         print 'Cinder-storage.install done####'
         pass
 
@@ -184,6 +196,11 @@ class CinderStorage(object):
         FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
+        
+        #If add filter, if necessary, modify /etc/lvm/lvm.conf
+        '''
+        filter = [ "a/sda/", "a/sdb/", "r/.*/"]
+        '''
         pass
 
     
