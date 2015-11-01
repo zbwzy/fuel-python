@@ -437,23 +437,24 @@ vrrp_instance 42 {
         ##Here: connect to ZooKeeper to coordinate the weight
         dashboard_vip = JSONUtility.getValue("dashboard_vip")
         dashboard_vip_interface = JSONUtility.getValue("dashboard_vip_interface")
-        #Call ZooKeeper lock & counter services
+        
         weight_counter = 300
-        if weight_counter == 300 : #This is MASTER
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', '300')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', 'MASTER')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', dashboard_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', dashboard_vip)
-        else :
-            #
-            #
-            index = 300 - weight_counter
-            state = 'SLAVE' + str(index)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', dashboard_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', dashboard_vip)
+        
+        ######
+        if DashboardHA.isMasterNode() :
+            weight_counter = 300
+            state = 'MASTER'
             pass
+        else :
+            index = DashboardHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
+            weight_counter = 300 - index
+            state = 'SLAVE' + str(index)
+            pass
+
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', dashboard_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', dashboard_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -482,6 +483,29 @@ vrrp_instance 42 {
             return True
     
     @staticmethod
+    def getIndex(): #get host index, the ips has been sorted ascended.
+        print 'To get this host index of role %s==============' % "dashboard" 
+        dashboard_ips = JSONUtility.getValue('dashboard_ips')
+        dashboard_ip_list = dashboard_ips.split(',')
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
+        localIP = output.strip()
+        print 'localIP=%s---------------------' % localIP
+        print 'dashboard_ip_list=%s--------------' % dashboard_ip_list
+        index = dashboard_ip_list.index(localIP)
+        print 'index=%s-----------' % index
+        return index
+        
+    @staticmethod
+    def isMasterNode():
+        if DashboardHA.getIndex() == 0 :
+            return True
+        
+        return False
+    
+    @staticmethod
     def start():
         if debug == True :
             pass
@@ -506,12 +530,13 @@ vrrp_instance 42 {
                 pass
             
             #Ensure only one VIP exists.
-            isMasterNode = True
+            isMasterNode = DashboardHA.isMasterNode()
             if isMasterNode == True :
                 DashboardHA.addVIP(dashboard_vip, dashboard_vip_interface)
             else :
                 DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
             pass
+        ShellCmdExecutor.execCmd('service haproxy restart')
         pass
     
     @staticmethod
@@ -556,7 +581,7 @@ if __name__ == '__main__':
     DashboardHA.start()
     #
     ShellCmdExecutor.execCmd('service haproxy restart')
-    #mark: nova-compute is installed
+    #mark: dashboard is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:dashboard installed#######'
     pass

@@ -257,7 +257,7 @@ class Keystone(object):
     def getLocalIP():
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         return localIP
     
@@ -553,23 +553,22 @@ vrrp_instance 42 {
         ##Here: connect to ZooKeeper to coordinate the weight
         keystone_vip = JSONUtility.getValue("keystone_vip")
         keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
-        #Call ZooKeeper lock & counter services
-        keystone_weight_counter = Keystone.getWeightCounter()
-        if keystone_weight_counter == 300 : #This is MASTER
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', '300')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', 'MASTER')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
-        else :
-            #
-            #
-            index = 300 - keystone_weight_counter
-            state = 'SLAVE' + str(index)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(keystone_weight_counter))
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
+        
+        weight_counter = 300
+        if KeystoneHA.isMasterNode() :
+            weight_counter = 300
+            state = 'MASTER'
             pass
+        else :
+            index = KeystoneHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
+            weight_counter = 300 - index
+            state = 'SLAVE' + str(index)
+            pass
+            
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -598,6 +597,29 @@ vrrp_instance 42 {
             return True
     
     @staticmethod
+    def getIndex(): #get host index, the ips has been sorted ascended.
+        print 'To get this host index of role %s==============' % "keystone" 
+        keystone_ips = JSONUtility.getValue('keystone_ips')
+        keystone_ip_list = keystone_ips.split(',')
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
+        localIP = output.strip()
+        print 'localIP=%s---------------------' % localIP
+        print 'keystone_ip_list=%s--------------' % keystone_ip_list
+        index = keystone_ip_list.index(localIP)
+        print 'index=%s-----------' % index
+        return index
+        
+    @staticmethod
+    def isMasterNode():
+        if KeystoneHA.getIndex() == 0 :
+            return True
+        
+        return False
+    
+    @staticmethod
     def start():
         if debug == True :
             pass
@@ -621,14 +643,14 @@ vrrp_instance 42 {
                 ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             
-            #refactor===============
-            isMasterNode = True
+            isMasterNode = KeystoneHA.isMasterNode()
             if isMasterNode == True :
                 KeystoneHA.addVIP(keystone_vip, keystone_vip_interface)
             else :
                 KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
                 pass
             pass
+        ShellCmdExecutor.execCmd('service haproxy restart')
         pass
     
     @staticmethod

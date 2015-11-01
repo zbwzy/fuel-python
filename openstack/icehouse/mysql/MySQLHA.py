@@ -254,7 +254,7 @@ class Keystone(object):
     def getLocalIP():
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         return localIP
     

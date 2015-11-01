@@ -198,7 +198,7 @@ class Glance(object):
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         print 'localip=%s--' % localIP
         
@@ -518,23 +518,22 @@ vrrp_instance 42 {
         ##Here: connect to ZooKeeper to coordinate the weight
         glance_vip = JSONUtility.getValue("glance_vip")
         glance_vip_interface = JSONUtility.getValue("glance_vip_interface")
-        #Refactor later
-        GLANCE_WEIGHT = 300
-        if GLANCE_WEIGHT == 300 : #This is MASTER
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', '300')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', 'MASTER')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', glance_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', glance_vip)
-        else :
-            #
-            #
-            index = 300 - GLANCE_WEIGHT
-            state = 'SLAVE' + str(index)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(GLANCE_WEIGHT))
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', glance_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', glance_vip)
+        
+        weight_counter = 300
+        if GlanceHA.isMasterNode() :
+            weight_counter = 300
+            state = 'MASTER'
             pass
+        else :
+            index = GlanceHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
+            weight_counter = 300 - index
+            state = 'SLAVE' + str(index)
+            pass
+        
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', glance_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', glance_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -561,6 +560,29 @@ vrrp_instance 42 {
             return False
         else :
             return True
+        
+    @staticmethod
+    def getIndex(): #get host index, the ips has been sorted ascended.
+        print 'To get this host index of role %s==============' % "glance" 
+        glance_ips = JSONUtility.getValue('glance_ips')
+        glance_ip_list = glance_ips.split(',')
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
+        localIP = output.strip()
+        print 'localIP=%s---------------------' % localIP
+        print 'glance_ip_list=%s--------------' % glance_ip_list
+        index = glance_ip_list.index(localIP)
+        print 'index=%s-----------' % index
+        return index
+        
+    @staticmethod
+    def isMasterNode():
+        if GlanceHA.getIndex() == 0 :
+            return True
+        
+        return False
     
     @staticmethod
     def start():
@@ -586,14 +608,14 @@ vrrp_instance 42 {
                 ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             
-            #refactor===============
             #Ensure only one VIP exists.
-            isMasterNode = True
+            isMasterNode = GlanceHA.isMasterNode()
             if isMasterNode == True :
                 GlanceHA.addVIP(glance_vip, glance_vip_interface)
             else :
                 GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
             pass
+        ShellCmdExecutor.execCmd('service haproxy restart')
         pass
     
     @staticmethod
@@ -637,20 +659,19 @@ if __name__ == '__main__':
         
     print 'start to install======='
     
-#     Prerequisites.prepare()
-#     #
-#     Glance.install()
-#     Glance.configConfFile()
-#     Glance.start()
-#     
-#     Glance.sourceAdminOpenRC()
-#     #add HA
-#     GlanceHA.install()
+    Prerequisites.prepare()
+    #
+    Glance.install()
+    Glance.configConfFile()
+    Glance.start()
+     
+    Glance.sourceAdminOpenRC()
+    #add HA
+    GlanceHA.install()
     GlanceHA.configure()
-#     GlanceHA.start()
+    GlanceHA.start()
      
     #mark: glance is installed
-    ShellCmdExecutor.execCmd('service haproxy restart')
     os.system('touch %s' % INSTALL_TAG_FILE)
     
     print 'hello openstack-icehouse:glance#######'

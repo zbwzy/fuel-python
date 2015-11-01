@@ -428,7 +428,7 @@ class Keystone(object):
 #         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
 #         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         localIP = ''
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         return localIP
     
@@ -547,7 +547,7 @@ class Glance(object):
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         print 'localip=%s--' % localIP
         
@@ -711,8 +711,6 @@ admin_password=123456
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
         #controller: Horizon, Neutron-server
-        controller_vip = JSONUtility.getValue("controller_vip")
-        
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
@@ -871,7 +869,7 @@ class Cinder(object):
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         
         print 'mysql_vip=%s' % mysql_vip
@@ -932,7 +930,7 @@ class Cinder(object):
         ShellCmdExecutor.execCmd('cp -rf %s /opt/' % cinderInitScriptPath)
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('sudo cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         
         cinderAdminEmail = JSONUtility.getValue("admin_email")
@@ -1064,8 +1062,8 @@ if __name__ == '__main__':
     VIP.addVIP(mysql_vip, mysql_vip_interface)
 #     
 #     ########
-#     Keystone.install()
-#     Keystone.configConfFile()
+    Keystone.install()
+    Keystone.configConfFile()
      
     Keystone.importKeystoneDBSchema()
     Keystone.supportPKIToken()

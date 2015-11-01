@@ -77,7 +77,7 @@ if __name__ == '__main__':
     paramsMap = {}
     print 'mysql============================'
     role = 'mysql'
-    if YAMLUtil.hasRole(role) :
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'mysql_vip'
         mysql_vip = YAMLUtil.getValue(role, key)
         
@@ -102,7 +102,7 @@ if __name__ == '__main__':
     
     print 'rabbitmq========================'
     role = 'rabbitmq'
-    if YAMLUtil.hasRole(role) :
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'rabbit_userid'
         rabbit_userid = YAMLUtil.getValue(role, key)
         
@@ -141,7 +141,7 @@ if __name__ == '__main__':
     
     print 'keystone========================='
     role = 'keystone'
-    if YAMLUtil.hasRole(role) :
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'keystone_vip'
         keystone_vip = YAMLUtil.getValue(role, key)
         
@@ -170,10 +170,9 @@ if __name__ == '__main__':
         
         pass
     
-    #NOT TEST
     print 'glance====================================='
     role = 'glance'
-    if YAMLUtil.hasRole(role) :
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'glance_vip'
         glance_vip = YAMLUtil.getValue(role, key)
         
@@ -200,10 +199,10 @@ if __name__ == '__main__':
         paramsMap['glance_mysql_password'] = glance_mysql_password
         paramsMap['glance_ips'] = glance_ips
         pass
-    #NOT TEST
+
     print 'neutron-server========================================='
     role = 'neutron-server'
-    if YAMLUtil.hasRole(role) :
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'neutron_server_vip'
         neutron_server_vip = YAMLUtil.getValue(role, key)
         
@@ -239,7 +238,7 @@ if __name__ == '__main__':
     
     print 'nova-api========================================='
     role = 'nova-api'
-    if YAMLUtil.hasRole(role): 
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'nova_api_vip'
         nova_api_vip = YAMLUtil.getValue(role, key)
         
@@ -272,7 +271,7 @@ if __name__ == '__main__':
     
     print 'nova-compute============================================='
     role = 'nova-compute'
-    if YAMLUtil.hasRole(role): 
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'virt_type'
         virt_type= YAMLUtil.getValue(role, key)
         print 'virt_type=%s' % virt_type
@@ -285,7 +284,7 @@ if __name__ == '__main__':
         pass
     
     role = 'dashboard'
-    if YAMLUtil.hasRole(role): 
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'dashboard_vip'
         dashboard_vip= YAMLUtil.getValue(role, key)
         key = 'dashboard_vip_interface'
@@ -303,7 +302,7 @@ if __name__ == '__main__':
         
     print 'cinder============================================'
     role = 'cinder'
-    if YAMLUtil.hasRole(role) :
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'cinder_vip'
         cinder_vip = YAMLUtil.getValue(role, key)
         
@@ -331,7 +330,7 @@ if __name__ == '__main__':
     
     print 'ceilometer==========================================='
     role = 'ceilometer'
-    if YAMLUtil.hasRole(role) :
+    if YAMLUtil.hasRoleInNodes(role):
         key = 'ceilometer_vip'
         ceilometer_vip = YAMLUtil.getValue(role, key)
         
