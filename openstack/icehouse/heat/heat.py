@@ -181,7 +181,7 @@ class Heat(object):
             ShellCmdExecutor.execCmd("rm -rf %s" % heat_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (heat_conf_template_file_path, heatConfDir))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (heat_conf_template_file_path, heatConfDir))
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % heat_conf_file_path)
         
         FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -339,7 +339,7 @@ class HeatHA(object):
                     ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
                     pass
                 
-                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, '/etc/haproxy'))
                 pass
             pass
         pass
@@ -365,7 +365,7 @@ class HeatHA(object):
             pass
         
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
+            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keystoneHAProxyTemplateFilePath, '/etc/haproxy'))
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -424,12 +424,12 @@ listen heat_api_cluster
         
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
         print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
         

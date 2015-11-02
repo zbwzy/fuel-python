@@ -139,7 +139,8 @@ class Dashboard(object):
             pass
         
         print 'localSettingsFileTemplatePath=%s--' % localSettingsFileTemplatePath
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (localSettingsFileTemplatePath, Dashboard.DASHBOARD_CONF_FILE_PATH))
+        
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (localSettingsFileTemplatePath, os.path.dirname(Dashboard.DASHBOARD_CONF_FILE_PATH)))
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
@@ -160,7 +161,7 @@ class Dashboard(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % Dashboard.HTTPD_CONF_FILE_PATH)
             pass
         
-        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (httpdConfFileTemplatePath, Dashboard.HTTPD_CONF_FILE_PATH))
+        ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (httpdConfFileTemplatePath, os.path.dirname(Dashboard.HTTPD_CONF_FILE_PATH)))
         pass
     pass
 
@@ -300,7 +301,7 @@ class DashboardHA(object):
                     ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
                     pass
                 
-                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, os.path.dirname(haproxyConfFilePath)))
                 pass
             pass
         pass
@@ -325,7 +326,7 @@ class DashboardHA(object):
             pass
         
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (HAProxyTemplateFilePath, haproxyConfFilePath))
+            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (HAProxyTemplateFilePath, '/etc/haproxy'))
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -380,7 +381,26 @@ listen dashboard_cluster
         print 'dashboardBackendString=%s--' % dashboardBackendString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (dashboardBackendString, haproxyConfFilePath))
+        if os.path.exists(haproxyConfFilePath) :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
+        else :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % HAProxyTemplateFilePath)
+            pass
+        
+        haproxyNativeContent = output.strip()
+        
+        haproxyContent = ''
+        haproxyContent += haproxyNativeContent
+        haproxyContent += '\n\n'
+        
+        haproxyContent += dashboardBackendString
+        
+        FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
+        if os.path.exists(haproxyConfFilePath):
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
+            pass
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        #############
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -398,12 +418,12 @@ listen dashboard_cluster
         
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
         print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
         

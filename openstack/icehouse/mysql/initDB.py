@@ -39,6 +39,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 class Prerequisites(object):
     '''
@@ -111,7 +112,7 @@ class MySQL(object):
         mysqlConfDir = os.path.join(curDir.rstrip(curFileName), 'configfile.template', 'controller')
         mysqlConfFilePath = os.path.join(mysqlConfDir, 'my.cnf')
         print 'mysqlConfFilePath=%s' % mysqlConfFilePath
-        cpMyCnfCmd = "sudo cp -rf %s /etc/" % mysqlConfFilePath
+        cpMyCnfCmd = "sudo cp -r %s /etc/" % mysqlConfFilePath
         ShellCmdExecutor.execCmd(cpMyCnfCmd)
         print 'config done####'
         pass
@@ -355,7 +356,7 @@ class Keystone(object):
             ShellCmdExecutor.execCmd('sudo rm -rf /opt/keystone_init.sh')
             pass
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % keystoneInitScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % keystoneInitScriptPath)
         
         localIP = Keystone.getLocalIP()
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
@@ -375,7 +376,7 @@ class Keystone(object):
         adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
         print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % adminOpenRCScriptPath)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
@@ -404,7 +405,7 @@ class Keystone(object):
             pass
         
         print 'vvvvvvvvvvvvvvvvvvvvvvv=%s----' % SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH
-        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
+        ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
@@ -540,8 +541,8 @@ class Glance(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % glance_registry_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
-        ShellCmdExecutor.execCmd("sudo cp -rf %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
@@ -577,7 +578,7 @@ class Glance(object):
             ShellCmdExecutor.execCmd('sudo rm -rf /opt/glance_init.sh')
             pass
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % glanceInitScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % glanceInitScriptPath)
         
         localIP = Keystone.getLocalIP()
         
@@ -740,7 +741,7 @@ admin_password=123456
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -773,7 +774,7 @@ admin_password=123456
             ShellCmdExecutor.execCmd('sudo rm -rf /opt/nova_init.sh')
             pass
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % novaInitScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % novaInitScriptPath)
         
         localIP = Keystone.getLocalIP()
         
@@ -807,7 +808,7 @@ class Neutron(object):
             ShellCmdExecutor.execCmd('sudo rm -rf /opt/neutron_init.sh')
             pass
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % neutronInitScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % neutronInitScriptPath)
         
         neutronAdminEmail = JSONUtility.getValue("admin_email")
         print 'neutronAdminEmail=%s' % neutronAdminEmail
@@ -899,7 +900,7 @@ class Cinder(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % cinder_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (cinder_conf_template_file_path, cinderConfDir))
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -927,7 +928,7 @@ class Cinder(object):
             ShellCmdExecutor.execCmd('sudo rm -rf /opt/cinder_init.sh')
             pass
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % cinderInitScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % cinderInitScriptPath)
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
@@ -946,6 +947,7 @@ class Cinder(object):
         ShellCmdExecutor.execCmd('bash /opt/cinder_init.sh')
         pass
     pass
+
 
 class Heat(object):
     '''
@@ -970,13 +972,21 @@ class Heat(object):
     @staticmethod
     def restart():
         #restart heat service
-        ShellCmdExecutor.execCmd("service openstack-heat-api start")
+        ShellCmdExecutor.execCmd("service openstack-heat-api restart")
+        ShellCmdExecutor.execCmd("service openstack-heat-api-cfn restart")
+        ShellCmdExecutor.execCmd("service  openstack-heat-engine restart")
         pass
     
+    
     @staticmethod
-    def start():        
+    def start():    
         ShellCmdExecutor.execCmd("service openstack-heat-api start")
+        ShellCmdExecutor.execCmd("service openstack-heat-api-cfn start")
+        ShellCmdExecutor.execCmd("service  openstack-heat-engine start")
+            
         ShellCmdExecutor.execCmd("chkconfig openstack-heat-api on")
+        ShellCmdExecutor.execCmd("chkconfig openstack-heat-api-cfn on")
+        ShellCmdExecutor.execCmd("chkconfig  openstack-heat-engine on")
         pass
     
     @staticmethod
@@ -991,6 +1001,7 @@ class Heat(object):
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
+        glance_vip = JSONUtility.getValue("glance_vip")
         heat_mysql_password = JSONUtility.getValue("heat_mysql_password")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -1008,70 +1019,72 @@ class Heat(object):
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
-        print 'nova_api_conf_template_file_path=%s' % cinder_conf_template_file_path
+        heat_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'heat', 'heat.conf')
+        print 'heat_conf_template_file_path=%s' % heat_conf_template_file_path
         
-        cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
-        print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
+        heatConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HEAT_CONF_DIR')
+        print 'heatConfDir=%s' % heatConfDir #/etc/heat
         
-        cinder_conf_file_path = os.path.join(cinderConfDir, 'cinder.conf')
-        print 'cinder_conf_file_path=%s' % cinder_conf_file_path
+        heat_conf_file_path = os.path.join(heatConfDir, 'heat.conf')
+        print 'heat_conf_file_path=%s' % heat_conf_file_path
         
-        if not os.path.exists(cinderConfDir) :
-            ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
+        if not os.path.exists(heatConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % heatConfDir)
             pass
         
-        if os.path.exists(cinder_conf_file_path) :
-            ShellCmdExecutor.execCmd("sudo rm -rf %s" % cinder_conf_file_path)
+        if os.path.exists(heat_conf_file_path) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % heat_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (heat_conf_template_file_path, heatConfDir))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % heat_conf_file_path)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<HEAT_MYSQL_PASSWORD>', heat_mysql_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<GLANCE_VIP>', glance_vip)
         
-        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
+        FileUtil.replaceFileContent(heat_conf_file_path, '<LOCAL_IP>', localIP)
+        
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % heat_conf_file_path)
         pass
     
     @staticmethod
-    def initCinder():
-        cinderInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_init.sh')
-        print 'cinderInitScriptPath=%s' % cinderInitScriptPath
+    def initHeat():
+        heatInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'heat', 'heat_init.sh')
+        print 'heatInitScriptPath=%s' % heatInitScriptPath
         
-        if os.path.exists('/opt/cinder_init.sh') :
-            ShellCmdExecutor.execCmd('sudo rm -rf /opt/cinder_init.sh')
+        if os.path.exists('/opt/heat_init.sh') :
+            ShellCmdExecutor.execCmd('sudo rm -rf /opt/heat_init.sh')
             pass
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % cinderInitScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % heatInitScriptPath)
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
         
-        cinderAdminEmail = JSONUtility.getValue("admin_email")
-        print 'cinderAdminEmail=%s' % cinderAdminEmail
-        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<ADMIN_EMAIL>', cinderAdminEmail)
+        heatAdminEmail = JSONUtility.getValue("admin_email")
+        FileUtil.replaceFileContent('/opt/heat_init.sh', '<ADMIN_EMAIL>', heatAdminEmail)
         
-        cinder_vip = JSONUtility.getValue("cinder_vip")
-        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<CINDER_VIP>', cinder_vip)
+        heat_vip = JSONUtility.getValue("heat_vip")
+        FileUtil.replaceFileContent('/opt/heat_init.sh', '<HEAT_VIP>', heat_vip)
         
-        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
-        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        heat_mysql_password = JSONUtility.getValue("heat_mysql_password")
+        FileUtil.replaceFileContent('/opt/heat_init.sh', '<HEAT_MYSQL_PASSWORD>', heat_mysql_password)
         
-        ShellCmdExecutor.execCmd('bash /opt/cinder_init.sh')
+        ShellCmdExecutor.execCmd('bash /opt/heat_init.sh')
         pass
     pass
+
     
     
 if __name__ == '__main__':
@@ -1101,113 +1114,123 @@ if __name__ == '__main__':
     initPasswd = JSONUtility.getValue('mysql_password')
     print 'initPasswd=%s--' % initPasswd
     MySQL.initPassword(user, initPasswd)
-
+    
+    
+    print 'init============================================'
     #keystone
-    createDBCmd = 'CREATE DATABASE keystone'
-    MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+    if YAMLUtil.hasRoleInNodes('keystone') :
+        createDBCmd = 'CREATE DATABASE keystone'
+        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+        
+        grantCmd1 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        print 'grantCmd1=%s--' % grantCmd1
+        grantCmd2 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
     
-    grantCmd1 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    
-    print 'grantCmd1=%s--' % grantCmd1
-    grantCmd2 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+        
+    #     ########
+        Keystone.install()
+        Keystone.configConfFile()
+         
+        Keystone.importKeystoneDBSchema()
+        Keystone.supportPKIToken()
+                 
+        Keystone.start()
+               
+        Keystone.configureEnvVar()
+        Keystone.initKeystone()
+        Keystone.sourceAdminOpenRC()
     
     #glance
-    createDBCmd = 'CREATE DATABASE glance'
-    MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-    
-    grantCmd1 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    
-    grantCmd2 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+    if YAMLUtil.hasRoleInNodes('glance') :
+        createDBCmd = 'CREATE DATABASE glance'
+        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+        
+        grantCmd1 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        grantCmd2 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+        
+        Glance.install()
+        Glance.configConfFile()
+        Glance.initGlance()
     
     #nova
-    createDBCmd = 'CREATE DATABASE nova'
-    MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-    
-    grantCmd1 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    
-    grantCmd2 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+    if YAMLUtil.hasRoleInNodes('nova-api') :
+        createDBCmd = 'CREATE DATABASE nova'
+        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+        
+        grantCmd1 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        grantCmd2 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+        
+        ##nova
+        Nova.install()
+        Nova.configConfFile()
+        Nova.initNova()
     
     #neutron
-    createDBCmd = 'CREATE DATABASE neutron'
-    MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-    
-    grantCmd1 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    
-    grantCmd2 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+    if YAMLUtil.hasRoleInNodes('neutron-server') :
+        createDBCmd = 'CREATE DATABASE neutron'
+        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+        
+        grantCmd1 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        grantCmd2 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+        
+        Neutron.initNeutron()
     
     #cinder
-    createDBCmd = 'CREATE DATABASE cinder'
-    MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+    if YAMLUtil.hasRoleInNodes('cinder-api') :
+        createDBCmd = 'CREATE DATABASE cinder'
+        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+        
+        grantCmd1 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        grantCmd2 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+        
+        Cinder.install()
+        Cinder.configConfFile()
+        Cinder.initCinder()
     
-    grantCmd1 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    
-    grantCmd2 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-    .format(init_passwd=initPasswd)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-    MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
-    
-    #VIP handling
-    mysql_vip = JSONUtility.getValue('mysql_vip')
-    mysql_vip_interface = JSONUtility.getValue('mysql_vip_interface')
-    
-    isExistMySQLVIP = VIP.isExistVIP(mysql_vip, mysql_vip_interface)
-    
-    VIP.addVIP(mysql_vip, mysql_vip_interface)
-#     
-#     ########
-    Keystone.install()
-    Keystone.configConfFile()
-     
-    Keystone.importKeystoneDBSchema()
-    Keystone.supportPKIToken()
-             
-    Keystone.start()
-           
-    Keystone.configureEnvVar()
-    Keystone.initKeystone()
-    Keystone.sourceAdminOpenRC()
+    #heat
+    if YAMLUtil.hasRoleInNodes('heat') :
+        createDBCmd = 'CREATE DATABASE heat'
+        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+        
+        grantCmd1 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        
+        grantCmd2 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+        .format(init_passwd=initPasswd)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+        
+        Heat.install()
+        Heat.configConfFile()
+        Heat.initHeat()
       
-    ###glance
-    Glance.install()
-    Glance.configConfFile()
-    Glance.initGlance()
-      
-    ##nova
-    Nova.install()
-    Nova.configConfFile()
-    Nova.initNova()
-     
-    ##neutron
-    Neutron.initNeutron()
-    
-    ##cinder
-    Cinder.install()
-    Cinder.configConfFile()
-    Cinder.initCinder()
-    
-    ##heat
-    
-    
-    
     #destroy
     killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'
     killGlanceCmd   = 'ps aux |grep python | grep glance | awk \'{print "kill -9 " $2}\' | bash'
@@ -1218,10 +1241,6 @@ if __name__ == '__main__':
     ShellCmdExecutor.execCmd(killGlanceCmd)
     ShellCmdExecutor.execCmd(killNovaCmd)
     ShellCmdExecutor.execCmd(killNeutronCmd)
-    
-    if not isExistMySQLVIP == True :
-        VIP.deleteVIP(mysql_vip, mysql_vip_interface)
-        pass
     
     #mark: db is initted
     os.system('touch %s' % INSTALL_TAG_FILE)

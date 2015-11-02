@@ -191,8 +191,8 @@ class Glance(object):
             os.system("sudo rm -rf %s" % glance_registry_conf_file_path)
             pass
         
-        os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
-        os.system("sudo cp -rf %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        os.system("sudo cp -r %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        os.system("sudo cp -r %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
@@ -229,7 +229,7 @@ class Glance(object):
         adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
         print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % adminOpenRCScriptPath)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
@@ -373,7 +373,7 @@ class GlanceHA(object):
                     ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
                     pass
                 
-                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, '/etc/haproxy'))
                 pass
             pass
         pass
@@ -398,7 +398,7 @@ class GlanceHA(object):
             pass
         
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (glanceHAProxyTemplateFilePath, haproxyConfFilePath))
+            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (glanceHAProxyTemplateFilePath, '/etc/haproxy'))
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -453,10 +453,32 @@ listen glance_registry_cluster
         glanceBackendRegistryApiString = glanceBackendRegistryApiString.replace('<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
         
         glanceBackendApiString = glanceBackendApiString.replace('<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
-        #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendRegistryApiString, haproxyConfFilePath))
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendApiString, haproxyConfFilePath))
+        #append to haproxy.cfg
+        if os.path.exists(haproxyConfFilePath) :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
+        else :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % glanceHAProxyTemplateFilePath)
+            pass
         
+        haproxyNativeContent = output.strip()
+        
+        haproxyContent = ''
+        haproxyContent += haproxyNativeContent
+        haproxyContent += '\n\n'
+        
+        haproxyContent += glanceBackendRegistryApiString
+        haproxyContent += glanceBackendApiString
+        
+        FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
+        if os.path.exists(haproxyConfFilePath):
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
+            pass
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        #############
+        
+#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendRegistryApiString, haproxyConfFilePath))
+#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendApiString, haproxyConfFilePath))
+        ##############
 #         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
 #         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
         
@@ -481,12 +503,12 @@ listen glance_registry_cluster
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
         print 'checkHAProxyScriptPath=%s===========================---' % checkHAProxyScriptPath
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
             pass
             
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (glanceKeepalivedTemplateFilePath, keepalivedConfFilePath))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (glanceKeepalivedTemplateFilePath, '/etc/keepalived'))
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keepalivedConfFilePath)
         ##configure
@@ -663,7 +685,7 @@ if __name__ == '__main__':
     Glance.install()
     Glance.configConfFile()
     Glance.start()
-     
+#      
     Glance.sourceAdminOpenRC()
     #add HA
     GlanceHA.install()

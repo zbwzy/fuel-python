@@ -187,7 +187,7 @@ class Keystone(object):
             ShellCmdExecutor.execCmd('sudo rm -rf /opt/keystone_init.sh')
             pass
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % keystoneInitScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % keystoneInitScriptPath)
         
         localIP = Keystone.getLocalIP()
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
@@ -207,7 +207,7 @@ class Keystone(object):
         adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
         print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
         
-        ShellCmdExecutor.execCmd('cp -rf %s /opt/' % adminOpenRCScriptPath)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % adminOpenRCScriptPath)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
@@ -235,7 +235,7 @@ class Keystone(object):
             os.system("sudo rm -rf %s" % keystone_conf_file_path)
             pass
         
-        os.system("sudo cp -rf %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
+        os.system("sudo cp -r %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
@@ -412,7 +412,7 @@ class KeystoneHA(object):
                     ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
                     pass
                 
-                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, '/etc/haproxy'))
                 pass
             pass
         pass
@@ -438,7 +438,7 @@ class KeystoneHA(object):
             pass
         
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
+            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keystoneHAProxyTemplateFilePath, '/etc/haproxy'))
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -495,9 +495,27 @@ listen keystone_public_internal_cluster
         print 'keystoneBackendPublicApiString=%s--' % keystoneBackendPublicApiString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendAdminApiString, haproxyConfFilePath))
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (keystoneBackendPublicApiString, haproxyConfFilePath))
+        if os.path.exists(haproxyConfFilePath) :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
+        else :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % keystoneHAProxyTemplateFilePath)
+            pass
         
+        haproxyNativeContent = output.strip()
+        
+        haproxyContent = ''
+        haproxyContent += haproxyNativeContent
+        haproxyContent += '\n\n'
+        
+        haproxyContent += keystoneBackendAdminApiString
+        haproxyContent += keystoneBackendPublicApiString
+        
+        FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
+        if os.path.exists(haproxyConfFilePath):
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
+            pass
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        #############
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
     
@@ -514,12 +532,12 @@ listen keystone_public_internal_cluster
         
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, '/etc/keepalived'))
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
         print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
         

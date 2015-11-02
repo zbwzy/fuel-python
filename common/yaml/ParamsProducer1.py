@@ -375,5 +375,6 @@ if __name__ == '__main__':
     openstackParamsFilePath = os.path.join(openstackConfBaseDir, 'openstack_params.json')
     FileUtil.writeContent(openstackParamsFilePath, jsonParams)
     
+    print 'yaml dump======='
     print 'produce role list done#######'
     

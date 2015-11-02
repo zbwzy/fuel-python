@@ -47,6 +47,12 @@ class JSONUtility(object):
             pass
         else :
             print 'ERROR:no key % in openstack_params.json.' % key
+            pass
+        
+        #refactor: if key='admin_email', value = 'admin@cmss.chinamobile.com'
+        if key == 'admin_email' :
+            value = 'admin@cmss.chinamobile.com'
+            pass
             
         return value
     
