@@ -20,7 +20,7 @@ init openstack params, and the parameters are put into /opt/openstack_conf/opens
     "glance_vip_interface" : "eth0",
     "keystone_vip_interface" : "eth0",
     "nova_vip_interface" : "eth0"
-    
+......    
 }
 
 4).For each component python script:
@@ -28,5 +28,6 @@ debug = False
 
 5).Prepare local ip on localhost:
 /opt/localip
+
 
 
