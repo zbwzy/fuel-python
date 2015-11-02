@@ -181,8 +181,7 @@ class Keystone(object):
     def initKeystone():
         keystoneInitScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keystone_init.sh')
         print 'keystoneInitScriptPath=%s' % keystoneInitScriptPath
-#         os.system('bash %s' % keystoneInitScriptPath)
-
+        
         if os.path.exists('/opt/keystone_init.sh') :
             ShellCmdExecutor.execCmd('sudo rm -rf /opt/keystone_init.sh')
             pass
@@ -200,7 +199,6 @@ class Keystone(object):
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
         pass
-        ##
         
     @staticmethod
     def sourceAdminOpenRC():
@@ -261,22 +259,6 @@ class Keystone(object):
         localIP = output.strip()
         return localIP
     
-    @staticmethod
-    def getWeightCounter():
-        print 'refactor later================'
-        print 'get keystone weight=================='
-        
-        return 299
-    
-    @staticmethod
-    def isMasterNode():
-        print 'go into Master======'
-        if Keystone.getWeightCounter() == 300 :
-            return True
-        else :
-            return False
-        pass
-
 class KeystoneHA(object):
     '''
     classdocs
