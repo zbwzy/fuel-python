@@ -156,7 +156,10 @@ class YAMLUtil(object):
         for uid in uid_list :
             for nodeMap in node_map_list :
                 if nodeMap['uid'] == str(uid) :
-                    sorted_role_ip_list.append(nodeMap['ip'])
+                    if role == 'rabbitmq' :
+                        sorted_role_ip_list.append('rabbit@'+nodeMap['name'])
+                    else :
+                        sorted_role_ip_list.append(nodeMap['ip'])
                     pass
                 pass
             pass

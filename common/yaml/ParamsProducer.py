@@ -72,7 +72,6 @@ if __name__ == '__main__':
     localIPPath = '/opt/localip'
     FileUtil.writeContent(localIPPath, YAMLUtil.getLocalIP())    
     
-    
     print 'produce all params in /opt/openstack_conf/openstack_params.json'
     paramsMap = {}
     print 'mysql============================'
