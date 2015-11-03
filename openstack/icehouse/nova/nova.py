@@ -203,7 +203,7 @@ admin_password=123456
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
-        #controller: Horizon, Neutron-server
+        #Horizon, Neutron-server
         controller_vip = JSONUtility.getValue("controller_vip")
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH') 
