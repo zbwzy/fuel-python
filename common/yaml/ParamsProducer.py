@@ -57,8 +57,6 @@ class ParamsProducer(object):
         pass
     pass
 
-
-
 if __name__ == '__main__':
     print 'produe role ip list in /opt/{role_ip_list}======='
     for role in ParamsProducer.OPENSTACK_ROLES :
@@ -66,7 +64,6 @@ if __name__ == '__main__':
             YAMLUtil.writeIPList(role)
             pass
         pass
-    
     
     print 'produce localip in /opt/localip'
     localIPPath = '/opt/localip'
