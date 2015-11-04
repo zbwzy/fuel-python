@@ -12,7 +12,7 @@ import string
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'

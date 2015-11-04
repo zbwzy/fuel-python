@@ -27,7 +27,7 @@ else :
 
 OPENSTACK_VERSION_TAG = 'icehouse'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
-SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone.conf')
+SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql','keystone.conf')
 
 SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-api.conf')
 SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-registry.conf')
@@ -1053,10 +1053,16 @@ class Keystone(object):
         adminOpenRCScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin_openrc.sh')
         print 'adminOpenRCScriptPath=%s' % adminOpenRCScriptPath
         
+        if os.path.exists('/opt/admin_openrc.sh') :
+            ShellCmdExecutor.execCmd("rm -rf /opt/admin_openrc.sh")
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % adminOpenRCScriptPath)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
+        #Only for db init
+        output, exitcode = ShellCmdExecutor.execCmd("cat /opt/localip")
+        localIP = output.strip()
+        
+        FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', localIP)
         time.sleep(2)
         ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
         pass
@@ -1532,16 +1538,16 @@ vrrp_instance 42 {
     
     
 if __name__ == '__main__':
-    debug = False
+    debug = True
     print 'hello openstack-icehouse:initDB============'
     
     print 'start time: %s' % time.ctime()
     if debug :
         print 'debug====================='
+        Keystone.sourceAdminOpenRC()
         print 'debug#########'
         exit()
         pass
-    
     
     #Produce params
     paramsProducerPath = os.path.join(PROJ_HOME_DIR, 'common', 'yaml', 'ParamsProducer.py')
@@ -1622,8 +1628,6 @@ if __name__ == '__main__':
 #         KeystoneHA.start()
         
         ####NEW
-        ShellCmdExecutor.execCmd("service haproxy restart")
-        
         Keystone.configureEnvVar()
         Keystone.sourceAdminOpenRC()####NEW
         Keystone.initKeystone()
