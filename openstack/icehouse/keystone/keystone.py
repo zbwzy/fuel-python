@@ -236,7 +236,14 @@ class Keystone(object):
             os.system("sudo rm -rf %s" % keystone_conf_file_path)
             pass
         
-        os.system("sudo cp -r %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
+        ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')
+        
+#         os.system("sudo cp -r %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
+        ###NEW
+        ShellCmdExecutor.execCmd('cat %s > /tmp/keystone.conf' % SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH)
+        ShellCmdExecutor.execCmd('mv /tmp/keystone.conf /etc/keystone')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/keystone.conf')
+        
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.

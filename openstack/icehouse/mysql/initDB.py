@@ -1609,7 +1609,6 @@ if __name__ == '__main__':
     ########
         Keystone.install()
         ########
-        ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')
         Keystone.configConfFile()
          
         Keystone.importKeystoneDBSchema()
@@ -1653,7 +1652,6 @@ if __name__ == '__main__':
         MySQL.execMySQLCmd(user, initPasswd, flushCmd)
         
         Glance.install()
-        ShellCmdExecutor.execCmd('chmod 777 /etc/glance')
         Glance.configConfFile()
         
         Keystone.sourceAdminOpenRC()

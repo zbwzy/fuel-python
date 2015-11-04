@@ -191,8 +191,24 @@ class Glance(object):
             os.system("sudo rm -rf %s" % glance_registry_conf_file_path)
             pass
         
-        os.system("sudo cp -r %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
-        os.system("sudo cp -r %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+#         os.system("sudo cp -r %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+#         os.system("sudo cp -r %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        
+        ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glanceConfDir)
+        
+#         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+#         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        
+        ######NEW
+        
+        ShellCmdExecutor.execCmd("cat %s > /tmp/glance-api.conf" % SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH)
+        ShellCmdExecutor.execCmd("cat %s > /tmp/glance-registry.conf" % SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH)
+        
+        ShellCmdExecutor.execCmd("mv /tmp/glance-api.conf /etc/glance")
+        ShellCmdExecutor.execCmd("mv /tmp/glance-registry.conf /etc/glance")
+        
+        ShellCmdExecutor.execCmd("rm -rf /tmp/glance-api.conf")
+        ShellCmdExecutor.execCmd("rm -rf /tmp/glance-registry.conf")
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
