@@ -362,8 +362,21 @@ class Glance(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % glance_registry_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
-        ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glanceConfDir)
+        
+#         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+#         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH, glanceConfDir))
+        
+        ######NEW
+        
+        ShellCmdExecutor.execCmd("cat %s > /tmp/glance-api.conf" % SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH)
+        ShellCmdExecutor.execCmd("cat %s > /tmp/glance-registry.conf" % SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH)
+        
+        ShellCmdExecutor.execCmd("mv /tmp/glance-api.conf /etc/glance")
+        ShellCmdExecutor.execCmd("mv /tmp/glance-registry.conf /etc/glance")
+        
+        ShellCmdExecutor.execCmd("rm -rf /tmp/glance-api.conf")
+        ShellCmdExecutor.execCmd("rm -rf /tmp/glance-registry.conf")
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
@@ -562,7 +575,14 @@ admin_password=123456
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+        ShellCmdExecutor.execCmd("chmod 777 /etc/nova")
+#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+        ####NEW
+        ShellCmdExecutor.execCmd('cat %s > /tmp/nova.conf' % nova_api_conf_template_file_path)
+        ShellCmdExecutor.execCmd("mv /tmp/nova.conf /etc/nova")
+        
+        ShellCmdExecutor.execCmd("rm -rf /tmp/nova.conf")
+        
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -721,7 +741,15 @@ class Cinder(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % cinder_conf_file_path)
             pass
         
+        ShellCmdExecutor.execCmd("sudo chmod 777 /etc/cinder")
+        
+        ####NEW
         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        
+        ShellCmdExecutor.execCmd("cat %s > /tmp/cinder.conf" % cinder_conf_template_file_path)
+        ShellCmdExecutor.execCmd("mv /tmp/cinder.conf /etc/cinder")
+        ShellCmdExecutor.execCmd("rm -rf /tmp/cinder.conf")
+        
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -857,8 +885,15 @@ class Heat(object):
             ShellCmdExecutor.execCmd("rm -rf %s" % heat_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (heat_conf_template_file_path, heatConfDir))
+        print 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx====='
+        print 'existHeatConf=%s' % os.path.exists('/etc/heat/heat.conf')
+        ShellCmdExecutor.execCmd("sudo chmod 777 /etc/heat")
+        ShellCmdExecutor.execCmd('cat %s > %s' % (heat_conf_template_file_path, '/tmp/heat.conf'))
+        ShellCmdExecutor.execCmd('mv /tmp/heat.conf %s' % heatConfDir)
+#         ShellCmdExecutor.execCmd("rm -rf /tmp/heat.conf")
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % heat_conf_file_path)
+        print 'yyyyyyyyyyyyyyyyyyyyyyyyyyyy======='
+        print 'existHeatConf=%s--' % os.path.exists('/etc/heat/heat.conf')
         
         FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
@@ -1046,7 +1081,15 @@ class Keystone(object):
             os.system("sudo rm -rf %s" % keystone_conf_file_path)
             pass
         
-        os.system("sudo cp -r %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
+#         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
+        #########mv
+        ShellCmdExecutor.execCmd('chmod 777 %s' % keystoneConfDir)
+        output, exitcode = ShellCmdExecutor.execCmd("cat %s > /tmp/keystone.conf" % SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH)
+        
+        ShellCmdExecutor.execCmd('mv /tmp/keystone.conf %s' % keystoneConfDir)
+        ShellCmdExecutor.execCmd('rm -rf /tmp/keystone.conf')
+        
+        #####
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
@@ -1056,6 +1099,11 @@ class Keystone(object):
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<LOCAL_IP>', localIP)
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         
+        #for db init
+        mysql_port = '3309'
+        mysql_vip = localIP
+        
+        FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_PORT>', mysql_port)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<LOCAL_IP>', localIP)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
@@ -1256,7 +1304,11 @@ listen keystone_public_internal_cluster
         
         ################new
         keystone_ips = JSONUtility.getValue("keystone_ips")
-        keystone_ip_list = keystone_ips.strip().split(',')
+        
+        output, exitcode = ShellCmdExecutor.execCmd("cat /opt/localip")
+        mysql_master_ip = output.strip()
+        keystone_ips_list = []
+        keystone_ips_list.append(mysql_master_ip)
         
         serverKeystoneAdminAPIBackendTemplate   = 'server keystone-<INDEX> <SERVER_IP>:35357 check inter 2000 rise 2 fall 5'
         serverKeystonePublicAPIBackendTemplate  = 'server keystone-<INDEX> <SERVER_IP>:5000 check inter 2000 rise 2 fall 5'
@@ -1265,7 +1317,7 @@ listen keystone_public_internal_cluster
         keystonePublicAPIServerListContent = ''
         
         index = 1
-        for keystone_ip in keystone_ip_list:
+        for keystone_ip in keystone_ips_list:
             print 'keystone_ip=%s' % keystone_ip
             keystoneAdminAPIServerListContent += serverKeystoneAdminAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', keystone_ip)
             keystonePublicAPIServerListContent += serverKeystonePublicAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', keystone_ip)
@@ -1297,6 +1349,9 @@ listen keystone_public_internal_cluster
             pass
         
         haproxyNativeContent = output.strip()
+        
+        MYSQL_MASTER_NATIVE_HAPROXY = '/tmp/mysql_haproxy.cfg'
+        FileUtil.writeContent(MYSQL_MASTER_NATIVE_HAPROXY, haproxyNativeContent)
         
         haproxyContent = ''
         haproxyContent += haproxyNativeContent
@@ -1478,14 +1533,33 @@ vrrp_instance 42 {
     
 if __name__ == '__main__':
     debug = False
-    print 'hello openstack-icehouse:glance============'
+    print 'hello openstack-icehouse:initDB============'
     
     print 'start time: %s' % time.ctime()
     if debug :
         print 'debug====================='
-        
         print 'debug#########'
         exit()
+        pass
+    
+    
+    #Produce params
+    paramsProducerPath = os.path.join(PROJ_HOME_DIR, 'common', 'yaml', 'ParamsProducer.py')
+    
+    ShellCmdExecutor.execCmd('python %s' % paramsProducerPath)
+        
+    output, exitcode = ShellCmdExecutor.execCmd('cat /opt/mysql_ip_list')
+    mysql_ip_list = output.strip().split(',')
+    mysql_master_ip = mysql_ip_list[0]
+    
+    output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+    localIP = output.strip()
+    
+    if not localIP == mysql_master_ip :
+        print 'This is not master mysql node,skip db init.............'
+        exit()
+        pass
+    
     INSTALL_TAG_FILE = '/opt/db_init'
     
     if os.path.exists(INSTALL_TAG_FILE) :
@@ -1543,15 +1617,18 @@ if __name__ == '__main__':
         Keystone.supportPKIToken()
                  
         Keystone.start()
-               
+        
+#         KeystoneHA.install()
+#         KeystoneHA.configure()
+#         KeystoneHA.start()
+        
+        ####NEW
+        ShellCmdExecutor.execCmd("service haproxy restart")
+        
         Keystone.configureEnvVar()
+        Keystone.sourceAdminOpenRC()####NEW
         Keystone.initKeystone()
         Keystone.sourceAdminOpenRC()
-        
-        from openstack.icehouse.keystone.keystone import KeystoneHA
-        KeystoneHA.install()
-        KeystoneHA.configure()
-        KeystoneHA.start()
     
     #glance
     if YAMLUtil.hasRoleInNodes('glance') :
@@ -1578,6 +1655,8 @@ if __name__ == '__main__':
         Glance.install()
         ShellCmdExecutor.execCmd('chmod 777 /etc/glance')
         Glance.configConfFile()
+        
+        Keystone.sourceAdminOpenRC()
         Glance.initGlance()
     
     #nova
@@ -1606,6 +1685,8 @@ if __name__ == '__main__':
         Nova.install()
         ShellCmdExecutor.execCmd('chmod 777 /etc/nova')
         Nova.configConfFile()
+        
+        Keystone.sourceAdminOpenRC()
         Nova.initNova()
     
     #neutron
@@ -1630,6 +1711,7 @@ if __name__ == '__main__':
         MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
         MySQL.execMySQLCmd(user, initPasswd, flushCmd)
         
+        Keystone.sourceAdminOpenRC()
         Neutron.initNeutron()
     
     #cinder
@@ -1657,6 +1739,8 @@ if __name__ == '__main__':
         Cinder.install()
         ShellCmdExecutor.execCmd('chmod 777 /etc/cinder')
         Cinder.configConfFile()
+        
+        Keystone.sourceAdminOpenRC()
         Cinder.initCinder()
     
     #heat
@@ -1682,8 +1766,12 @@ if __name__ == '__main__':
         MySQL.execMySQLCmd(user, initPasswd, flushCmd)
         
         Heat.install()
-        ShellCmdExecutor.execCmd('chmod 777 /etc/heat')
+        heatConfDir = '/etc/heat'
+        if os.path.exists(heatConfDir) :
+            ShellCmdExecutor.execCmd('chmod 777 %s' % heatConfDir)
         Heat.configConfFile()
+        
+        Keystone.sourceAdminOpenRC()
         Heat.initHeat()
       
     #destroy
@@ -1691,11 +1779,11 @@ if __name__ == '__main__':
     killGlanceCmd   = 'ps aux |grep python | grep glance | awk \'{print "kill -9 " $2}\' | bash'
     killNovaCmd   = 'ps aux |grep python | grep nova | awk \'{print "kill -9 " $2}\' | bash'
     killNeutronCmd   = 'ps aux |grep python | grep neutron | awk \'{print "kill -9 " $2}\' | bash'
-    
-    ShellCmdExecutor.execCmd(killKeystoneCmd)
-    ShellCmdExecutor.execCmd(killGlanceCmd)
-    ShellCmdExecutor.execCmd(killNovaCmd)
-    ShellCmdExecutor.execCmd(killNeutronCmd)
+     
+#     ShellCmdExecutor.execCmd(killKeystoneCmd)
+#     ShellCmdExecutor.execCmd(killGlanceCmd)
+#     ShellCmdExecutor.execCmd(killNovaCmd)
+#     ShellCmdExecutor.execCmd(killNeutronCmd)
     
     #mark: db is initted
     os.system('touch %s' % INSTALL_TAG_FILE)

@@ -1,0 +1,4 @@
+{
+    "10.20.0.153": ",mysql,glance,rabbitmq,nova-api", 
+    "10.20.0.144": ",mysql,glance"
+}

@@ -334,6 +334,32 @@ if __name__ == '__main__':
         paramsMap['cinder_storage_ips'] = cinder_storage_ips
         pass
     
+    print 'heat============================================'
+    role = 'heat'
+    if YAMLUtil.hasRoleInNodes(role):
+        heat_ips_list = YAMLUtil.getRoleIPList(role)
+        heat_ips = ','.join(heat_ips_list)
+        print 'heat_ips=%s--' % heat_ips
+        
+        key = 'heat_vip'
+        heat_vip = YAMLUtil.getValue(role, key)
+        
+        key = 'heat_vip_interface'
+        heat_vip_interface = YAMLUtil.getValue(role, key)
+        
+        key = 'heat_mysql_user'
+        heat_mysql_user = YAMLUtil.getValue(role, key)
+        
+        key = 'heat_mysql_password'
+        heat_mysql_password = YAMLUtil.getValue(role, key)
+        
+        paramsMap['heat_ips'] = heat_ips
+        paramsMap['heat_vip'] = heat_vip
+        paramsMap['heat_vip_interface'] = heat_vip_interface
+        paramsMap['heat_mysql_user'] = heat_mysql_user
+        paramsMap['heat_mysql_password'] = heat_mysql_password
+        pass
+    
     print 'neutron============================================'
     role = 'neutron'
     if YAMLUtil.hasRoleInNodes(role):
