@@ -24,6 +24,8 @@ mysql:
   root_password: '123456'
 fqdn: compute-134.domain.tld
 rabbitmq:
+  rabbit_vip: 10.20.0.111
+  rabbit_vip_interface: eth0
   rabbit_userid: guest
   action: config
   install: true

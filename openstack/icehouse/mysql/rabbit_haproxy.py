@@ -70,16 +70,25 @@ if __name__ == '__main__':
     
     backendServerTemplate = 'server rabbit-<INDEX> <SERVER_IP>:5672 weight 1'
     
-    content = '\n'
-    content += "listen rabbitmq_cluster "+rabbit_vip+":5672"
-    content += '\n'+"mode tcp"+"\n"+"balance roundrobin \n"
+    content = '''
+listen rabbitmq_cluster
+  bind <RABBIT_VIP>:5672
+  mode tcp
+  balance roundrobin
+  <SERVER_LIST>
+    '''
+    
+    content = content.replace('<RABBIT_VIP>', rabbit_vip)
     index = 1
+    server_list = ''
     for ip in mysqlIPList :
-        content += backendServerTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
-        content += '\n'
-        content += '       '
+        server_list += backendServerTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
+        server_list += '\n'
+        server_list += '  '
         index += 1
         pass
+    
+    content = content.replace("<SERVER_LIST>", server_list)
     
     if not os.path.exists(haproxy_conf_file_path) :
         ShellCmdExecutor.execCmd('yum -y install haproxy')

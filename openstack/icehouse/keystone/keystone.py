@@ -152,6 +152,9 @@ class Keystone(object):
     
     @staticmethod
     def importKeystoneDBSchema():
+        #Before import,detect the database rights for mysql user keystone.
+        
+        ##
         importCmd = 'su -s /bin/sh -c "keystone-manage db_sync" keystone'
         ShellCmdExecutor.execCmd(importCmd)
         pass

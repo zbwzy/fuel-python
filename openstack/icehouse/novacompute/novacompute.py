@@ -198,7 +198,7 @@ admin_password=123456
         
         glance_vip = JSONUtility.getValue("glance_vip")
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        nova_api_vip = JSONUtility.getValue("nova_api_vip")
+        nova_vip = JSONUtility.getValue("nova_vip")
         
         virt_type = JSONUtility.getValue("virt_type")
         
@@ -215,7 +215,7 @@ admin_password=123456
         print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
         print 'keystone_vip=%s' % keystone_vip
-        print 'nova_api_vip=%s' % nova_api_vip
+        print 'nova_vip=%s' % nova_vip
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -236,7 +236,7 @@ admin_password=123456
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -247,7 +247,7 @@ admin_password=123456
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_API_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_HOST>', glance_vip)
         
@@ -257,7 +257,7 @@ admin_password=123456
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<PUBLIC_LOCAL_IP>', localIP)
         FileUtil.replaceFileContent(nova_conf_file_path, '<MANAGEMENT_LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_SERVER_VIP>', localIP)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', localIP)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         pass

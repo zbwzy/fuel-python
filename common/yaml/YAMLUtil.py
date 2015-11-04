@@ -157,9 +157,34 @@ class YAMLUtil(object):
             for nodeMap in node_map_list :
                 if nodeMap['uid'] == str(uid) :
                     if role == 'rabbitmq' :
-                        sorted_role_ip_list.append('rabbit@'+nodeMap['name'])
+                        sorted_role_ip_list.append("'"+'rabbit@'+nodeMap['name']+"'")
                     else :
                         sorted_role_ip_list.append(nodeMap['ip'])
+                    pass
+                pass
+            pass
+        
+        return sorted_role_ip_list
+    
+    @staticmethod
+    def getRabbitRoleIPList(role): #acsend by role uid
+        nodesMap = YAMLUtil.getNodesMap()
+        uid_list = []
+        node_map_list = []
+        for nodeMap in nodesMap :
+            if nodeMap['role'] == role :
+                uid = string.atoi(nodeMap['uid'])
+                uid_list.append(uid)
+                node_map_list.append(nodeMap)
+                pass
+            pass
+        
+        uid_list.sort()
+        sorted_role_ip_list = [] #ascend by role uid
+        for uid in uid_list :
+            for nodeMap in node_map_list :
+                if nodeMap['uid'] == str(uid) :
+                    sorted_role_ip_list.append(nodeMap['ip'])
                     pass
                 pass
             pass

@@ -111,7 +111,7 @@ if __name__ == '__main__':
         key = 'rabbit_vip_interface'
         rabbit_vip_interface = YAMLUtil.getValue(role, key)
         
-        rabbit_ips_list = YAMLUtil.getRoleIPList(role)
+        rabbit_ips_list = YAMLUtil.getRabbitRoleIPList(role)
         rabbit_ips = ','.join(rabbit_ips_list)
         
         print 'rabbit_userid=%s--' % rabbit_userid
@@ -199,69 +199,69 @@ if __name__ == '__main__':
     print 'neutron-server========================================='
     role = 'neutron-server'
     if YAMLUtil.hasRoleInNodes(role):
-        key = 'neutron_server_vip'
-        neutron_server_vip = YAMLUtil.getValue(role, key)
+        key = 'neutron_vip'
+        neutron_vip = YAMLUtil.getValue(role, key)
         
-        key = 'neutron_server_vip_interface'
-        neutron_server_vip_interface = YAMLUtil.getValue(role, key)
+        key = 'neutron_vip_interface'
+        neutron_vip_interface = YAMLUtil.getValue(role, key)
         
         key = 'network_mode'
         network_mode = YAMLUtil.getValue(role, key)
         
-        key = 'neutron_server_mysql_user'
+        key = 'neutron_mysql_user'
         neutron_mysql_user = YAMLUtil.getValue(role, key)
-        key = 'neutron_server_mysql_password'
+        key = 'neutron_mysql_password'
         neutron_mysql_password = YAMLUtil.getValue(role, key)
         
-        neutron_server_ip_list = YAMLUtil.getRoleIPList(role)
-        neutron_server_ips = ','.join(neutron_server_ip_list)
+        neutron_ip_list = YAMLUtil.getRoleIPList(role)
+        neutron_ips = ','.join(neutron_ip_list)
         
-        print 'neutron_server_vip=%s--' % neutron_server_vip
-        print 'neutron_server_vip_interface=%s--' % neutron_server_vip_interface
+        print 'neutron_vip=%s--' % neutron_vip
+        print 'neutron_vip_interface=%s--' % neutron_vip_interface
         print 'network_mode=%s--' % network_mode
         
         print 'neutron_mysql_user=%s--' % neutron_mysql_user
         print 'neutron_mysql_user_password=%s--' % neutron_mysql_password
         
-        print 'neutron_server_ips=%s--' % neutron_server_ips
-        paramsMap['neutron_server_vip'] = neutron_server_vip
-        paramsMap['neutron_server_vip_interface'] = neutron_server_vip_interface
+        print 'neutron_ips=%s--' % neutron_ips
+        paramsMap['neutron_vip'] = neutron_vip
+        paramsMap['neutron_vip_interface'] = neutron_vip_interface
         paramsMap['neutron_mysql_user'] = neutron_mysql_user
         paramsMap['neutron_mysql_password'] = neutron_mysql_password
         paramsMap['network_mode'] = network_mode
-        paramsMap['neutron_server_ips'] = neutron_server_ips
+        paramsMap['neutron_ips'] = neutron_ips
         pass
     
     print 'nova-api========================================='
     role = 'nova-api'
     if YAMLUtil.hasRoleInNodes(role):
-        key = 'nova_api_vip'
-        nova_api_vip = YAMLUtil.getValue(role, key)
+        key = 'nova_vip'
+        nova_vip = YAMLUtil.getValue(role, key)
         
-        key = 'nova_api_vip_interface'
-        nova_api_vip_interface = YAMLUtil.getValue(role, key)
+        key = 'nova_vip_interface'
+        nova_vip_interface = YAMLUtil.getValue(role, key)
         
-        key = 'nova_api_mysql_user'
-        nova_api_mysql_user = YAMLUtil.getValue(role, key)
+        key = 'nova_mysql_user'
+        nova_mysql_user = YAMLUtil.getValue(role, key)
         
-        key = 'nova_api_mysql_password'
-        nova_api_mysql_password = YAMLUtil.getValue(role, key)
+        key = 'nova_mysql_password'
+        nova_mysql_password = YAMLUtil.getValue(role, key)
         
-        nova_api_ip_list = YAMLUtil.getRoleIPList(role)
-        nova_api_ips = ','.join(nova_api_ip_list)
+        nova_ip_list = YAMLUtil.getRoleIPList(role)
+        nova_ips = ','.join(nova_ip_list)
         
-        print 'nova_api_vip=%s--' % nova_api_vip
-        print 'nova_api_vip_interface=%s--' % nova_api_vip_interface
-        print 'nova_api_mysql_user=%s--' % nova_api_mysql_user
-        print 'nova_api_mysql_password=%s--' % nova_api_mysql_password
+        print 'nova_vip=%s--' % nova_vip
+        print 'nova_vip_interface=%s--' % nova_vip_interface
+        print 'nova_mysql_user=%s--' % nova_mysql_user
+        print 'nova_mysql_password=%s--' % nova_mysql_password
         
-        print 'nova_api_ips=%s--' % nova_api_ips
+        print 'nova_ips=%s--' % nova_ips
         print YAMLUtil.hasRoleInNodes('nova-api')
-        paramsMap['nova_api_vip'] = nova_api_vip
-        paramsMap['nova_api_vip_interface'] = nova_api_vip_interface
-        paramsMap['nova_api_mysql_user'] = nova_api_mysql_user
-        paramsMap['nova_api_mysql_password'] = nova_api_mysql_password
-        paramsMap['nova_api_ips'] = nova_api_ips
+        paramsMap['nova_vip'] = nova_vip
+        paramsMap['nova_vip_interface'] = nova_vip_interface
+        paramsMap['nova_mysql_user'] = nova_mysql_user
+        paramsMap['nova_mysql_password'] = nova_mysql_password
+        paramsMap['nova_ips'] = nova_ips
         pass
           
     
@@ -297,7 +297,7 @@ if __name__ == '__main__':
         pass
         
     print 'cinder============================================'
-    role = 'cinder'
+    role = 'cinder-api'
     if YAMLUtil.hasRoleInNodes(role):
         key = 'cinder_vip'
         cinder_vip = YAMLUtil.getValue(role, key)
@@ -318,10 +318,29 @@ if __name__ == '__main__':
         print 'cinder_mysql_user=%s--' % cinder_mysql_user
         print 'cinder_mysql_password=%s--' % cinder_mysql_password
         print 'cinder_ips=%s--' % cinder_ips
+        paramsMap['cinder_vip'] = cinder_vip
         paramsMap['cinder_vip_interface'] = cinder_vip_interface
         paramsMap['cinder_mysql_user'] = cinder_mysql_user
         paramsMap['cinder_mysql_password'] = cinder_mysql_password
         paramsMap['cinder_ips'] = cinder_ips
+        pass
+    
+    print 'cinder-storage============================================'
+    role = 'cinder-storage'
+    if YAMLUtil.hasRoleInNodes(role):
+        cinder_storage_ips_list = YAMLUtil.getRoleIPList(role)
+        cinder_storage_ips = ','.join(cinder_storage_ips_list)
+        print 'cinder_storage_ips=%s--' % cinder_ips
+        paramsMap['cinder_storage_ips'] = cinder_storage_ips
+        pass
+    
+    print 'neutron============================================'
+    role = 'neutron'
+    if YAMLUtil.hasRoleInNodes(role):
+        neutron_service_ips_list = YAMLUtil.getRoleIPList(role)
+        neutron_service_ips = ','.join(neutron_service_ips_list)
+        print 'neutron_service_ips=%s--' % neutron_service_ips
+        paramsMap['neutron_service_ips'] = neutron_service_ips
         pass
     
     print 'ceilometer==========================================='

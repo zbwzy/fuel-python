@@ -24,9 +24,9 @@
     "rabbit_password": "123456",
     "virt_type": "qemu",
     "controller_vip": "192.168.11.100",
-    "nova_api_vip" : "192.168.11.131",
-    "nova_api_ips": "192.168.11.131,192.168.11.132",
-    "nova_api_vip_interface" : "eth0",
+    "nova_vip" : "192.168.11.131",
+    "nova_ips": "192.168.11.131,192.168.11.132",
+    "nova_vip_interface" : "eth0",
     "cinder_mysql_user" : "cinder",
     "cinder_vip" : "192.168.11.101",
     "cinder_vip_interface" : "eth3",
@@ -35,5 +35,5 @@
     "dashboard_vip": "192.168.11.100",
     "dashboard_vip_interface": "eth0",
     "dashboard_ips": "192.168.11.131,192.168.11.132",
-    "neutron_server_vip": "192.168.11.131"
+    "neutron_vip": "192.168.11.131"
 }
