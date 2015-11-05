@@ -721,11 +721,13 @@ if __name__ == '__main__':
     KeystoneHA.configure()
     KeystoneHA.start()
     
-    
-    
     ##########################
     Keystone.restart()
     KeystoneHA.restart()
+    
+    os.system("service openstack-keystone restart")
+    
+    os.system("service haproxy restart")
     
     #mark: keystone is installed
     os.system('touch %s' % INSTALL_TAG_FILE)

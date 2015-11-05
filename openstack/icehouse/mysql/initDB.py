@@ -744,10 +744,8 @@ class Cinder(object):
         ShellCmdExecutor.execCmd("sudo chmod 777 /etc/cinder")
         
         ####NEW
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (cinder_conf_template_file_path, cinderConfDir))
-        
         ShellCmdExecutor.execCmd("cat %s > /tmp/cinder.conf" % cinder_conf_template_file_path)
-        ShellCmdExecutor.execCmd("mv /tmp/cinder.conf /etc/cinder")
+        ShellCmdExecutor.execCmd("mv /tmp/cinder.conf /etc/cinder/")
         ShellCmdExecutor.execCmd("rm -rf /tmp/cinder.conf")
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
@@ -1538,7 +1536,7 @@ vrrp_instance 42 {
     
     
 if __name__ == '__main__':
-    debug = True
+    debug = False
     print 'hello openstack-icehouse:initDB============'
     
     print 'start time: %s' % time.ctime()
@@ -1738,8 +1736,15 @@ if __name__ == '__main__':
         MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
         MySQL.execMySQLCmd(user, initPasswd, flushCmd)
         
+        ####Special handling
+        if os.path.isfile('/etc/cinder') :
+            ShellCmdExecutor.execCmd("rm -rf /etc/cinder")
+            pass
+        
+        ShellCmdExecutor.execCmd("yum remove openstack-cinder -y")
+        ##########
+        
         Cinder.install()
-        ShellCmdExecutor.execCmd('chmod 777 /etc/cinder')
         Cinder.configConfFile()
         
         Keystone.sourceAdminOpenRC()
@@ -1776,20 +1781,22 @@ if __name__ == '__main__':
         Keystone.sourceAdminOpenRC()
         Heat.initHeat()
       
+    ShellCmdExecutor.execCmd('service haproxy restart')
+    
     #destroy
     killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'
     killGlanceCmd   = 'ps aux |grep python | grep glance | awk \'{print "kill -9 " $2}\' | bash'
     killNovaCmd   = 'ps aux |grep python | grep nova | awk \'{print "kill -9 " $2}\' | bash'
     killNeutronCmd   = 'ps aux |grep python | grep neutron | awk \'{print "kill -9 " $2}\' | bash'
      
-#     ShellCmdExecutor.execCmd(killKeystoneCmd)
-#     ShellCmdExecutor.execCmd(killGlanceCmd)
-#     ShellCmdExecutor.execCmd(killNovaCmd)
-#     ShellCmdExecutor.execCmd(killNeutronCmd)
+    ShellCmdExecutor.execCmd(killKeystoneCmd)
+    ShellCmdExecutor.execCmd(killGlanceCmd)
+    ShellCmdExecutor.execCmd(killNovaCmd)
+    ShellCmdExecutor.execCmd(killNeutronCmd)
     
     #mark: db is initted
-    os.system('touch %s' % INSTALL_TAG_FILE)
     
+    os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack is initted#######'
     pass
 

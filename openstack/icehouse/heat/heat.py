@@ -177,11 +177,19 @@ class Heat(object):
             ShellCmdExecutor.execCmd("sudo mkdir %s" % heatConfDir)
             pass
         
+        ShellCmdExecutor.execCmd("sudo chmod 777 /etc/heat")
+        
         if os.path.exists(heat_conf_file_path) :
             ShellCmdExecutor.execCmd("rm -rf %s" % heat_conf_file_path)
             pass
         
         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (heat_conf_template_file_path, heatConfDir))
+        
+        ShellCmdExecutor.execCmd('cat %s > /tmp/heat.conf' % heat_conf_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/heat.conf /etc/heat')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/heat.conf')
+        
+        
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % heat_conf_file_path)
         
         FileUtil.replaceFileContent(heat_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -357,7 +365,7 @@ class HeatHA(object):
         heat_vip = JSONUtility.getValue("heat_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
+        HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
         haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
         print 'haproxyConfFilePath=%s' % haproxyConfFilePath
         if not os.path.exists('/etc/haproxy') :
@@ -365,7 +373,9 @@ class HeatHA(object):
             pass
         
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keystoneHAProxyTemplateFilePath, '/etc/haproxy'))
+            ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
+            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+            ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -406,7 +416,26 @@ listen heat_api_cluster
         print 'heatBackendApiString=%s--' % heatBackendApiString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (heatBackendApiString, haproxyConfFilePath))
+#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (heatBackendApiString, haproxyConfFilePath))
+
+        if os.path.exists(haproxyConfFilePath) :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
+        else :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % HAProxyTemplateFilePath)
+            pass
+        
+        haproxyNativeContent = output.strip()
+
+        haproxyContent = ''
+        haproxyContent += haproxyNativeContent
+        haproxyContent += '\n\n'
+        haproxyContent += heatBackendApiString
+        FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
+        if os.path.exists(haproxyConfFilePath):
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
+            pass
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -576,7 +605,6 @@ vrrp_instance 42 {
 if __name__ == '__main__':
     print 'hello openstack-icehouse:heat============'
     print 'start time: %s' % time.ctime()
-    
     #DEBUG
     debug = False
     if debug :

@@ -43,7 +43,7 @@ class ParamsProducer(object):
     classdocs
     '''
     OPENSTACK_ROLES = ['mysql', 'rabbitmq', 'mongodb', 'keystone', 'glance', 'nova-api', 'nova-compute',
-                       'ceilometer', 'neutron-server', 'neutron', 'dashboard', 'cinder', 'cinder-storage']
+                       'ceilometer', 'neutron-server', 'neutron', 'horizon', 'cinder-api', 'cinder-storage', 'heat']
     
     def __init__(self):
         '''
@@ -279,7 +279,7 @@ if __name__ == '__main__':
         paramsMap['nova_compute_ips'] = nova_compute_ips
         pass
     
-    role = 'dashboard'
+    role = 'horizon'
     if YAMLUtil.hasRoleInNodes(role):
         key = 'dashboard_vip'
         dashboard_vip= YAMLUtil.getValue(role, key)

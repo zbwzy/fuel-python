@@ -37,8 +37,8 @@ from common.file.FileUtil import FileUtil
 #install PyYAML package
 yamlPackagePath = os.path.join(PROJ_HOME_DIR, 'externals', 'PyYAML')
 # yamlPackageSetupFilePath = os.path.join(yamlPackagePath, 'setup.py')
-# yamlSetupCmd = 'sudo python {yamlPackageSetupFilePath} install'.format(yamlPackageSetupFilePath=yamlPackageSetupFilePath)
-output, exitcode = ShellCmdExecutor.execCmd('cd {yamlPackagePath}; sudo python setup.py install'.format(yamlPackagePath=yamlPackagePath))
+# yamlSetupCmd = 'python {yamlPackageSetupFilePath} install'.format(yamlPackageSetupFilePath=yamlPackageSetupFilePath)
+output, exitcode = ShellCmdExecutor.execCmd('cd {yamlPackagePath}; python setup.py install'.format(yamlPackagePath=yamlPackagePath))
 print 'installing pyyaml============================'
 print 'output=%s' % output
 
@@ -115,7 +115,11 @@ class YAMLUtil(object):
         ipList = []
     
         nodesMap = YAMLUtil.getNodesMap()
+        print 'len.nodeMap=%s' % len(nodesMap)
         for nodeMap in nodesMap :
+            print 'nodeMap.role=%s--,type=%s--' % (nodeMap['role'], type(nodeMap['role']))
+            print 'role=%s--, type=%s--' % (role, type(role))
+            print nodeMap['role'] == role
             if nodeMap['role'] == role :
                 ipList.append(nodeMap['ip'])
                 pass
@@ -131,7 +135,7 @@ class YAMLUtil(object):
         ip_list_file_path = '/opt/{role}_ip_list'.format(role=role).replace('-', '_')
         
         if os.path.exists(ip_list_file_path) :
-            ShellCmdExecutor.execCmd('sudo rm -rf %s' % ip_list_file_path)
+            ShellCmdExecutor.execCmd('rm -rf %s' % ip_list_file_path)
             pass
         
         FileUtil.writeContent(ip_list_file_path, ipListContent)
@@ -143,12 +147,22 @@ class YAMLUtil(object):
         nodesMap = YAMLUtil.getNodesMap()
         uid_list = []
         node_map_list = []
+        number = 1
         for nodeMap in nodesMap :
-            if nodeMap['role'] == role :
+            print number
+            print 'rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrole=%s--, type=%s--' % (role, type(role))
+            print 'nodeMapRole=%s--, type=%s--' % (nodeMap['role'], type(nodeMap['role']))
+            print nodeMap['role'] == role
+            
+            if nodeMap['role'].strip() == role.strip() :
+                print 'xxxxxxxxxxxxxxxxx======'
                 uid = string.atoi(nodeMap['uid'])
+                print 'yyyyyyyyyyyyyyyyyy'
                 uid_list.append(uid)
                 node_map_list.append(nodeMap)
                 pass
+            number += 1
+            print ''
             pass
         
         uid_list.sort()
@@ -216,7 +230,9 @@ if __name__ == "__main__":
     YAMLUtil.getNodesMap()
     print 'mysql_vip=%s------' % value
     print 'mysql_vip_interface=%s--------' % YAMLUtil.getValue(component_name, 'mysql_vip_interface')
-    print 'mysql_ip_list=%s--' % YAMLUtil.getIPList('mysql')
+    print 'mysql_ip_list=%s--' % YAMLUtil.getIPList('glance')
+    
+    print 'xxxxxxxxx'
     YAMLUtil.writeIPList('mysql')
     print 'debug--------------'
     nodesMap = YAMLUtil.getNodesMap()

@@ -131,22 +131,29 @@ class Dashboard(object):
     @staticmethod
     def configConfFile():
         localSettingsFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'local_settings')
+        dashboardConfFileDir = os.path.dirname(Dashboard.DASHBOARD_CONF_FILE_PATH)
+        
         if os.path.exists(Dashboard.DASHBOARD_CONF_FILE_PATH) :
             ShellCmdExecutor.execCmd("rm -rf %s" % Dashboard.DASHBOARD_CONF_FILE_PATH)
             pass
         else :
-            ShellCmdExecutor.execCmd("sudo mkdir %s" % os.path.dirname(Dashboard.DASHBOARD_CONF_FILE_PATH))
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % dashboardConfFileDir)
             pass
         
         print 'localSettingsFileTemplatePath=%s--' % localSettingsFileTemplatePath
-        
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (localSettingsFileTemplatePath, os.path.dirname(Dashboard.DASHBOARD_CONF_FILE_PATH)))
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % dashboardConfFileDir)
+#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (localSettingsFileTemplatePath, dashboardConfFileDir))
+        ####NEW
+        ShellCmdExecutor.execCmd('cat %s > /tmp/local_settings' % localSettingsFileTemplatePath)
+        ShellCmdExecutor.execCmd('mv  /tmp/local_settings %s' % dashboardConfFileDir)
+        ShellCmdExecutor.execCmd("rm -rf /tmp/local_settings")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
         FileUtil.replaceFileContent(Dashboard.DASHBOARD_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
+        
         #Assign rights: can be accessed
         DIR_PATH = '/usr/share/openstack-dashboard/openstack_dashboard/local'
         if os.path.exists(DIR_PATH) :
@@ -161,7 +168,11 @@ class Dashboard(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % Dashboard.HTTPD_CONF_FILE_PATH)
             pass
         
-        ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (httpdConfFileTemplatePath, os.path.dirname(Dashboard.HTTPD_CONF_FILE_PATH)))
+        httpdConfFileDir = os.path.dirname(Dashboard.HTTPD_CONF_FILE_PATH)
+#         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (httpdConfFileTemplatePath, httpdConfFileDir))
+        ShellCmdExecutor.execCmd("cat %s > /tmp/httpd.conf" % httpdConfFileTemplatePath)
+        ShellCmdExecutor.execCmd("mv /tmp/httpd.conf %s" % httpdConfFileDir)
+        ShellCmdExecutor.execCmd("rm -rf /tmp/httpd.conf")
         pass
     pass
 
@@ -301,7 +312,11 @@ class DashboardHA(object):
                     ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
                     pass
                 
-                ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, os.path.dirname(haproxyConfFilePath)))
+                ShellCmdExecutor.execCmd('sudo chmod 777 /etc/haproxy')
+#                 ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, os.path.dirname(haproxyConfFilePath)))
+                ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % haproxyTemplateFilePath)
+                ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+                ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
                 pass
             pass
         pass
@@ -325,8 +340,14 @@ class DashboardHA(object):
             ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
             pass
         
+        ShellCmdExecutor.execCmd('sudo chmod 777 /etc/haproxy')
+        
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (HAProxyTemplateFilePath, '/etc/haproxy'))
+#             ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (HAProxyTemplateFilePath, '/etc/haproxy'))
+            
+            ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
+            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+            ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -416,14 +437,24 @@ listen dashboard_cluster
             ShellCmdExecutor.execCmd('sudo mkdir /etc/keepalived')
             pass
         
+        ShellCmdExecutor.execCmd('chmod 777 /etc/keepalived')
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+        
+        ShellCmdExecutor.execCmd('cat %s > /tmp/check_haproxy.sh' % checkHAProxyScriptPath)
+        ShellCmdExecutor.execCmd('mv /tmp/check_haproxy.sh /etc/keepalived')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/check_haproxy.sh')
+        
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+        ShellCmdExecutor.execCmd('cat %s > /tmp/keepalived.conf' % keepalivedTemplateFilePath)
+        ShellCmdExecutor.execCmd('mv /tmp/keepalived.conf /etc/keepalived')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/keepalived.conf')
+        
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
         print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
         
@@ -596,8 +627,9 @@ if __name__ == '__main__':
     
     Dashboard.install()
     Dashboard.configure()
-    Dashboard.start()
     
+    Dashboard.start()
+
     DashboardHA.install()
     DashboardHA.configure()
     DashboardHA.start()

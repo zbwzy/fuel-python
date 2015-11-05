@@ -159,11 +159,17 @@ class Cinder(object):
             ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
             pass
         
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinderConfDir)
+        
         if os.path.exists(cinder_conf_file_path) :
             ShellCmdExecutor.execCmd("rm -rf %s" % cinder_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        ShellCmdExecutor.execCmd('cat %s > /tmp/cinder.conf' % cinder_conf_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/cinder.conf /etc/cinder')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/cinder.conf')
+        
+#         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -319,7 +325,12 @@ class CinderHA(object):
                     ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
                     pass
                 
-                ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                ShellCmdExecutor.execCmd('chmod 777 /etc/haproxy')
+                
+#                 ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
+                ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % haproxyTemplateFilePath)
+                ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+                ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
                 pass
             pass
         pass
@@ -337,15 +348,18 @@ class CinderHA(object):
         cinder_vip = JSONUtility.getValue("cinder_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
+        HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
         haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
         print 'haproxyConfFilePath=%s' % haproxyConfFilePath
         if not os.path.exists('/etc/haproxy') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
             pass
-        
+        ShellCmdExecutor.execCmd('sudo chmod 777 /etc/haproxy')
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
+            ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
+            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+            ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
+#             ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -386,7 +400,25 @@ listen cinder_api_cluster
         print 'cinderBackendAdminApiString=%s--' % cinderBackendAdminApiString
         
         #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (cinderBackendAdminApiString, haproxyConfFilePath))
+#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (cinderBackendAdminApiString, haproxyConfFilePath))
+        if os.path.exists(haproxyConfFilePath) :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
+        else :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % HAProxyTemplateFilePath)
+            pass
+        
+        haproxyNativeContent = output.strip()
+        
+        haproxyContent = ''
+        haproxyContent += haproxyNativeContent
+        haproxyContent += '\n\n'
+        haproxyContent += cinderBackendAdminApiString
+        FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
+        if os.path.exists(haproxyConfFilePath):
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
+            pass
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -401,15 +433,22 @@ listen cinder_api_cluster
         if not os.path.exists('/etc/keepalived') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/keepalived')
             pass
-        
+        ShellCmdExecutor.execCmd("sudo chmod 777 /etc/keepalived")
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+#         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
+        ShellCmdExecutor.execCmd('cat %s > /tmp/check_haproxy.sh' % checkHAProxyScriptPath)
+        ShellCmdExecutor.execCmd('mv /tmp/check_haproxy.sh /etc/keepalived')
+        ShellCmdExecutor.execCmd("sudo rm -rf /tmp/check_haproxy.sh")
+        
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+#         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
+        ShellCmdExecutor.execCmd('cat %s > /tmp/keepalived.conf' % keepalivedTemplateFilePath)
+        ShellCmdExecutor.execCmd('mv /tmp/keepalived.conf /etc/keepalived')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/keepalived.conf')
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
         print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
         
@@ -579,6 +618,9 @@ if __name__ == '__main__':
     CinderHA.configure()
     CinderHA.start()
     #
+    os.system("service openstack-cinder-api start")
+    os.system("service openstack-cinder-scheduler start")
+    os.system("service haproxy restart")
     #mark: cinder is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:cinder#######'

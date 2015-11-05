@@ -707,7 +707,14 @@ if __name__ == '__main__':
     GlanceHA.install()
     GlanceHA.configure()
     GlanceHA.start()
-     
+    
+    Glance.restart()
+    GlanceHA.restart
+    
+    os.system("service openstack-glance-api restart")
+    os.system("service openstack-glance-registry restart")
+    
+    os.system("service haproxy restart")
     #mark: glance is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     

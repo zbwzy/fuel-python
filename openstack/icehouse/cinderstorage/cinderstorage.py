@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -177,7 +177,11 @@ class CinderStorage(object):
             ShellCmdExecutor.execCmd("rm -rf %s" % cinder_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
+        ShellCmdExecutor.execCmd("chmod 777 /etc/cinder")
+        ShellCmdExecutor.execCmd('cat %s > /tmp/cinder.conf' % cinder_conf_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/cinder.conf /etc/cinder')
+        ShellCmdExecutor.execCmd('rm -rf /tmp/cinder.conf')
+#         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)

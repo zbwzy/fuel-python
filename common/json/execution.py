@@ -28,7 +28,7 @@ class Params(object):
     CLUSTER_IP_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/cluster/{cluster_id}.json'
     CLUSTER_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/cluster/role_ip_map_{cluster_id}.json'
     OPENSTACK_ROLES = ['mysql', 'rabbitmq', 'mongodb', 'keystone', 'glance', 'nova-api', 
-                       'nova-compute','neutron-server', 'neutron', 'dashboard', 
+                       'nova-compute','neutron-server', 'neutron', 'horizon', 
                        'cinder-api', 'cinder-storage', 'heat', 'ceilometer']
     
     def __init__(self):
@@ -85,11 +85,11 @@ if __name__ == '__main__':
     print json.dumps(activeRoleIPMap, indent=4)
     
     activeRoles = activeRoleIPMap.keys()
-    
+    print 'activeRoles=%s' % activeRoles
     #######DO EXECUTION
     role = 'keystone'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -97,7 +97,7 @@ if __name__ == '__main__':
     
     role = 'glance'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -105,7 +105,7 @@ if __name__ == '__main__':
     
     role = 'neutron-server'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -113,7 +113,7 @@ if __name__ == '__main__':
     
     role = 'neutron'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -121,7 +121,7 @@ if __name__ == '__main__':
     
     role = 'nova-api'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -129,7 +129,7 @@ if __name__ == '__main__':
     
     role = 'nova-compute'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -137,7 +137,7 @@ if __name__ == '__main__':
     
     role = 'cinder-api'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -145,7 +145,7 @@ if __name__ == '__main__':
     
     role = 'cinder-storage'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
@@ -153,7 +153,7 @@ if __name__ == '__main__':
     
     role = 'heat'
     if role in activeRoles :
-        ip_list = activeRoles[role]
+        ip_list = activeRoleIPMap[role]
         for ip in ip_list :
             ######Do something
             pass
