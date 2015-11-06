@@ -414,7 +414,9 @@ class Glance(object):
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % glanceInitScriptPath)
         
-        localIP = Keystone.getLocalIP()
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+
+        localIP = output.strip()
         
         glanceAdminEmail = JSONUtility.getValue("admin_email")
         print 'glanceAdminEmail=%s' % glanceAdminEmail
@@ -422,6 +424,8 @@ class Glance(object):
         
         glance_vip = JSONUtility.getValue("glance_vip")
         FileUtil.replaceFileContent('/opt/glance_init.sh', '<GLANCE_VIP>', glance_vip)
+        FileUtil.replaceFileContent('/opt/glance_init.sh', '<LOCAL_IP>', localIP)
+        
         ShellCmdExecutor.execCmd('bash /opt/glance_init.sh')
         pass
     pass
@@ -616,8 +620,9 @@ admin_password=123456
             pass
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % novaInitScriptPath)
-        
-        localIP = Keystone.getLocalIP()
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+
+        localIP = output.strip()
         
         novaAdminEmail = JSONUtility.getValue("admin_email")
         print 'novaAdminEmail=%s' % novaAdminEmail
@@ -625,6 +630,8 @@ admin_password=123456
         
         nova_vip = JSONUtility.getValue("nova_vip")
         FileUtil.replaceFileContent('/opt/nova_init.sh', '<NOVA_VIP>', nova_vip)
+        FileUtil.replaceFileContent('/opt/nova_init.sh', '<LOCAL_IP>', localIP)
+        
         ShellCmdExecutor.execCmd('bash /opt/nova_init.sh')
         pass
     
@@ -655,8 +662,13 @@ class Neutron(object):
         print 'neutronAdminEmail=%s' % neutronAdminEmail
         FileUtil.replaceFileContent('/opt/neutron_init.sh', '<ADMIN_EMAIL>', neutronAdminEmail)
         
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        
         neutron_vip = JSONUtility.getValue("neutron_vip")
         FileUtil.replaceFileContent('/opt/neutron_init.sh', '<NEUTRON_VIP>', neutron_vip)
+        FileUtil.replaceFileContent('/opt/neutron_init.sh', '<LOCAL_IP>', localIP)
+        
         ShellCmdExecutor.execCmd('bash /opt/neutron_init.sh')
         pass
     pass
@@ -777,8 +789,7 @@ class Cinder(object):
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % cinderInitScriptPath)
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
         cinderAdminEmail = JSONUtility.getValue("admin_email")
@@ -790,6 +801,7 @@ class Cinder(object):
         
         cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
         FileUtil.replaceFileContent('/opt/cinder_init.sh', '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        FileUtil.replaceFileContent('/opt/cinder_init.sh', '<LOCAL_IP>', localIP)
         
         ShellCmdExecutor.execCmd('bash /opt/cinder_init.sh')
         pass
@@ -922,8 +934,7 @@ class Heat(object):
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % heatInitScriptPath)
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
         heatAdminEmail = JSONUtility.getValue("admin_email")
@@ -934,6 +945,7 @@ class Heat(object):
         
         heat_mysql_password = JSONUtility.getValue("heat_mysql_password")
         FileUtil.replaceFileContent('/opt/heat_init.sh', '<HEAT_MYSQL_PASSWORD>', heat_mysql_password)
+        FileUtil.replaceFileContent('/opt/heat_init.sh', '<LOCAL_IP>', localIP)
         
         ShellCmdExecutor.execCmd('bash /opt/heat_init.sh')
         pass
@@ -1034,7 +1046,9 @@ class Keystone(object):
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % keystoneInitScriptPath)
         
-        localIP = Keystone.getLocalIP()
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
         
         keystoneAdminEmail = JSONUtility.getValue("admin_email")
@@ -1043,7 +1057,20 @@ class Keystone(object):
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)
-        ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
+        FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
+        print 'keystone db init==========================='
+        print ''
+        print 'keystone process----------'
+        out, exitcode = ShellCmdExecutor.execCmd('ps aux | grep keystone')
+        print output
+        
+        out, exitcode = ShellCmdExecutor.execCmd('cat /opt/keystone_init.sh')
+        print 'keystone init script==============='
+        print output
+        print 'keystone init script#######'
+        print 'bash /opt/keystone_init.sh=========================='
+        output, exitcode = ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
+        print 'output=%s--' % output
         pass
         
     @staticmethod
@@ -1542,7 +1569,6 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     if debug :
         print 'debug====================='
-        Keystone.sourceAdminOpenRC()
         print 'debug#########'
         exit()
         pass
@@ -1776,6 +1802,7 @@ if __name__ == '__main__':
         heatConfDir = '/etc/heat'
         if os.path.exists(heatConfDir) :
             ShellCmdExecutor.execCmd('chmod 777 %s' % heatConfDir)
+            pass
         Heat.configConfFile()
         
         Keystone.sourceAdminOpenRC()

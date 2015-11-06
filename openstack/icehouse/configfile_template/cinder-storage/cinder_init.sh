@@ -1,5 +1,13 @@
 #!/bin/bash
 
+export OS_SERVICE_TOKEN=123456
+export OS_SERVICE_ENDPOINT=http://<LOCAL_IP>:35357/v2.0
+
+export OS_USERNAME=admin
+export OS_PASSWORD=123456
+export OS_TENANT_NAME=admin
+export OS_AUTH_URL=http://<LOCAL_IP>:35357/v2.0
+
 echo 'start to init cinder db==========='
 
 keystone user-create --name=cinder --pass=<MYSQL_PASSWORD>
