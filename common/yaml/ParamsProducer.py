@@ -58,7 +58,7 @@ class ParamsProducer(object):
     pass
 
 if __name__ == '__main__':
-    print 'produe role ip list in /opt/{role}_ip_list======='
+    print 'produe role ip list in /opt/role_ip_list======='
     for role in ParamsProducer.OPENSTACK_ROLES :
         if YAMLUtil.hasRoleInNodes(role) :
             YAMLUtil.writeIPList(role)
