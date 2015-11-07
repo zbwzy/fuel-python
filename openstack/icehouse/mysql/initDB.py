@@ -1727,11 +1727,11 @@ if __name__ == '__main__':
         grantCmd2 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
         .format(init_passwd=initPasswd)
         
-        grantToHostname = 'GRANT ALL PRIVILEGES ON nova.* TO \'neutron\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+        grantToHostname = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
         .format(hostname=hostname,init_passwd=initPasswd)
         
         MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
         MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
         MySQL.execMySQLCmd(user, initPasswd, flushCmd)
         MySQL.execMySQLCmd(user, initPasswd, grantToHostname)

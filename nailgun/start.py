@@ -7,6 +7,8 @@ Created on Nov 5, 2015
 from nailgun.common.ssh import Client as SSHClient
 
 class OpenStackCmd(object):
+    
+    
     pass
 
 def main():

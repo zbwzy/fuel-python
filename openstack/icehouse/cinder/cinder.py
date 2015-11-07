@@ -611,16 +611,16 @@ if __name__ == '__main__':
     
     Cinder.install()
     Cinder.configConfFile()
-    Cinder.start()
-    
-    ## Cinder HA
-    CinderHA.install()
-    CinderHA.configure()
-    CinderHA.start()
+#     Cinder.start()
+#     
+#     ## Cinder HA
+#     CinderHA.install()
+#     CinderHA.configure()
+#     CinderHA.start()
     #
-    os.system("service openstack-cinder-api start")
-    os.system("service openstack-cinder-scheduler start")
-    os.system("service haproxy restart")
+#     os.system("service openstack-cinder-api start")
+#     os.system("service openstack-cinder-scheduler start")
+#     os.system("service haproxy restart")
     #mark: cinder is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:cinder#######'

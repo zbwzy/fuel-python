@@ -666,18 +666,6 @@ if __name__ == '__main__':
     print 'hello openstack-icehouse:glance============'
     
     print 'start time: %s' % time.ctime()
-    #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
     
 #     print 'test exist VIP============================'
 #     print 'existVIP=%s' % GlanceHA.isExistVIP('192.168.11.100', 'eth0')
@@ -700,21 +688,21 @@ if __name__ == '__main__':
     #
     Glance.install()
     Glance.configConfFile()
-    Glance.start()
-#      
-    Glance.sourceAdminOpenRC()
-    #add HA
-    GlanceHA.install()
-    GlanceHA.configure()
-    GlanceHA.start()
+#     Glance.start()
+# #      
+#     Glance.sourceAdminOpenRC()
+#     #add HA
+#     GlanceHA.install()
+#     GlanceHA.configure()
+#     GlanceHA.start()
+#     
+#     Glance.restart()
+#     GlanceHA.restart
     
-    Glance.restart()
-    GlanceHA.restart
-    
-    os.system("service openstack-glance-api restart")
-    os.system("service openstack-glance-registry restart")
-    
-    os.system("service haproxy restart")
+#     os.system("service openstack-glance-api restart")
+#     os.system("service openstack-glance-registry restart")
+#     
+#     os.system("service haproxy restart")
     #mark: glance is installed
     os.system('touch %s' % INSTALL_TAG_FILE)
     

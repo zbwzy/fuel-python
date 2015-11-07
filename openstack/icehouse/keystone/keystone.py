@@ -704,30 +704,21 @@ if __name__ == '__main__':
     Keystone.install()
     Keystone.configConfFile()
           
-#     if Keystone.isMasterNode()  == True :
-#         Keystone.importKeystoneDBSchema()
-#         Keystone.supportPKIToken()
-#         pass
-          
-    Keystone.start()
-        
-#     if Keystone.isMasterNode() == True :
-#         Keystone.configureEnvVar()
-#         Keystone.initKeystone()
-#         pass
-    Keystone.sourceAdminOpenRC()
-    #add HA
-    KeystoneHA.install()
-    KeystoneHA.configure()
-    KeystoneHA.start()
+#     Keystone.start()
+#         
+#     Keystone.sourceAdminOpenRC()
+#     #add HA
+#     KeystoneHA.install()
+#     KeystoneHA.configure()
+#     KeystoneHA.start()
     
     ##########################
-    Keystone.restart()
-    KeystoneHA.restart()
-    
-    os.system("service openstack-keystone restart")
-    
-    os.system("service haproxy restart")
+#     Keystone.restart()
+#     KeystoneHA.restart()
+#     
+#     os.system("service openstack-keystone restart")
+#     
+#     os.system("service haproxy restart")
     
     #mark: keystone is installed
     os.system('touch %s' % INSTALL_TAG_FILE)

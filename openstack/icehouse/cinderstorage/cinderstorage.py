@@ -229,7 +229,7 @@ if __name__ == '__main__':
     
     CinderStorage.install()
     CinderStorage.configConfFile()
-    CinderStorage.start()
+#     CinderStorage.start()
     
     #mark: cinder is installed
     os.system('touch %s' % INSTALL_TAG_FILE)

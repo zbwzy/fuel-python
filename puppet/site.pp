@@ -37,8 +37,8 @@ exec {"openstack_yaml":
 notify {"$local_ip==$master_ip":}
 
   case $role {
+  
       'mysql' : {
-
           class { 'mysql_galera':
         installDir => $installDir,
        root_passwd => "123456",

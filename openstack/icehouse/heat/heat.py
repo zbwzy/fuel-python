@@ -119,7 +119,7 @@ class Heat(object):
         #restart heat service
         ShellCmdExecutor.execCmd("service openstack-heat-api restart")
         ShellCmdExecutor.execCmd("service openstack-heat-api-cfn restart")
-        ShellCmdExecutor.execCmd("service  openstack-heat-engine  restart")
+        ShellCmdExecutor.execCmd("service openstack-heat-engine restart")
         pass
     
     

@@ -121,10 +121,16 @@ class Dashboard(object):
     
     @staticmethod
     def start():
-        ShellCmdExecutor.execCmd("service httpd restart")
-        ShellCmdExecutor.execCmd("service memcached restart")
+        ShellCmdExecutor.execCmd("service httpd start")
+        ShellCmdExecutor.execCmd("service memcached start")
         ShellCmdExecutor.execCmd("chkconfig httpd on")
         ShellCmdExecutor.execCmd("chkconfig memcached on")
+        pass
+    
+    @staticmethod
+    def restart():
+        ShellCmdExecutor.execCmd("service httpd restart")
+        ShellCmdExecutor.execCmd("service memcached restart")
         pass
     
     
@@ -628,11 +634,11 @@ if __name__ == '__main__':
     Dashboard.install()
     Dashboard.configure()
     
-    Dashboard.start()
-
-    DashboardHA.install()
-    DashboardHA.configure()
-    DashboardHA.start()
+#     Dashboard.start()
+# 
+#     DashboardHA.install()
+#     DashboardHA.configure()
+#     DashboardHA.start()
     #
     ShellCmdExecutor.execCmd('service haproxy restart')
     #mark: dashboard is installed
