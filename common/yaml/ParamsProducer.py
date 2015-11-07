@@ -1,5 +1,5 @@
 '''
-Created on Aug 26, 2015
+Created on Oct 29, 2015
 
 @author: zhangbai
 '''
@@ -58,7 +58,7 @@ class ParamsProducer(object):
     pass
 
 if __name__ == '__main__':
-    print 'produe role ip list in /opt/{role_ip_list}======='
+    print 'produe role ip list in /opt/{role}_ip_list======='
     for role in ParamsProducer.OPENSTACK_ROLES :
         if YAMLUtil.hasRoleInNodes(role) :
             YAMLUtil.writeIPList(role)
@@ -97,7 +97,6 @@ if __name__ == '__main__':
         paramsMap['mysql_vip_interface'] = mysql_vip_interface
         paramsMap['mysql_password'] = mysql_root_password
         paramsMap['mysql_ips'] = mysql_ips
-        
         
     
     print 'rabbitmq========================'

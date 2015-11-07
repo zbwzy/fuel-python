@@ -56,29 +56,29 @@ if __name__ == '__main__':
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'glance installed####'
         print 'exit===='
-        exit()
         pass
+    else :
         
-    print 'start to install======='
-    
-    #
-    Glance.sourceAdminOpenRC()
-    
-    Glance.start()
-    #add HA
-    GlanceHA.install()
-    GlanceHA.configure()
-    GlanceHA.start()
-    
-    Glance.restart()
-    GlanceHA.restart
-    
-#     os.system("service openstack-glance-api restart")
-#     os.system("service openstack-glance-registry restart")
-#     
-#     os.system("service haproxy restart")
-    #mark: glance is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+        print 'start to install======='
+        
+        #
+        Glance.sourceAdminOpenRC()
+        
+        Glance.start()
+        #add HA
+        GlanceHA.install()
+        GlanceHA.configure()
+        GlanceHA.start()
+        
+        Glance.restart()
+        GlanceHA.restart
+        
+    #     os.system("service openstack-glance-api restart")
+    #     os.system("service openstack-glance-registry restart")
+    #     
+    #     os.system("service haproxy restart")
+        #mark: glance is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     
     print 'hello openstack-icehouse:glance#######'
     pass

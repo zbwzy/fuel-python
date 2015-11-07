@@ -62,21 +62,20 @@ if __name__ == '__main__':
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'heat installed####'
         print 'exit===='
-        exit()
         pass
-    
-    Heat.start()
-    
-    ## Heat HA
-    HeatHA.install()
-    HeatHA.configure()
-    HeatHA.start()
-    #
-    Heat.restart()
-    HeatHA.restart()
-    
-    #mark: heat is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+    else :
+        Heat.start()
+        
+        ## Heat HA
+        HeatHA.install()
+        HeatHA.configure()
+        HeatHA.start()
+        #
+        Heat.restart()
+        HeatHA.restart()
+        
+        #mark: heat is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:heat#######'
     pass
 

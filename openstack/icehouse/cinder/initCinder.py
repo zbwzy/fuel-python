@@ -55,26 +55,25 @@ if __name__ == '__main__':
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'cinder initted####'
         print 'exit===='
-        exit()
         pass
-    
-#     Cinder.install()
-#     Cinder.configConfFile()
-    Cinder.start()
-    
-    ## Cinder HA
-    CinderHA.install()
-    CinderHA.configure()
-    CinderHA.start()
-    #
-    
-    Cinder.restart()
-    CinderHA.restart()
-#     os.system("service openstack-cinder-api start")
-#     os.system("service openstack-cinder-scheduler start")
-#     os.system("service haproxy restart")
-    #mark: cinder is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+    else :
+    #     Cinder.install()
+    #     Cinder.configConfFile()
+        Cinder.start()
+        
+        ## Cinder HA
+        CinderHA.install()
+        CinderHA.configure()
+        CinderHA.start()
+        #
+        
+        Cinder.restart()
+        CinderHA.restart()
+    #     os.system("service openstack-cinder-api start")
+    #     os.system("service openstack-cinder-scheduler start")
+    #     os.system("service haproxy restart")
+        #mark: cinder is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello cinder initted#######'
     pass
 

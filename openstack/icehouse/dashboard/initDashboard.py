@@ -65,20 +65,19 @@ if __name__ == '__main__':
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'dashboard installed####'
         print 'exit===='
-        exit()
         pass
+    else :
+        Dashboard.start()
     
-    Dashboard.start()
-
-    DashboardHA.install()
-    DashboardHA.configure()
-    DashboardHA.start()
-    #
-    Dashboard.restart()
-    DashboardHA.restart()
-#     ShellCmdExecutor.execCmd('service haproxy restart')
-    #mark: dashboard is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+        DashboardHA.install()
+        DashboardHA.configure()
+        DashboardHA.start()
+        #
+        Dashboard.restart()
+        DashboardHA.restart()
+    #     ShellCmdExecutor.execCmd('service haproxy restart')
+        #mark: dashboard is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:dashboard installed#######'
     pass
 
