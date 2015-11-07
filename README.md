@@ -30,4 +30,15 @@ debug = False
 /opt/localip
 
 
+Deployment init on fuel-master:
+1).On nailgun container:
+Use nailgun/start.py in this project to update /opt/start.py on nailgun docker container.
+
+2).For puppet:
+Use puppet/site.pp to update /etc/puppet/manifests/site.pp.
+
+3).For fuel-python:
+Deploy this project to /etc/puppet/modules/.
+
+
 
