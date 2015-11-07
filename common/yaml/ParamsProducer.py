@@ -87,6 +87,10 @@ if __name__ == '__main__':
         print 'mysql_password=%s--' % mysql_root_password
         
         mysql_ips_list = YAMLUtil.getRoleIPList(role)
+        #Judge mysql master ip
+        mysql_master_ip = mysql_ips_list[0]
+        FileUtil.writeContent('/opt/mysql_master_ip', mysql_master_ip)
+        
         mysql_ips = ','.join(mysql_ips_list)
         print 'mysql_ips=%s' % mysql_ips
         paramsMap['mysql_vip'] = mysql_vip
@@ -113,6 +117,10 @@ if __name__ == '__main__':
         
         rabbit_ips_list = YAMLUtil.getRabbitRoleIPList(role)
         rabbit_ips = ','.join(rabbit_ips_list)
+        
+        #Judge rabbitmq master ip
+        rabbit_master_ip = rabbit_ips_list[0]
+        FileUtil.writeContent('/opt/rabbitmq_master_ip', rabbit_master_ip)
         
         print 'rabbit_userid=%s--' % rabbit_userid
         print 'rabbit_vip=%s--' % rabbit_vip
