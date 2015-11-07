@@ -9,7 +9,7 @@ usage:
 
 python ParamsProduer.py
 
-NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
+NOTE: the params is from conf/openstack_params.json, this file is called when user drives FUEL to install env.
 '''
 import sys
 import os
@@ -17,7 +17,7 @@ import time
 
 debug = False
 if debug == True :
-    #MODIFY HERE WHEN TEST ON HOST
+    #MODIFY HERE WHEN DO LOCAL DEV
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
     pass
 else :
