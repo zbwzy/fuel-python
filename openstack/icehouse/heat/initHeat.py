@@ -72,7 +72,7 @@ if __name__ == '__main__':
         HeatHA.start()
         #
         Heat.restart()
-        HeatHA.restart()
+        HeatHA.start()
         
         #mark: heat is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

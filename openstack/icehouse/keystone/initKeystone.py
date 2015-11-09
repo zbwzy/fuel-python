@@ -80,7 +80,7 @@ if __name__ == '__main__':
         
         ##########################
         Keystone.restart()
-        KeystoneHA.restart()
+        KeystoneHA.start()
         
     #     os.system("service openstack-keystone restart")
     #     

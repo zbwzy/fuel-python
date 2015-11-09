@@ -71,7 +71,7 @@ if __name__ == '__main__':
         GlanceHA.start()
         
         Glance.restart()
-        GlanceHA.restart
+        GlanceHA.start
         
     #     os.system("service openstack-glance-api restart")
     #     os.system("service openstack-glance-registry restart")

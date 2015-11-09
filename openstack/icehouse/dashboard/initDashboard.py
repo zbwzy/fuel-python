@@ -74,7 +74,7 @@ if __name__ == '__main__':
         DashboardHA.start()
         #
         Dashboard.restart()
-        DashboardHA.restart()
+        DashboardHA.start()
     #     ShellCmdExecutor.execCmd('service haproxy restart')
         #mark: dashboard is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

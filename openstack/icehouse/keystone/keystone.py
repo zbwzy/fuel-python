@@ -696,32 +696,31 @@ if __name__ == '__main__':
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'keystone installed####'
         print 'exit===='
-        exit()
         pass
+    else :
+        print 'start to install======='
+        Prerequisites.prepare()
+        Keystone.install()
+        Keystone.configConfFile()
+              
+    #     Keystone.start()
+    #         
+    #     Keystone.sourceAdminOpenRC()
+    #     #add HA
+    #     KeystoneHA.install()
+    #     KeystoneHA.configure()
+    #     KeystoneHA.start()
         
-    print 'start to install======='
-    Prerequisites.prepare()
-    Keystone.install()
-    Keystone.configConfFile()
-          
-#     Keystone.start()
-#         
-#     Keystone.sourceAdminOpenRC()
-#     #add HA
-#     KeystoneHA.install()
-#     KeystoneHA.configure()
-#     KeystoneHA.start()
-    
-    ##########################
-#     Keystone.restart()
-#     KeystoneHA.restart()
-#     
-#     os.system("service openstack-keystone restart")
-#     
-#     os.system("service haproxy restart")
-    
-    #mark: keystone is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+        ##########################
+    #     Keystone.restart()
+    #     KeystoneHA.restart()
+    #     
+    #     os.system("service openstack-keystone restart")
+    #     
+    #     os.system("service haproxy restart")
+        
+        #mark: keystone is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:keystone#######'
     pass
 

@@ -68,7 +68,7 @@ if __name__ == '__main__':
         #
         
         Cinder.restart()
-        CinderHA.restart()
+        CinderHA.start()
     #     os.system("service openstack-cinder-api start")
     #     os.system("service openstack-cinder-scheduler start")
     #     os.system("service haproxy restart")

@@ -209,22 +209,21 @@ class CinderStorage(object):
 
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:cinder-storage============'
+    print 'hello openstack-icehouse:mongodb============'
     print 'start time: %s' % time.ctime()
     
-#     debug = False
-#     if debug :
-#         print 'start to debug======'
-#         
-#         print 'end debug######'
-#         exit()
+    debug = False
+    if debug :
+        print 'start to debug======'
+        
+        print 'end debug######'
+        exit()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/cinder_stoarge_installed'
+    INSTALL_TAG_FILE = '/opt/mongodb_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'cinder-storage installed####'
+        print 'mongodb installed####'
         print 'exit===='
-        pass
     else :
         CinderStorage.install()
         CinderStorage.configConfFile()
@@ -232,6 +231,6 @@ if __name__ == '__main__':
         
         #mark: cinder is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:cinder-storage#######'
+    print 'hello openstack-icehouse:mongodb#######'
     pass
 
