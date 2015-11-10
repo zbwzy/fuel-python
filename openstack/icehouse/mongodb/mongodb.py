@@ -83,11 +83,11 @@ class Network(object):
         ShellCmdExecutor.execCmd(chkconfigOffCmd)
         pass
 
-class CinderStorage(object):
+class MongoDB(object):
     '''
     classdocs
     '''
-    NOVA_CONF_FILE_PATH = "/etc/cinder/cinder.conf"
+    NOVA_CONF_FILE_PATH = "/etc/mongodb.conf"
     
     def __init__(self):
         '''
@@ -97,25 +97,10 @@ class CinderStorage(object):
     
     @staticmethod
     def install():
-        print 'Cinder-storage.install start===='
-        yumCmd = 'yum install lvm2 -y'
+        print 'Mongodb.install start===='
+        yumCmd = 'yum install mongodb-server mongodb -y'
         ShellCmdExecutor.execCmd(yumCmd)
-        
-        ShellCmdExecutor.execCmd("service lvm2-lvmetad start")
-        ShellCmdExecutor.execCmd("chkconfig lvm2-lvmetad on")
-        
-        #Default create volume
-        #Create the LVM physical volume /dev/sdb1:
-        createCmd = 'pvcreate /dev/sdb1' 
-        ShellCmdExecutor.execCmd(createCmd)
-        
-        createCmd = 'vgcreate cinder-volumes /dev/sdb1'
-        ShellCmdExecutor.execCmd(createCmd)
-       
-        yumCmd = 'yum install openstack-cinder targetcli python-oslo-db MySQL-python -y'
-        ShellCmdExecutor.execCmd(yumCmd)
-        
-        print 'Cinder-storage.install done####'
+        print 'Mongodb.install done####'
         pass
 
     @staticmethod

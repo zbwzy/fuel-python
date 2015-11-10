@@ -808,6 +808,48 @@ class Cinder(object):
     pass
 
 
+
+class Ceilometer(object):
+    '''
+    classdocs
+    '''
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def initCeilometer():
+        initScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'ceilometer_init.sh')
+        print 'ceilometerInitScriptPath=%s' % initScriptPath
+        
+        if os.path.exists('/opt/ceilometer_init.sh') :
+            ShellCmdExecutor.execCmd('sudo rm -rf /opt/ceilometer_init.sh')
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % initScriptPath)
+        
+        ShellCmdExecutor.execCmd('chmod 777 /opt/ceilometer_init.sh')
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        
+        adminEmail = JSONUtility.getValue("admin_email")
+        print 'ceilometerAdminEmail=%s' % adminEmail
+        FileUtil.replaceFileContent('/opt/ceilometer_init.sh', '<ADMIN_EMAIL>', adminEmail)
+        
+        ceilometer_vip = JSONUtility.getValue("ceilometer_vip")
+        
+        FileUtil.replaceFileContent('/opt/ceilometer_init.sh', '<CEILOMETER_VIP>', ceilometer_vip)
+        
+        FileUtil.replaceFileContent('/opt/ceilometer_init.sh', '<LOCAL_IP>', localIP)
+        
+        ShellCmdExecutor.execCmd('bash /opt/ceilometer_init.sh')
+        pass
+    pass
+
+
 class Heat(object):
     '''
     classdocs
@@ -1563,7 +1605,6 @@ vrrp_instance 42 {
     
     
 if __name__ == '__main__':
-    debug = False
     print 'hello openstack-icehouse:initDB============'
     
     print 'start time: %s' % time.ctime()
@@ -1775,6 +1816,13 @@ if __name__ == '__main__':
         
         Keystone.sourceAdminOpenRC()
         Cinder.initCinder()
+        pass
+    
+    #ceilometer
+    if YAMLUtil.hasRoleInNodes('ceilometer') :
+        Ceilometer.initCeilometer()
+        pass
+        
     
     #heat
     if YAMLUtil.hasRoleInNodes('heat') :
