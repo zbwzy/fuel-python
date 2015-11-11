@@ -458,6 +458,10 @@ def getInitCmdByRole(role):
     
 if __name__ == '__main__':
     print 'init OpenStack HA----------------------'
+    output, exitcode = ShellCmdExecutor.execCmdWithoutKillTimeout('cat /opt/openstack_env_var_8.json')
+    envVarJsonString = output.strip()
+    print 'envVarJsonString=%s--' % envVarJsonString
+    envDict = json.loads(envVarJsonString)
     TAG = '/opt/openstack_init'
     if os.path.exists(TAG) :
         logger.info('OpenStack HA has been initted-----')
@@ -491,112 +495,68 @@ if __name__ == '__main__':
         activeRoles = activeRoleIPMap.keys()
         print 'activeRoles=%s' % activeRoles
         #######DO EXECUTION
+        if os.path.exists("/opt/keystone_test_results.txt"):
+            os.system('rm -rf /opt/keystone_test_results.txt')
+            pass
+
+        #file = open("/opt/keystone_test_results.txt", "a")
+ 
         for role in Params.OPENSTACK_ROLES :
+            print 'role:%s' % role
+            role_line = 'role:%s' % role
+        #    file.write(role_line)
+        #    file.write("\n")
             if role in activeRoles :
                 ip_list = activeRoleIPMap[role]
-                cmdTemplate = 'ssh root@{ip} {cmd}'
+                cmdTemplate = 'ssh root@{ip} "{cmd}"'
                 cmd1 = 'ps aux | grep keystone| grep -v grep'
-                cmd2 = 'bash /opt/ostf/keystone/keystone_user_list'
-                cmd3 = 'bash /opt/ostf/keystone/keystone_service_list'
+                cmd2 = 'bash /opt/ostf/keystone/keystone_user_list.sh'
+                #cmd2 = 'keystone user_list'
+                cmd3 = 'bash /opt/ostf/keystone/keystone_service_list.sh'
+                #cmd3 = 'keystone service_list'
                 for ip in ip_list :
-                    execRemoteCmd(ip, 'echo `date` >> /tmp/testdate.txt', timeout=600)
                     print '------%s' % ip
+                    ip_line = '------%s' % ip
+         #           file.write(ip_line)
+          #          file.write('\n')
                     remoteCmd1 = cmdTemplate.format(ip=ip, cmd=cmd1)
-                    output, exitcode = ShellCmdExecutor.execCmd(remoteCmd1)
+                    output, exitcode = ShellCmdExecutor.execCmdWithoutKillTimeout(remoteCmd1)
                     result1 = output.strip()
                     
                     remoteCmd2 = cmdTemplate.format(ip=ip, cmd=cmd2)
-                    output, exitcode = ShellCmdExecutor.execCmd(remoteCmd2)
+                    output, exitcode = ShellCmdExecutor.execCmdWithoutKillTimeout(remoteCmd2)
                     result2 = output.strip()
                     
                     remoteCmd3 = cmdTemplate.format(ip=ip, cmd=cmd3)
-                    output, exitcode = ShellCmdExecutor.execCmd(remoteCmd3)
+                    output, exitcode = ShellCmdExecutor.execCmdWithoutKillTimeout(remoteCmd3)
                     result3 = output.strip()
                     
 #                     result2 = execRemoteCmd(ip, cmd2, timeout=600)
 #                     result3 = execRemoteCmd(ip, cmd3, timeout=600)
                     print '---------------item1'
+                    line1 = '---------------item1'
+           #         file.write(line1)
+            #        file.write("\n")
+             #       file.write(result1)
                     print result1
                     
                     print '---------------item2'
+                    line2 = '---------------item2'
+              #      file.write(line2)
+               #     file.write(result2)
                     print result2
                     
                     print '---------------item3'
+                    line3 = '---------------item3'
+                #    file.write(line3)
+                 #   file.write(result3)
                     print result3
-                    
                     pass
                 time.sleep(2)
                 pass
             pass 
-        
+        #file.close() 
 #         os.system('touch %s' % TAG)
         pass
     pass
 #     
-#     role = 'glance'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'neutron-server'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     
-#     role = 'neutron'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     
-#     role = 'nova-api'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'nova-compute'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass
-#     
-#     role = 'cinder-api'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'cinder-storage'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass  
-#     
-#     role = 'heat'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     pass
-
-
-
