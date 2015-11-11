@@ -628,12 +628,12 @@ if __name__ == '__main__':
     
     Heat.install()
     Heat.configConfFile()
-    Heat.start()
-    
-    ## Heat HA
-    HeatHA.install()
-    HeatHA.configure()
-    HeatHA.start()
+#     Heat.start()
+#     
+#     ## Heat HA
+#     HeatHA.install()
+#     HeatHA.configure()
+#     HeatHA.start()
     #
     #mark: heat is installed
     os.system('touch %s' % INSTALL_TAG_FILE)

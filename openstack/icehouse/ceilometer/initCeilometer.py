@@ -1,5 +1,5 @@
 '''
-Created on Oct 18, 2015
+Created on Aug 26, 2015
 
 @author: zhangbai
 '''
@@ -7,7 +7,7 @@ Created on Oct 18, 2015
 '''
 usage:
 
-python heat.py
+python initCeilometer.py
 
 NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
@@ -15,8 +15,11 @@ import sys
 import os
 import time
 
-#DEBUG
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 debug = False
+
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -28,7 +31,6 @@ else :
 
 OPENSTACK_VERSION_TAG = 'icehouse'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
-SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
 sys.path.append(PROJ_HOME_DIR)
 
@@ -37,45 +39,40 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
-from openstack.icehouse.heat.heat import Heat
-from openstack.icehouse.heat.heat import HeatHA
 
-    
+from openstack.icehouse.ceilometer.ceilometer import Ceilometer
+from openstack.icehouse.ceilometer.ceilometer import CeilometerHA
+
+
+
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:heat============'
+    
+    print 'hello openstack-icehouse:ceilometer============'
+    
     print 'start time: %s' % time.ctime()
-    #DEBUG
-    debug = False
-    if debug :
-        print 'start to debug======'
-        
-        print 'end debug######'
-        exit()
     #when execute script,exec: python <this file absolute path>
+    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/initHeat'
-    #DEBUG
-    if False :
-        ShellCmdExecutor.execCmd('rm -rf %s' % INSTALL_TAG_FILE)
-        pass
-        
+    INSTALL_TAG_FILE = '/opt/initCeilometer'
+    
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'heat installed####'
+        print 'ceilometer initted####'
         print 'exit===='
-        pass
     else :
-        Heat.start()
+        Ceilometer.start()
+        #add HA
+        CeilometerHA.install()
+        CeilometerHA.configure()
+        CeilometerHA.start()
         
-        ## Heat HA
-        HeatHA.install()
-        HeatHA.configure()
-        HeatHA.start()
-        #
-        Heat.restart()
-        HeatHA.start()
+        ##########################
+        Ceilometer.restart()
+        CeilometerHA.start()
         
-        #mark: heat is installed
+    #     os.system("service haproxy restart")
+        
+        #mark: ceilometer is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:heat#######'
+    print 'hello openstack-icehouse:ceilometer#######'
     pass
 

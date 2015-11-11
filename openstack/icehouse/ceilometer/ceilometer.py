@@ -28,7 +28,6 @@ else :
 
 OPENSTACK_VERSION_TAG = 'icehouse'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
-SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
 sys.path.append(PROJ_HOME_DIR)
 
@@ -131,7 +130,6 @@ class Ceilometer(object):
         ShellCmdExecutor.execCmd("service openstack-ceilometer-api restart")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-notification restart")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-central restart")
-        
         ShellCmdExecutor.execCmd("service openstack-ceilometer-collector restart")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-alarm-evaluator restart")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-alarm-notifier restart")
@@ -143,7 +141,6 @@ class Ceilometer(object):
         ShellCmdExecutor.execCmd("service openstack-ceilometer-api start")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-notification start")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-central start")
-        
         ShellCmdExecutor.execCmd("service openstack-ceilometer-collector start")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-alarm-evaluator start")
         ShellCmdExecutor.execCmd("service openstack-ceilometer-alarm-notifier start")
@@ -168,7 +165,8 @@ class Ceilometer(object):
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
+        
+        mongodb_vip = ceilometer_mongo_password = JSONUtility.getValue("mongodb_vip")
         ceilometer_mongo_password = JSONUtility.getValue("ceilometer_mongo_password")
         metering_secret = Ceilometer.getMeteringSecret()
         
@@ -203,18 +201,19 @@ class Ceilometer(object):
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % ceilometerConfDir)
         
         if os.path.exists(ceilometer_conf_file_path) :
-            ShellCmdExecutor.execCmd("rm -rf %s" % ceilometer_conf_file_path)
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % ceilometer_conf_file_path)
             pass
         
         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (ceilometer_conf_template_file_path, ceilometerConfDir))
         
         ShellCmdExecutor.execCmd('cat %s > /tmp/ceilometer.conf' % ceilometer_conf_template_file_path)
-        ShellCmdExecutor.execCmd('mv /tmp/ceilometer.conf /etc/ceilometer')
+        ShellCmdExecutor.execCmd('mv -f /tmp/ceilometer.conf /etc/ceilometer')
         ShellCmdExecutor.execCmd('rm -rf /tmp/ceilometer.conf')
         
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % ceilometer_conf_file_path)
         
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<MONGODB_VIP>', mongodb_vip)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<CEILOMETER_DBPASS>', ceilometer_mongo_password)
         
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOST>', rabbit_host)
@@ -382,7 +381,7 @@ class CeilometerHA(object):
     def configureHAProxy():
         ####################configure haproxy
         #server heat-01 192.168.1.137:8004 check inter 10s
-        heat_vip = JSONUtility.getValue("heat_vip")
+        ceilometer_vip = JSONUtility.getValue("ceilometer_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
@@ -401,39 +400,39 @@ class CeilometerHA(object):
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
         #############
-        heatBackendApiStringTemplate = '''
-listen heat_api_cluster
-  bind <HEAT_VIP>:8004
+        ceilometerBackendApiStringTemplate = '''
+listen ceilometer_api_cluster
+  bind <CEILOMETER_VIP>:8777
   balance source
-  <HEAT_API_SERVER_LIST>
+  <CEILOMETER_API_SERVER_LIST>
   '''
-        heatBackendApiString = heatBackendApiStringTemplate.replace('<HEAT_VIP>', heat_vip)
+        ceilometerBackendApiString = ceilometerBackendApiStringTemplate.replace('<CEILOMETER_VIP>', ceilometer_vip)
         
         ################new
-        heat_ips = JSONUtility.getValue("heat_ips")
-        heat_ip_list = heat_ips.strip().split(',')
+        ceilometer_ips = JSONUtility.getValue("ceilometer_ips")
+        ceilometer_ip_list = ceilometer_ips.strip().split(',')
         
-        serverHeatAPIBackendTemplate   = 'server heat-<INDEX> <SERVER_IP>:8004 check inter 2000 rise 2 fall 5'
+        serverCeilometerAPIBackendTemplate   = 'server ceilometer-<INDEX> <SERVER_IP>:8777 check inter 2000 rise 2 fall 5'
         
-        heatAPIServerListContent = ''
+        ceilometerAPIServerListContent = ''
         
         index = 1
-        for heat_ip in heat_ip_list:
-            print 'heat_ip=%s' % heat_ip
-            heatAPIServerListContent += serverHeatAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', heat_ip)
+        for ip in ceilometer_ip_list:
+            print 'ceilometer_ip=%s' % ip
+            ceilometerAPIServerListContent += serverCeilometerAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
             
-            heatAPIServerListContent += '\n'
-            heatAPIServerListContent += '  '
+            ceilometerAPIServerListContent += '\n'
+            ceilometerAPIServerListContent += '  '
             
             index += 1
             pass
         
-        heatAPIServerListContent = heatAPIServerListContent.strip()
-        print 'heatAPIServerListContent=%s--' % heatAPIServerListContent
+        ceilometerAPIServerListContent = ceilometerAPIServerListContent.strip()
+        print 'ceilometerAPIServerListContent=%s--' % ceilometerAPIServerListContent
         
-        heatBackendApiString = heatBackendApiString.replace('<HEAT_API_SERVER_LIST>', heatAPIServerListContent)
+        ceilometerBackendApiString = ceilometerBackendApiString.replace('<CEILOMETER_API_SERVER_LIST>', ceilometerAPIServerListContent)
         
-        print 'heatBackendApiString=%s--' % heatBackendApiString
+        print 'ceilometerBackendApiString=%s--' % ceilometerBackendApiString
         
         #append
 #         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (heatBackendApiString, haproxyConfFilePath))
@@ -449,7 +448,7 @@ listen heat_api_cluster
         haproxyContent = ''
         haproxyContent += haproxyNativeContent
         haproxyContent += '\n\n'
-        haproxyContent += heatBackendApiString
+        haproxyContent += ceilometerBackendApiString
         FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
@@ -510,8 +509,8 @@ vrrp_instance 42 {
         '''
         #WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        heat_vip = JSONUtility.getValue("heat_vip")
-        heat_vip_interface = JSONUtility.getValue("heat_vip_interface")
+        ceilometer_vip = JSONUtility.getValue("ceilometer_vip")
+        ceilometer_vip_interface = JSONUtility.getValue("ceilometer_vip_interface")
         
         weight_counter = 300
         if CeilometerHA.isMasterNode() :
@@ -526,8 +525,8 @@ vrrp_instance 42 {
         
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', heat_vip_interface)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', heat_vip)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', ceilometer_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', ceilometer_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -558,17 +557,17 @@ vrrp_instance 42 {
     
     @staticmethod
     def getIndex(): #get host index, the ips has been sorted ascended.
-        print 'To get this host index of role %s==============' % "heat" 
-        heat_ips = JSONUtility.getValue('heat_ips')
-        heat_ip_list = heat_ips.split(',')
+        print 'To get this host index of role %s==============' % "ceilometer" 
+        ceilometer_ips = JSONUtility.getValue('ceilometer_ips')
+        ceilometer_ip_list = ceilometer_ips.split(',')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
         localIP = output.strip()
         print 'localIP=%s---------------------' % localIP
-        print 'heat_ip_list=%s--------------' % heat_ip_list
-        index = heat_ip_list.index(localIP)
+        print 'ceilometer_ip_list=%s--------------' % ceilometer_ip_list
+        index = ceilometer_ip_list.index(localIP)
         print 'index=%s-----------' % index
         return index
         
@@ -584,10 +583,10 @@ vrrp_instance 42 {
         if debug == True :
             pass
         else :
-            heat_vip_interface = JSONUtility.getValue("heat_vip_interface")
-            heat_vip = JSONUtility.getValue("heat_vip")
+            ceilometer_vip_interface = JSONUtility.getValue("ceilometer_vip_interface")
+            ceilometer_vip = JSONUtility.getValue("ceilometer_vip")
             
-            CeilometerHA.addVIP(heat_vip, heat_vip_interface)
+            CeilometerHA.addVIP(ceilometer_vip, ceilometer_vip_interface)
             
             if CeilometerHA.isHAProxyRunning() :
                 ShellCmdExecutor.execCmd('service haproxy restart')
@@ -608,7 +607,7 @@ vrrp_instance 42 {
                 CeilometerHA.restart()
                 pass
             else :
-                CeilometerHA.deleteVIP(heat_vip, heat_vip_interface)
+                CeilometerHA.deleteVIP(ceilometer_vip, ceilometer_vip_interface)
                 pass
             pass
         
@@ -629,34 +628,31 @@ if __name__ == '__main__':
     debug = False
     if debug :
         print 'start to debug======'
-        
+#         print CeilometerHA.configure()
         print 'end debug######'
         exit()
+        pass
+    
     #when execute script,exec: python <this file absolute path>
     ###############################
     INSTALL_TAG_FILE = '/opt/ceilometer_installed'
     #DEBUG
-    if False :
-        ShellCmdExecutor.execCmd('rm -rf %s' % INSTALL_TAG_FILE)
-        pass
-        
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'ceilometer installed####'
         print 'exit===='
-        exit()
         pass
-    
-    Ceilometer.install()
-    Ceilometer.configConfFile()
-    Ceilometer.start()
-    
-    ## Heat HA
-    CeilometerHA.install()
-    CeilometerHA.configure()
-    CeilometerHA.start()
-    #
-    #mark: ceilometer is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+    else :
+        Ceilometer.install()
+        Ceilometer.configConfFile()
+    #     Ceilometer.start()
+    #     
+    #     ## Ceilometer HA
+    #     CeilometerHA.install()
+    #     CeilometerHA.configure()
+    #     CeilometerHA.start()
+        #
+        #mark: ceilometer is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:ceilometer#######'
     pass
 
