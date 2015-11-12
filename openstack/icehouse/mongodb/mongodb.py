@@ -151,6 +151,38 @@ class MongoDB(object):
         output, exitcode = ShellCmdExecutor.execCmd(initCmd)
         print 'output=%s--' % output
         pass
+    pass
+
+
+class MongoDBHA(object):
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def getIndex(): #get host index, the ips has been sorted ascended.
+        print 'To get this host index of role %s==============' % "mongodb" 
+        mongodb_ips = JSONUtility.getValue('mongodb_ips')
+        mongodb_ip_list = mongodb_ips.split(',')
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
+        localIP = output.strip()
+        print 'localIP=%s---------------------' % localIP
+        print 'mongodb_ip_list=%s--------------' % mongodb_ip_list
+        index = mongodb_ip_list.index(localIP)
+        print 'index=%s-----------' % index
+        return index
+        
+    @staticmethod
+    def isMasterNode():
+        if MongoDBHA.getIndex() == 0 :
+            return True
+        
+        return False
 
     
 if __name__ == '__main__':
@@ -173,8 +205,9 @@ if __name__ == '__main__':
         MongoDB.configConfFile()
         MongoDB.start()
         
-        isMasterNode = True
+        isMasterNode = MongoDBHA.isMasterNode()
         if isMasterNode :
+            print 'This is mongodb master node.'
             MongoDB.init()
             pass
         

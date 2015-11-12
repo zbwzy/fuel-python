@@ -270,7 +270,6 @@ if __name__ == '__main__':
         paramsMap['nova_mysql_password'] = nova_mysql_password
         paramsMap['nova_ips'] = nova_ips
         pass
-          
     
     print 'nova-compute============================================='
     role = 'nova-compute'
@@ -367,13 +366,36 @@ if __name__ == '__main__':
         paramsMap['heat_mysql_password'] = heat_mysql_password
         pass
     
-    print 'neutron============================================'
-    role = 'neutron'
+    print 'neutron-agent============================================'
+    role = 'neutron-agent'
     if YAMLUtil.hasRoleInNodes(role):
         neutron_service_ips_list = YAMLUtil.getRoleIPList(role)
         neutron_service_ips = ','.join(neutron_service_ips_list)
         print 'neutron_service_ips=%s--' % neutron_service_ips
         paramsMap['neutron_service_ips'] = neutron_service_ips
+        pass
+    
+    print 'mongodb==========================================='
+    role = 'mongodb'
+    if YAMLUtil.hasRoleInNodes(role):
+        #refactor later
+#         key = 'mongodb_vip'
+#         mongodb_vip = YAMLUtil.getValue(role, key)
+#         
+#         key = 'mongodb_vip_interface'
+#         mongodb_vip_interface = YAMLUtil.getValue(role, key)
+        
+        mongodb_ips_list = YAMLUtil.getRoleIPList(role)
+        mongodb_ips = ','.join(mongodb_ips_list)
+        
+        #refactor later
+        mongodb_vip = mongodb_ips_list[0]
+        mongodb_vip_interface = 'eth0'
+        print 'mongodb_vip=%s-' % mongodb_vip
+        print 'mongodb_vip_interface=%s--' % mongodb_vip_interface
+        paramsMap['mongodb_vip'] = mongodb_vip
+        paramsMap['mongodb_vip_interface'] = mongodb_vip_interface
+        paramsMap['mongodb_ips'] = mongodb_ips
         pass
     
     print 'ceilometer==========================================='
