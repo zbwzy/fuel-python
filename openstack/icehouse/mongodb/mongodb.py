@@ -144,10 +144,13 @@ class MongoDB(object):
     @staticmethod
     def init():
         #only mongodb master, exec this method
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
         ceilometer_mongo_password = JSONUtility.getValue("ceilometer_mongo_password")
         
-        initCmd = 'mongo --host controller --eval \'db = db.getSiblingDB("ceilometer");db.addUser({user: "ceilometer",pwd: "<CEILOMETER_DBPASS>",roles: [ "readWrite", "dbAdmin" ]})\''
-        initCmd.replace('<CEILOMETER_DBPASS>', ceilometer_mongo_password)
+        initCmd = 'mongo --host <LOCAL_IP> --eval \'db = db.getSiblingDB("ceilometer");db.addUser({user: "ceilometer",pwd: "<CEILOMETER_DBPASS>",roles: [ "readWrite", "dbAdmin" ]})\''
+        initCmd = initCmd.replace('<LOCAL_IP>', localIP)
+        initCmd = initCmd.replace('<CEILOMETER_DBPASS>', ceilometer_mongo_password)
         output, exitcode = ShellCmdExecutor.execCmd(initCmd)
         print 'output=%s--' % output
         pass
