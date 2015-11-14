@@ -99,18 +99,28 @@ class Nova(object):
     @staticmethod
     def install():
         print 'Nova.install start===='
-        yumCmd = "yum install -y openstack-nova-api openstack-nova-cert openstack-nova-conductor openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient"
+        yumCmd = "yum install -y openstack-nova-api openstack-nova-cert openstack-nova-conductor \
+        openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient"
+        
         ShellCmdExecutor.execCmd(yumCmd)
         Nova.configConfFile()
         
-#         ShellCmdExecutor.execCmd("keystone service-create --name=nova --type=compute --description=\"OpenStack Compute\"")
-#         ShellCmdExecutor.execCmd("keystone endpoint-create --service-id=$(keystone service-list | awk '/ compute / {print $2}') --publicurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s  --internalurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s --adminurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s")
-#         
-        Nova.start()
+        #special handling
+        PYTHON_SITE_PACKAGE_DIR = '/usr/lib/python2.6/site-packages'
+        if os.path.exists(PYTHON_SITE_PACKAGE_DIR) :
+            ShellCmdExecutor.execCmd('chmod 777 %s' % PYTHON_SITE_PACKAGE_DIR)
+            pass
+            
+        LIB_NOVA_DIR = '/var/lib/nova'
+        if os.path.exists(LIB_NOVA_DIR) :
+            ShellCmdExecutor.execCmd('chown -R nova:nova %s' % LIB_NOVA_DIR)
+            pass
+        
+#         Nova.start()
         
         #After Network node configuration done
-        Nova.configAfterNetworkNodeConfiguration()
-        Nova.restart()
+#         Nova.configAfterNetworkNodeConfiguration()
+#         Nova.restart()
         print 'Nova.install done####'
         pass
     
@@ -132,9 +142,13 @@ vif_plugging_timeout=0
     
     @staticmethod
     def restart():
-        #restart Controller nova-api service
-        restartCmd = "service openstack-nova-api restart"
-        ShellCmdExecutor.execCmd(restartCmd)
+        #restart nova-api service
+        ShellCmdExecutor.execCmd("service openstack-nova-api restart")
+        ShellCmdExecutor.execCmd("service openstack-nova-cert restart")
+        ShellCmdExecutor.execCmd("service openstack-nova-consoleauth restart")
+        ShellCmdExecutor.execCmd("service openstack-nova-scheduler restart")
+        ShellCmdExecutor.execCmd("service openstack-nova-conductor restart")
+        ShellCmdExecutor.execCmd("service openstack-nova-novncproxy restart")
         pass
     
     @staticmethod
@@ -157,42 +171,6 @@ vif_plugging_timeout=0
     @staticmethod
     def configConfFile():
         #use conf template file to replace 
-        '''
-        #modify nova.conf:
-
-[database]
-connection=mysql://nova:123456@controller/nova
-
-[DEFAULT]
-rpc_backend=rabbit
-rabbit_host=<RABBIT_HOST>
-rabbit_password=123456
-my_ip=<LOCAL_IP>
-vncserver_listen=<LOCAL_IP>
-vncserver_proxyclient_address=<LOCAL_IP>
-#########
-#
-rpc_backend=rabbit
-rabbit_host=<RABBIT_HOST>
-rabbit_password=123456
-my_ip=<LOCAL_IP>
-vncserver_listen=<LOCAL_IP>
-vncserver_proxyclient_address=<LOCAL_IP>
-
-5).modify nova.conf: set the auth info of keystone:
-
-[DEFAULT]
-auth_strategy=keystone
-
-[keystone_authtoken]
-auth_uri=http:/<KEYSTONE_VIP>:5000
-auth_host=<KEYSTONE_VIP>
-auth_protocal=http
-auth_port=35357
-admin_tenant_name=service
-admin_user=nova
-admin_password=123456
-        '''
         mysql_vip = JSONUtility.getValue("mysql_vip")
         mysql_password = JSONUtility.getValue("mysql_password")
         
@@ -202,9 +180,10 @@ admin_password=123456
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
+        glance_vip = JSONUtility.getValue("glance_vip")
         
-        #Horizon, Neutron-server
-        controller_vip = JSONUtility.getValue("controller_vip")
+        nova_mysql_password = JSONUtility.getValue("nova_mysql_password")
+        
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH') 
         output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
@@ -217,6 +196,7 @@ admin_password=123456
         print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
         print 'keystone_vip=%s' % keystone_vip
+        print 'glance_vip=%s' % glance_vip
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -224,7 +204,7 @@ admin_password=123456
         print 'nova_api_conf_template_file_path=%s' % nova_api_conf_template_file_path
         
         novaConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'NOVA_CONF_DIR')
-        print 'novaConfDir=%s' % novaConfDir #/etc/keystone
+        print 'novaConfDir=%s' % novaConfDir #/etc/nova
         
         nova_conf_file_path = os.path.join(novaConfDir, 'nova.conf')
         print 'nova_conf_file_path=%s' % nova_conf_file_path
@@ -233,47 +213,131 @@ admin_password=123456
             ShellCmdExecutor.execCmd("sudo mkdir %s" % novaConfDir)
             pass
         
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % novaConfDir)
+        
         if os.path.exists(nova_conf_file_path) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+        
+        ShellCmdExecutor.execCmd("cat %s > /tmp/nova.conf" % nova_api_conf_template_file_path)
+        ShellCmdExecutor.execCmd("mv /tmp/nova.conf /etc/nova")
+        ShellCmdExecutor.execCmd("rm -rf /tmp/nova.conf")
+        
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
+        
+        FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_IP>', localIP)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_MYSQL_PASSWORD>', nova_mysql_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
-        ######rabbitmq cluster
-#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
-#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_VIP>', glance_vip)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<MANAGEMENT_LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<PUBLIC_LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', localIP)
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', localIP)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         pass
     
-    @staticmethod
-    def configDB():
-        pass
-
 
 class NovaHA(object):
     '''
     classdocs
     '''
+    
     def __init__(self):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def isExistVIP(vip, interface):
+        cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == None or output == '':
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        
+        if debug == True :
+            output = '''
+            xxxx
+            inet 192.168.11.100/32 scope global eth0
+            xxxx
+            '''
+            pass
+        
+        newString = vip + '/'
+        if newString in output :
+            print 'exist vip %s on interface %s.' % (vip, interface)
+            return True
+        else :
+            print 'Do no exist vip %s on interface %s.' % (vip, interface)
+            return False
+        pass
+    
+    #return value: 192.168.11.100/32
+    @staticmethod
+    def getVIPFormatString(vip, interface):
+        vipFormatString = ''
+        if NovaHA.isExistVIP(vip, interface) :
+            print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
+            cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
+            output, exitcode = ShellCmdExecutor.execCmd(cmd)
+            vipFormatString = output.strip()
+            if debug == True :
+                fakeVIPFormatString = 'inet 192.168.11.100/32 scope global eth0'
+                vipFormatString = fakeVIPFormatString
+                pass
+            
+            result = vipFormatString.split(' ')[1]
+            pass
+        else :
+            #construct vip format string
+            print 'getVIPFormatString====do not exist vip %s on interface %s, to construct vip format string' % (vip, interface) 
+            vipFormatString = '{vip}/32'.format(vip=vip)
+            print 'vipFormatString=%s--' % vipFormatString
+            result = vipFormatString
+            pass
+        
+        return result
+    
+    @staticmethod
+    def addVIP(vip, interface):
+        result = NovaHA.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if not NovaHA.isExistVIP(vip, interface) :
+            print 'NOT exist vip %s on interface %s.' % (vip, interface)
+            addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'addVIPCmd=%s--' % addVIPCmd
+            ShellCmdExecutor.execCmd(addVIPCmd)
+            pass
+        else :
+            print 'The VIP %s already exists on interface %s.' % (vip, interface)
+            pass
+        pass
+    
+    @staticmethod
+    def deleteVIP(vip, interface):
+        result = NovaHA.getVIPFormatString(vip, interface)
+        print 'result===%s--' % result
+        if NovaHA.isExistVIP(vip, interface) :
+            deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
+            print 'deleteVIPCmd=%s--' % deleteVIPCmd
+            ShellCmdExecutor.execCmd(deleteVIPCmd)
+            pass
+        else :
+            print 'The VIP %s does not exist on interface %s.' % (vip, interface)
+            pass
         pass
     
     @staticmethod
@@ -291,7 +355,7 @@ class NovaHA(object):
             return True
         else :
             return False
-    
+        
     @staticmethod
     def install():
         if debug == True :
@@ -334,120 +398,102 @@ class NovaHA(object):
     def configureHAProxy():
         ####################configure haproxy
         nova_vip = JSONUtility.getValue("nova_vip")
-        print 'nova_vip=%s' % nova_vip
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        keystoneHAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
+        HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
         haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
         print 'haproxyConfFilePath=%s' % haproxyConfFilePath
         if not os.path.exists('/etc/haproxy') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
             pass
         
-        if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keystoneHAProxyTemplateFilePath, '/etc/haproxy'))
-            pass
-        
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
-        ####
-        novaApiFrontendStringTemplate = '''
-frontend nova-api-vip-1
-    bind <NOVA_VIP>:8773
-    default_backend nova-api-1
-
-frontend nova-api-vip-2
-    bind <NOVA_VIP>:8774
-    default_backend nova-api-2
-    
-frontend nova-api-vip-3
-    bind <NOVA_VIP>:8775
-    default_backend nova-api-3
-    
-frontend nova-api-vip-4
-    bind <NOVA_VIP>:8776
-    default_backend nova-api-4
-'''
-        novaApiFrontendString = novaApiFrontendStringTemplate.replace('<NOVA_VIP>', nova_vip)
-        print 'novaApiFrontendString=%s--' % novaApiFrontendString
-        
-        ####
         nova_ips = JSONUtility.getValue("nova_ips")
         nova_ip_list = nova_ips.strip().split(',')
         
-        novaApi1BackendStringTemplate = '''
-backend nova-api-1
-    balance roundrobin
-    <NOVA_API1_SERVER_LIST>
+        novaEC2ApiBackendStringTemplate = '''
+listen nova_ec2_api_cluster
+  bind <NOVA_VIP>:8773
+  balance source
+  <NOVA_EC2_API_SERVER_LIST>
+  '''
+        novaComputeApiBackendStringTemplate = '''
+listen nova_compute_api_cluster
+  bind <NOVA_VIP>:8774
+  balance source
+  <NOVA_COMPUTE_API_SERVER_LIST>
         '''
         
-        novaApi2BackendStringTemplate = '''
-backend nova-api-2
-    balance roundrobin
-    <NOVA_API2_SERVER_LIST>
+        novaMetadataApiBackendStringTemplate = '''
+listen nova_metadata_api_cluster
+  bind <NOVA_VIP>:8775
+  balance source
+  <NOVA_METADATA_API_SERVER_LIST>
         '''
         
-        novaApi3BackendStringTemplate = '''
-backend nova-api-3
-    balance roundrobin
-    <NOVA_API3_SERVER_LIST>
-        '''
+        novaEC2ApiBackendString = novaEC2ApiBackendStringTemplate.replace('<NOVA_VIP>', nova_vip)
+        novaComputeApiBackendString = novaComputeApiBackendStringTemplate.replace('<NOVA_VIP>', nova_vip)
+        novaMetadataApiBackendString = novaMetadataApiBackendStringTemplate.replace('<NOVA_VIP>', nova_vip)
+        ###############
         
-        novaApi4BackendStringTemplate = '''
-backend nova-api-4
-    balance roundrobin
-    <NOVA_API4_SERVER_LIST>
-        '''
+        serverNovaEC2APIBackendTemplate = 'server nova-<INDEX> <SERVER_IP>:8773 check inter 2000 rise 2 fall 5'
+        serverNovaComputeAPIBackendTemplate = 'server nova-<INDEX> <SERVER_IP>:8774 check inter 2000 rise 2 fall 5'
+        serverNovaMetadataAPIBackendTemplate = 'server nova-<INDEX> <SERVER_IP>:8775 check inter 2000 rise 2 fall 5'
         
-        serverNovaApi1BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8773 check inter 10s'
-        serverNovaApi2BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8774 check inter 10s'
-        serverNovaApi3BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8775 check inter 10s'
-        serverNovaApi4BackendTemplate  = 'server nova-api-<INDEX> <SERVER_IP>:8776 check inter 10s'
-        
-        novaAPI1ServerListContent = ''
-        novaAPI2ServerListContent = ''
-        novaAPI3ServerListContent = ''
-        novaAPI4ServerListContent = ''
+        novaEC2APIServerListContent = ''
+        novaComputeAPIServerListContent = ''
+        novaMetadataAPIServerListContent = ''
         
         index = 1
-        for nova_ip in nova_ip_list:
-            novaAPI1ServerListContent += serverNovaApi1BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_ip)
-            novaAPI2ServerListContent += serverNovaApi2BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_ip)
-            novaAPI3ServerListContent += serverNovaApi3BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_ip)
-            novaAPI4ServerListContent += serverNovaApi4BackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_ip)
+        for ip in nova_ip_list:
+            print 'nova_ip=%s' % ip
+            novaEC2APIServerListContent += serverNovaEC2APIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
+            novaComputeAPIServerListContent += serverNovaComputeAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
+            novaMetadataAPIServerListContent += serverNovaMetadataAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
             
-            novaAPI1ServerListContent += '\n'
-            novaAPI1ServerListContent += '    '
+            novaEC2APIServerListContent += '\n'
+            novaEC2APIServerListContent += '  '
             
-            novaAPI2ServerListContent += '\n'
-            novaAPI2ServerListContent += '    '
+            novaComputeAPIServerListContent += '\n'
+            novaComputeAPIServerListContent += '  '
             
-            novaAPI3ServerListContent += '\n'
-            novaAPI3ServerListContent += '    '
-            
-            novaAPI4ServerListContent += '\n'
-            novaAPI4ServerListContent += '    '
+            novaMetadataAPIServerListContent += '\n'
+            novaMetadataAPIServerListContent += '  '
             
             index += 1
             pass
         
-        novaAPI1ServerListContent = novaAPI1ServerListContent.strip()
-        novaAPI2ServerListContent = novaAPI2ServerListContent.strip()
-        novaAPI3ServerListContent = novaAPI3ServerListContent.strip()
-        novaAPI4ServerListContent = novaAPI4ServerListContent.strip()
+        novaEC2APIServerListContent = novaEC2APIServerListContent.strip()
+        novaComputeAPIServerListContent = novaComputeAPIServerListContent.strip()
+        novaMetadataAPIServerListContent = novaMetadataAPIServerListContent.strip()
         
+        novaEC2ApiBackendString = novaEC2ApiBackendString.replace('<NOVA_EC2_API_SERVER_LIST>', novaEC2APIServerListContent)
+        novaComputeApiBackendString = novaComputeApiBackendString.replace('<NOVA_COMPUTE_API_SERVER_LIST>', novaComputeAPIServerListContent)
+        novaMetadataApiBackendString = novaMetadataApiBackendString.replace('<NOVA_METADATA_API_SERVER_LIST>', novaMetadataAPIServerListContent)
         
-        novaApi1BackendString = novaApi1BackendStringTemplate.replace('<NOVA_API1_SERVER_LIST>', novaAPI1ServerListContent)
-        novaApi2BackendString = novaApi2BackendStringTemplate.replace('<NOVA_API2_SERVER_LIST>', novaAPI2ServerListContent)
-        novaApi3BackendString = novaApi3BackendStringTemplate.replace('<NOVA_API3_SERVER_LIST>', novaAPI3ServerListContent)
-        novaApi4BackendString = novaApi4BackendStringTemplate.replace('<NOVA_API4_SERVER_LIST>', novaAPI4ServerListContent)
+        #append to haproxy.cfg
+        if os.path.exists(haproxyConfFilePath) :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
+        else :
+            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % HAProxyTemplateFilePath)
+            pass
         
-        #append
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApiFrontendString, haproxyConfFilePath))
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi1BackendString, haproxyConfFilePath))
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi2BackendString, haproxyConfFilePath))
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi3BackendString, haproxyConfFilePath))
-        ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (novaApi4BackendString, haproxyConfFilePath))
+        haproxyNativeContent = output.strip()
+        
+        haproxyContent = ''
+        haproxyContent += haproxyNativeContent
+        haproxyContent += '\n\n'
+        
+        haproxyContent += novaEC2ApiBackendString
+        haproxyContent += novaComputeApiBackendString
+        haproxyContent += novaMetadataApiBackendString
+        
+        FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
+        if os.path.exists(haproxyConfFilePath):
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
+            pass
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -456,7 +502,7 @@ backend nova-api-4
     def configureKeepalived():
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         ###################configure keepalived
-        keepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'keepalived.conf')
+        glanceKeepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keepalived.conf')
         keepalivedConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEEPALIVED_CONF_FILE_PATH')
         print 'keepalivedConfFilePath=%s' % keepalivedConfFilePath
         if not os.path.exists('/etc/keepalived') :
@@ -465,59 +511,34 @@ backend nova-api-4
         
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
+        print 'checkHAProxyScriptPath=%s===========================---' % checkHAProxyScriptPath
         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
-        
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, '/etc/keepalived'))
-        print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
-        print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
+        if os.path.exists(keepalivedConfFilePath) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
+            pass
+            
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (glanceKeepalivedTemplateFilePath, '/etc/keepalived'))
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keepalivedConfFilePath)
         ##configure
-        '''keepalived template====
-        global_defs {
-  router_id LVS-DEVEL
-}
-vrrp_script chk_haproxy {
-   script "/etc/keepalived/check_haproxy.sh"
-   interval 2
-   weight  2
-}
-
-vrrp_instance 42 {
-  virtual_router_id 42
-  # for electing MASTER, highest priority wins.
-  priority  <KEYSTONE_WEIGHT>
-  state     <KEYSTONE_STATE>
-  interface <INTERFACE>
-  track_script {
-    chk_haproxy
-}
-  virtual_ipaddress {
-        <VIRTURL_IPADDR>
-  }
-}
-        '''
-        #GLANCE_WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
-        ##Here: connect to ZooKeeper to coordinate the weight
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        keystone_vip_interface = JSONUtility.getValue("keystone_vip_interface")
-        #Call ZooKeeper lock & counter services
-        keystone_weight_counter = Nova.getWeightCounter()
-        if keystone_weight_counter == 300 : #This is MASTER
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', '1')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', '300')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'MASTER')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
-        else :
-            index = 301 - keystone_weight_counter
-
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_INDEX>', str(index))
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_WEIGHT>', str(keystone_weight_counter))
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<KEYSTONE_STATE>', 'SLAVE')
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', keystone_vip_interface)
-            FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', keystone_vip)
+        nova_vip = JSONUtility.getValue("nova_vip")
+        nova_vip_interface = JSONUtility.getValue("nova_vip_interface")
+        
+        weight_counter = 300
+        if NovaHA.isMasterNode() :
+            weight_counter = 300
+            state = 'MASTER'
             pass
+        else :
+            index = NovaHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
+            weight_counter = 300 - index
+            state = 'SLAVE' + str(index)
+            pass
+        
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', nova_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', nova_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -526,13 +547,78 @@ vrrp_instance 42 {
         pass
     
     @staticmethod
+    def isHAProxyRunning():
+        cmd = 'ps aux | grep haproxy | grep -v grep | wc -l'
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == '0' :
+            return False
+        else :
+            return True
+        
+    @staticmethod
+    def isKeepalivedRunning():
+        cmd = 'ps aux | grep keepalived | grep -v grep | wc -l'
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        output = output.strip()
+        if output == '0' :
+            return False
+        else :
+            return True
+        
+    @staticmethod
+    def getIndex(): #get host index, the ips has been sorted ascended.
+        print 'To get this host index of role %s==============' % "glance" 
+        nova_ips = JSONUtility.getValue('nova_ips')
+        nova_ip_list = nova_ips.split(',')
+        
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
+        output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
+        localIP = output.strip()
+        print 'localIP=%s---------------------' % localIP
+        print 'nova_ip_list=%s--------------' % nova_ip_list
+        index = nova_ip_list.index(localIP)
+        print 'index=%s-----------' % index
+        return index
+        
+    @staticmethod
+    def isMasterNode():
+        if NovaHA.getIndex() == 0 :
+            return True
+        
+        return False
+    
+    @staticmethod
     def start():
         if debug == True :
-            print "DEBUG=True.On local dev env, do test===="
             pass
         else :
-            ShellCmdExecutor.execCmd('service haproxy start')
-            ShellCmdExecutor.execCmd('service keepalived start')
+            nova_vip_interface = JSONUtility.getValue("nova_vip_interface")
+            nova_vip = JSONUtility.getValue("nova_vip")
+            
+            NovaHA.addVIP(nova_vip, nova_vip_interface)
+            
+            if NovaHA.isHAProxyRunning() :
+                ShellCmdExecutor.execCmd('service haproxy restart')
+            else :
+                ShellCmdExecutor.execCmd('service haproxy start')
+                pass
+            
+            if NovaHA.isKeepalivedRunning() :
+                ShellCmdExecutor.execCmd('service keepalived restart')
+            else :
+                ShellCmdExecutor.execCmd('service keepalived start')
+                pass
+            
+            #Ensure only one VIP exists.
+            isMasterNode = NovaHA.isMasterNode()
+            if isMasterNode == True :
+                NovaHA.restart()
+            else :
+                NovaHA.deleteVIP(nova_vip, nova_vip_interface)
+            pass
+        ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
     @staticmethod
@@ -549,41 +635,26 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
     
     ###############################
     INSTALL_TAG_FILE = '/opt/novaapi_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'nova-api installed####'
         print 'exit===='
-        exit()
         pass
     
-    if os.path.exists(INSTALL_TAG_FILE) :
-        print 'nova-api installed####'
-        print 'exit===='
-        exit()
-        pass
+    else :
     
-#     Nova.install()
-#     Nova.configConfFile()
-#     Nova.start()
-    #
-    NovaHA.install()
-    NovaHA.configure()
-    NovaHA.start()
-    
-    #mark: nova-api is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+        Nova.install()
+        Nova.configConfFile()
+#         Nova.start()
+#         
+#         NovaHA.install()
+#         NovaHA.configure()
+#         NovaHA.start()
+        
+        #mark: nova-api is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:nova-api#######'
     pass
 
