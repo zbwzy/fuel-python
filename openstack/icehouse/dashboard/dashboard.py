@@ -137,7 +137,7 @@ class Dashboard(object):
     @staticmethod
     def configConfFile():
         localSettingsFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'local_settings')
-        dashboardConfFileDir = os.path.dirname(Dashboard.DASHBOARD_CONF_FILE_PATH)
+        dashboardConfFileDir = '/etc/openstack-dashboard/'
         
         if os.path.exists(Dashboard.DASHBOARD_CONF_FILE_PATH) :
             ShellCmdExecutor.execCmd("rm -rf %s" % Dashboard.DASHBOARD_CONF_FILE_PATH)
@@ -148,11 +148,9 @@ class Dashboard(object):
         
         print 'localSettingsFileTemplatePath=%s--' % localSettingsFileTemplatePath
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % dashboardConfFileDir)
-#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (localSettingsFileTemplatePath, dashboardConfFileDir))
         ####NEW
         ShellCmdExecutor.execCmd('cat %s > /tmp/local_settings' % localSettingsFileTemplatePath)
-        ShellCmdExecutor.execCmd('mv  /tmp/local_settings %s' % dashboardConfFileDir)
-        ShellCmdExecutor.execCmd("rm -rf /tmp/local_settings")
+        ShellCmdExecutor.execCmd('mv /tmp/local_settings %s' % dashboardConfFileDir)
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
@@ -177,8 +175,7 @@ class Dashboard(object):
         httpdConfFileDir = os.path.dirname(Dashboard.HTTPD_CONF_FILE_PATH)
 #         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (httpdConfFileTemplatePath, httpdConfFileDir))
         ShellCmdExecutor.execCmd("cat %s > /tmp/httpd.conf" % httpdConfFileTemplatePath)
-        ShellCmdExecutor.execCmd("mv /tmp/httpd.conf %s" % httpdConfFileDir)
-        ShellCmdExecutor.execCmd("rm -rf /tmp/httpd.conf")
+        ShellCmdExecutor.execCmd("mv /tmp/httpd.conf /etc/httpd/conf/")
         pass
     pass
 
@@ -321,8 +318,7 @@ class DashboardHA(object):
                 ShellCmdExecutor.execCmd('sudo chmod 777 /etc/haproxy')
 #                 ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, os.path.dirname(haproxyConfFilePath)))
                 ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % haproxyTemplateFilePath)
-                ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
-                ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
+                ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
                 pass
             pass
         pass
@@ -352,8 +348,7 @@ class DashboardHA(object):
 #             ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (HAProxyTemplateFilePath, '/etc/haproxy'))
             
             ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
-            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
-            ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
+            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -426,7 +421,7 @@ listen dashboard_cluster
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
             pass
-        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
         #############
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
@@ -449,8 +444,7 @@ listen dashboard_cluster
 #         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
         
         ShellCmdExecutor.execCmd('cat %s > /tmp/check_haproxy.sh' % checkHAProxyScriptPath)
-        ShellCmdExecutor.execCmd('mv /tmp/check_haproxy.sh /etc/keepalived')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/check_haproxy.sh')
+        ShellCmdExecutor.execCmd('mv /tmp/check_haproxy.sh /etc/keepalived/')
         
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
@@ -458,8 +452,7 @@ listen dashboard_cluster
         
 #         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
         ShellCmdExecutor.execCmd('cat %s > /tmp/keepalived.conf' % keepalivedTemplateFilePath)
-        ShellCmdExecutor.execCmd('mv /tmp/keepalived.conf /etc/keepalived')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/keepalived.conf')
+        ShellCmdExecutor.execCmd('mv /tmp/keepalived.conf /etc/keepalived/')
         
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
         print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath

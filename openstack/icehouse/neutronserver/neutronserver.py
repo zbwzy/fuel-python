@@ -1,21 +1,16 @@
 '''
-Created on Oct 18, 2015
+Created on Sept 27, 2015
 
 @author: zhangbai
-'''
-
-'''
-usage:
-
-python cinder.py
-
-NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
 import sys
 import os
 import time
 
-debug = False
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+debug = True
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -35,12 +30,15 @@ sys.path.append(PROJ_HOME_DIR)
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
-from common.file.FileUtil import FileUtil
+from common.file.FileUtil import FileUtil   
+    
 
 class Prerequisites(object):
     '''
     classdocs
     '''
+    SYS_CTL_FILE_PATH = "/etc/sysctl.conf"
+    
     def __init__(self):
         '''
         Constructor
@@ -60,7 +58,7 @@ class Prerequisites(object):
         cmd = 'yum install python-openstackclient -y'
         ShellCmdExecutor.execCmd(cmd)
         pass
-    pass
+    
 
 class Network(object):
     '''
@@ -92,12 +90,14 @@ class Network(object):
         ShellCmdExecutor.execCmd(stopCmd)
         ShellCmdExecutor.execCmd(chkconfigOffCmd)
         pass
+    
 
-class Cinder(object):
+class NeutronServer(object):
     '''
     classdocs
     '''
-    NOVA_CONF_FILE_PATH = "/etc/cinder/cinder.conf"
+    NEUTRON_CONF_FILE_PATH = "/etc/neutron/neutron.conf"
+    NEUTRON_ML2_CONF_FILE_PATH = "/etc/neutron/plugins/ml2/ml2_conf.ini"
     
     def __init__(self):
         '''
@@ -107,100 +107,129 @@ class Cinder(object):
     
     @staticmethod
     def install():
-        print 'Cinder.install start===='
-        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db -y'
+        print 'NeutronServer.install start===='
+        #Install Openstack network services
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch python-neutronclient which -y"
         ShellCmdExecutor.execCmd(yumCmd)
-        print 'Cinder.install done####'
-        pass
-
-    @staticmethod
-    def restart():
-        #restart cinder service
-        ShellCmdExecutor.execCmd("service openstack-cinder-api restart")
-        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler restart")
-        pass
-    
-    @staticmethod
-    def start():        
-        ShellCmdExecutor.execCmd("service openstack-cinder-api start")
-        ShellCmdExecutor.execCmd("service openstack-cinder-scheduler start")
+        #On Controller node, do Nova.configAfterNetworkNodeConfiguration(), Nova.restart()
+        print 'NeutronServer.install done####'
         pass
     
     @staticmethod
     def configConfFile():
+        NeutronServer.configNeutronConfFile()
+        
+        NeutronServer.configML2()
+        
+        ##########configure horizon conf dir rights
+        if os.path.exists("/var/lib/openstack-dashboard") :
+            ShellCmdExecutor.execCmd("chmod 777 /var/lib/openstack-dashboard")
+            pass
+        
+        if os.path.exists("/usr/share/openstack-dashboard/openstack_dashboard/local") :
+            ShellCmdExecutor.execCmd("chmod 777 /usr/share/openstack-dashboard/openstack_dashboard/local")
+            pass
+        pass
+    
+    @staticmethod
+    def getServiceTenantID():
+        serviceTenantIDScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server','serviceTenantID.sh')
+        print 'serviceTenantIDScriptPath=%s' % serviceTenantIDScriptPath
+        
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % serviceTenantIDScriptPath)
+        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        FileUtil.replaceFileContent('/opt/serviceTenantID.sh', '<KEYSTONE_VIP>', keystone_vip)
+        output, exitcode = ShellCmdExecutor.execCmd('bash /opt/serviceTenantID.sh')
+        serviceTenantID = output.strip()
+        if debug == True : #fake for local debug
+            serviceTenantID = '112233445566'
+            pass
+        
+        print 'serviceTenantID=%s--' % serviceTenantID
+        return serviceTenantID
+        pass
+    
+    @staticmethod
+    def configNeutronConfFile():
         mysql_vip = JSONUtility.getValue("mysql_vip")
         mysql_password = JSONUtility.getValue("mysql_password")
+        neutron_mysql_password = JSONUtility.getValue("neutron_mysql_password")
         
         rabbit_host = JSONUtility.getValue("rabbit_host")
-        
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
-        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
+        nova_vip = JSONUtility.getValue("nova_vip")
         
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
+        
+        nova_admin_tenant_id = ''
         
         print 'mysql_vip=%s' % mysql_vip
         print 'mysql_password=%s' % mysql_password
-        print 'rabbit_host=%s' % rabbit_host
         print 'rabbit_hosts=%s' % rabbit_hosts
         print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
         print 'keystone_vip=%s' % keystone_vip
+        print 'nova_vip=%s' % nova_vip
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
-        print 'cinder_conf_template_file_path=%s' % cinder_conf_template_file_path
+        neutron_server_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'neutron.conf')
+        print 'neutron_server_conf_template_file_path=%s' % neutron_server_conf_template_file_path
         
-        cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
-        print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
-        
-        cinder_conf_file_path = os.path.join(cinderConfDir, 'cinder.conf')
-        print 'cinder_conf_file_path=%s' % cinder_conf_file_path
-        
-        if not os.path.exists(cinderConfDir) :
-            ShellCmdExecutor.execCmd("sudo mkdir %s" % cinderConfDir)
+        neutronConfDir = '/etc/neutron'
+        if not os.path.exists(neutronConfDir) :
+            ShellCmdExecutor.execCmd("sudo mkdir %s" % neutronConfDir)
             pass
         
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinderConfDir)
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % neutronConfDir)
         
-        if os.path.exists(cinder_conf_file_path) :
-            ShellCmdExecutor.execCmd("rm -rf %s" % cinder_conf_file_path)
+        neutron_conf_file_path = os.path.join(neutronConfDir, 'neutron.conf')
+        if os.path.exists(neutron_conf_file_path) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % neutron_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('cat %s > /tmp/cinder.conf' % cinder_conf_template_file_path)
-        ShellCmdExecutor.execCmd('mv /tmp/cinder.conf /etc/cinder/')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/cinder.conf')
+        ShellCmdExecutor.execCmd("cat %s > /tmp/neutron.conf" % neutron_server_conf_template_file_path)
+        ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
-#         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
+        serviceTenantID = NeutronServer.getServiceTenantID()
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<NOVA_ADMIN_TENANT_ID>', serviceTenantID  )
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<NEUTRON_MYSQL_PASSWORD>', neutron_mysql_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_host)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<NOVA_VIP>', nova_vip)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<GLANCE_VIP>', glance_vip)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<LOCAL_IP>', localIP)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
-        
-        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
+        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % neutron_conf_file_path)
         pass
     
-class CinderHA(object):
+    @staticmethod
+    def configML2():
+        if os.path.exists(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd('rm -rf %s' % NeutronServer.NEUTRON_ML2_CONF_FILE_PATH)
+            pass
+        
+        NEUTRON_ML2_CONF_DIR = os.path.dirname(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH)
+        neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini')
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_server_ml2_template_file_path, NEUTRON_ML2_CONF_DIR))
+        pass
+    pass
+    
+class NeutronServerHA(object):
     '''
     classdocs
     '''
@@ -241,7 +270,7 @@ class CinderHA(object):
     @staticmethod
     def getVIPFormatString(vip, interface):
         vipFormatString = ''
-        if CinderHA.isExistVIP(vip, interface) :
+        if NeutronServerHA.isExistVIP(vip, interface) :
             print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
             cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
             output, exitcode = ShellCmdExecutor.execCmd(cmd)
@@ -265,9 +294,9 @@ class CinderHA(object):
     
     @staticmethod
     def addVIP(vip, interface):
-        result = CinderHA.getVIPFormatString(vip, interface)
+        result = NeutronServerHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if not CinderHA.isExistVIP(vip, interface) :
+        if not NeutronServerHA.isExistVIP(vip, interface) :
             print 'NOT exist vip %s on interface %s.' % (vip, interface)
             addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'addVIPCmd=%s--' % addVIPCmd
@@ -280,9 +309,9 @@ class CinderHA(object):
     
     @staticmethod
     def deleteVIP(vip, interface):
-        result = CinderHA.getVIPFormatString(vip, interface)
+        result = NeutronServerHA.getVIPFormatString(vip, interface)
         print 'result===%s--' % result
-        if CinderHA.isExistVIP(vip, interface) :
+        if NeutronServerHA.isExistVIP(vip, interface) :
             deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
             print 'deleteVIPCmd=%s--' % deleteVIPCmd
             ShellCmdExecutor.execCmd(deleteVIPCmd)
@@ -316,12 +345,12 @@ class CinderHA(object):
             ShellCmdExecutor.execCmd(yumCmd)
             pass
         else :
-            if not CinderHA.isKeepalivedInstalled() :
+            if not NeutronServerHA.isKeepalivedInstalled() :
                 keepalivedInstallCmd = "yum install keepalived -y"
                 ShellCmdExecutor.execCmd(keepalivedInstallCmd)
                 pass
             
-            if not CinderHA.isHAProxyInstalled() :
+            if not NeutronServerHA.isHAProxyInstalled() :
                 haproxyInstallCmd = 'yum install haproxy -y'
                 ShellCmdExecutor.execCmd(haproxyInstallCmd)
                 
@@ -335,27 +364,21 @@ class CinderHA(object):
                     ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
                     pass
                 
-                ShellCmdExecutor.execCmd('chmod 777 /etc/haproxy')
-                
-#                 ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (haproxyTemplateFilePath, haproxyConfFilePath))
-                ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % haproxyTemplateFilePath)
-                ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
-                ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
+                ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, '/etc/haproxy'))
                 pass
             pass
         pass
     
     @staticmethod
     def configure():
-        CinderHA.configureHAProxy()
-        CinderHA.configureKeepalived()
+        NeutronServerHA.configureHAProxy()
+        NeutronServerHA.configureKeepalived()
         pass
     
     @staticmethod
     def configureHAProxy():
         ####################configure haproxy
-        #server keystone-01 192.168.1.137:35357 check inter 10s
-        cinder_vip = JSONUtility.getValue("cinder_vip")
+        neutron_vip = JSONUtility.getValue("neutron_vip")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
@@ -364,53 +387,48 @@ class CinderHA(object):
         if not os.path.exists('/etc/haproxy') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
             pass
-        ShellCmdExecutor.execCmd('sudo chmod 777 /etc/haproxy')
+        
         if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
-            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
-            ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
-#             ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keystoneHAProxyTemplateFilePath, haproxyConfFilePath))
+            ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (HAProxyTemplateFilePath, '/etc/haproxy'))
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
         
-        #############
-        cinderBackendAdminApiStringTemplate = '''
-listen cinder_api_cluster
-  bind <CINDER_VIP>:8776
+        ####
+        ##############new
+        neutronApiBackendStringTemplate = '''
+listen neutron_api_cluster
+  bind <NEUTRON_VIP>:9696
   balance source
-  <CINDER_API_SERVER_LIST>
+  <NEUTRON_API_SERVER_LIST>
   '''
-        cinderBackendAdminApiString = cinderBackendAdminApiStringTemplate.replace('<CINDER_VIP>', cinder_vip)
+
+        neutronApiBackendString = neutronApiBackendStringTemplate.replace('<NEUTRON_VIP>', neutron_vip)
         
         ################new
-        cinder_ips = JSONUtility.getValue("cinder_ips")
-        cinder_ip_list = cinder_ips.strip().split(',')
+        neutron_ips = JSONUtility.getValue("neutron_ips")
+        neutron_ip_list = neutron_ips.strip().split(',')
         
-        serverCinderAPIBackendTemplate   = 'server cinder-<INDEX> <SERVER_IP>:8776 check inter 2000 rise 2 fall 5'
-        
-        cinderAPIServerListContent = ''
-        
+        serverNeutronAPIBackendTemplate   = 'server neutron-<INDEX> <SERVER_IP>:9696 check inter 2000 rise 2 fall 5'
+        neutronAPIServerListContent = ''
         index = 1
-        for cinder_ip in cinder_ip_list:
-            print 'cinder_ip=%s' % cinder_ip
-            cinderAPIServerListContent += serverCinderAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', cinder_ip)
+        for ip in neutron_ip_list:
+            print 'neutron_ip=%s' % ip
+            neutronAPIServerListContent += serverNeutronAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
             
-            cinderAPIServerListContent += '\n'
-            cinderAPIServerListContent += '  '
-            
+            neutronAPIServerListContent += '\n'
+            neutronAPIServerListContent += '  '
             index += 1
             pass
         
-        cinderAPIServerListContent = cinderAPIServerListContent.strip()
-        print 'cinderAPIServerListContent=%s--' % cinderAPIServerListContent
+        neutronAPIServerListContent = neutronAPIServerListContent.strip()
+        print 'neutronAPIServerListContent=%s--' % neutronAPIServerListContent
         
-        cinderBackendAdminApiString = cinderBackendAdminApiString.replace('<CINDER_API_SERVER_LIST>', cinderAPIServerListContent)
+        neutronApiBackendString = neutronApiBackendString.replace('<NEUTRON_API_SERVER_LIST>', neutronAPIServerListContent)
         
-        print 'cinderBackendAdminApiString=%s--' % cinderBackendAdminApiString
+        print 'neutronApiBackendString=%s--' % neutronApiBackendString
         
         #append
-#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (cinderBackendAdminApiString, haproxyConfFilePath))
         if os.path.exists(haproxyConfFilePath) :
             output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
         else :
@@ -422,14 +440,15 @@ listen cinder_api_cluster
         haproxyContent = ''
         haproxyContent += haproxyNativeContent
         haproxyContent += '\n\n'
-        haproxyContent += cinderBackendAdminApiString
+        
+        haproxyContent += neutronApiBackendString
+        
         FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
             pass
         ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
-        
+        #############
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
     
@@ -443,22 +462,15 @@ listen cinder_api_cluster
         if not os.path.exists('/etc/keepalived') :
             ShellCmdExecutor.execCmd('sudo mkdir /etc/keepalived')
             pass
-        ShellCmdExecutor.execCmd("sudo chmod 777 /etc/keepalived")
+        
         #configure haproxy check script in keepalived
         checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-#         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
-        ShellCmdExecutor.execCmd('cat %s > /tmp/check_haproxy.sh' % checkHAProxyScriptPath)
-        ShellCmdExecutor.execCmd('mv /tmp/check_haproxy.sh /etc/keepalived/')
-        ShellCmdExecutor.execCmd("sudo rm -rf /tmp/check_haproxy.sh")
-        
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
         if os.path.exists(keepalivedConfFilePath) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
             pass
         
-#         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
-        ShellCmdExecutor.execCmd('cat %s > /tmp/keepalived.conf' % keepalivedTemplateFilePath)
-        ShellCmdExecutor.execCmd('mv /tmp/keepalived.conf /etc/keepalived/')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/keepalived.conf')
+        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, '/etc/keepalived'))
         print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
         print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
         
@@ -490,24 +502,24 @@ vrrp_instance 42 {
         '''
         #GLANCE_WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        cinder_vip = JSONUtility.getValue("cinder_vip")
-        cinder_vip_interface = JSONUtility.getValue("cinder_vip_interface")
+        neutron_vip = JSONUtility.getValue("neutron_vip")
+        neutron_vip_interface = JSONUtility.getValue("neutron_vip_interface")
         
         weight_counter = 300
-        if CinderHA.isMasterNode() :
+        if NeutronServerHA.isMasterNode() :
             weight_counter = 300
             state = 'MASTER'
             pass
         else :
-            index = CinderHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
+            index = NeutronServerHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
             weight_counter = 300 - index
             state = 'SLAVE' + str(index)
             pass
-        
+            
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
         FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', cinder_vip_interface)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', cinder_vip)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', neutron_vip_interface)
+        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', neutron_vip)
         
         ##temporary: if current user is not root
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
@@ -534,27 +546,26 @@ vrrp_instance 42 {
             return False
         else :
             return True
-        pass
     
     @staticmethod
     def getIndex(): #get host index, the ips has been sorted ascended.
-        print 'To get this host index of role %s==============' % "cinder" 
-        cinder_ips = JSONUtility.getValue('cinder_ips')
-        cinder_ip_list = cinder_ips.split(',')
+        print 'To get this host index of role %s==============' % "neutron-server" 
+        neutron_ips = JSONUtility.getValue('neutron_ips')
+        neutron_ip_list = neutron_ips.split(',')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
         localIP = output.strip()
         print 'localIP=%s---------------------' % localIP
-        print 'cinder_ip_list=%s--------------' % cinder_ip_list
-        index = cinder_ip_list.index(localIP)
+        print 'neutron_ip_list=%s--------------' % neutron_ip_list
+        index = neutron_ip_list.index(localIP)
         print 'index=%s-----------' % index
         return index
         
     @staticmethod
     def isMasterNode():
-        if CinderHA.getIndex() == 0 :
+        if NeutronServerHA.getIndex() == 0 :
             return True
         
         return False
@@ -564,31 +575,31 @@ vrrp_instance 42 {
         if debug == True :
             pass
         else :
-            cinder_vip_interface = JSONUtility.getValue("cinder_vip_interface")
-            cinder_vip = JSONUtility.getValue("cinder_vip")
+            neutron_vip_interface = JSONUtility.getValue("neutron_vip_interface")
+            neutron_vip = JSONUtility.getValue("neutron_vip")
             
-            CinderHA.addVIP(cinder_vip, cinder_vip_interface)
+            NeutronServerHA.addVIP(neutron_vip, neutron_vip_interface)
             
-            if CinderHA.isHAProxyRunning() :
+            if NeutronServerHA.isHAProxyRunning() :
                 ShellCmdExecutor.execCmd('service haproxy restart')
             else :
                 ShellCmdExecutor.execCmd('service haproxy start')
                 pass
             
-            if CinderHA.isKeepalivedRunning() :
+            if NeutronServerHA.isKeepalivedRunning() :
                 ShellCmdExecutor.execCmd('service keepalived restart')
             else :
                 ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             
-            ShellCmdExecutor.execCmd('service haproxy restart')
-            
-            isMasterNode = CinderHA.isMasterNode()
-            if isMasterNode == False :
-                CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
+            isMasterNode = NeutronServerHA.isMasterNode()
+            if isMasterNode == True :
+                NeutronServerHA.restart()
+                pass
+            else :
+                NeutronServerHA.deleteVIP(neutron_vip, neutron_vip_interface)
                 pass
             pass
-        
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
@@ -598,41 +609,22 @@ vrrp_instance 42 {
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
     
-    
+
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:cinder============'
-    print 'start time: %s' % time.ctime()
-    
-    debug = False
-    if debug :
-        print 'start to debug======'
-        
-        print CinderHA.getIndex()
-        print 'end debug######'
-        exit()
-    #when execute script,exec: python <this file absolute path>
-    ###############################
-    INSTALL_TAG_FILE = '/opt/cinder_installed'
+    print 'openstack-icehouse:neutron-server start============'
+    INSTALL_TAG_FILE = '/opt/neutronserver_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'cinder installed####'
+        print 'neutron-server installed####'
         print 'exit===='
         pass
     else :
         Prerequisites.prepare()
-        Cinder.install()
-        Cinder.configConfFile()
-    #     Cinder.start()
-    #     
-    #     ## Cinder HA
-    #     CinderHA.install()
-    #     CinderHA.configure()
-    #     CinderHA.start()
-        #
-    #     os.system("service openstack-cinder-api start")
-    #     os.system("service openstack-cinder-scheduler start")
-    #     os.system("service haproxy restart")
-        #mark: cinder is installed
+        
+        NeutronServer.install()
+        
+        NeutronServer.configConfFile()
+        
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:cinder#######'
+    print 'openstack-icehouse:neutron-server done#######'
     pass
 

@@ -46,6 +46,10 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
         Network.Prepare()
         
         cmd = 'yum install openstack-utils -y'
@@ -58,7 +62,6 @@ class Prerequisites(object):
         ShellCmdExecutor.execCmd(cmd)
         pass
     pass
-
 
 class Network(object):
     '''
@@ -74,6 +77,12 @@ class Network(object):
     def Prepare():
         Network.stopIPTables()
         Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
         pass
     
     @staticmethod
@@ -186,9 +195,7 @@ class Heat(object):
         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (heat_conf_template_file_path, heatConfDir))
         
         ShellCmdExecutor.execCmd('cat %s > /tmp/heat.conf' % heat_conf_template_file_path)
-        ShellCmdExecutor.execCmd('mv /tmp/heat.conf /etc/heat')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/heat.conf')
-        
+        ShellCmdExecutor.execCmd('mv /tmp/heat.conf /etc/heat/')
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % heat_conf_file_path)
         
@@ -374,8 +381,7 @@ class HeatHA(object):
         
         if not os.path.exists(haproxyConfFilePath) :
             ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
-            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
-            ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
+            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
             pass
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
@@ -434,8 +440,7 @@ listen heat_api_cluster
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
             pass
-        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -616,27 +621,27 @@ if __name__ == '__main__':
     ###############################
     INSTALL_TAG_FILE = '/opt/heat_installed'
     #DEBUG
-    if False :
-        ShellCmdExecutor.execCmd('rm -rf %s' % INSTALL_TAG_FILE)
-        pass
+#     if False :
+#         ShellCmdExecutor.execCmd('rm -rf %s' % INSTALL_TAG_FILE)
+#         pass
         
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'heat installed####'
         print 'exit===='
-        exit()
         pass
-    
-    Heat.install()
-    Heat.configConfFile()
-#     Heat.start()
-#     
-#     ## Heat HA
-#     HeatHA.install()
-#     HeatHA.configure()
-#     HeatHA.start()
-    #
-    #mark: heat is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+    else :
+        Prerequisites.prepare()
+        Heat.install()
+        Heat.configConfFile()
+    #     Heat.start()
+    #     
+    #     ## Heat HA
+    #     HeatHA.install()
+    #     HeatHA.configure()
+    #     HeatHA.start()
+        #
+        #mark: heat is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:heat#######'
     pass
 

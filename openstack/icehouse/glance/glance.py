@@ -204,11 +204,8 @@ class Glance(object):
         ShellCmdExecutor.execCmd("cat %s > /tmp/glance-api.conf" % SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH)
         ShellCmdExecutor.execCmd("cat %s > /tmp/glance-registry.conf" % SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH)
         
-        ShellCmdExecutor.execCmd("mv /tmp/glance-api.conf /etc/glance")
-        ShellCmdExecutor.execCmd("mv /tmp/glance-registry.conf /etc/glance")
-        
-        ShellCmdExecutor.execCmd("rm -rf /tmp/glance-api.conf")
-        ShellCmdExecutor.execCmd("rm -rf /tmp/glance-registry.conf")
+        ShellCmdExecutor.execCmd("mv /tmp/glance-api.conf /etc/glance/")
+        ShellCmdExecutor.execCmd("mv /tmp/glance-registry.conf /etc/glance/")
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
@@ -489,19 +486,10 @@ listen glance_registry_cluster
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
             pass
-        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
-        #############
-        
-#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendRegistryApiString, haproxyConfFilePath))
-#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (glanceBackendApiString, haproxyConfFilePath))
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
         ##############
-#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_API_SERVER_LIST>', glanceRegistryAPIServerListContent)
-#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_API_SERVER_LIST>', glanceAPIServerListContent)
-        
+
         #Default: glance-api & glance-registry-api use the same vip
-#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_REGISTRY_VIP>', glance_vip)
-#         FileUtil.replaceFileContent(haproxyConfFilePath, '<GLANCE_VIP>', glance_vip)
-        
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
     
@@ -679,32 +667,30 @@ if __name__ == '__main__':
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'glance installed####'
         print 'exit===='
-        exit()
         pass
+    else :
+        print 'start to install======='
+        Prerequisites.prepare()
+        #
+        Glance.install()
+        Glance.configConfFile()
+    #     Glance.start()
+    # #      
+    #     Glance.sourceAdminOpenRC()
+    #     #add HA
+    #     GlanceHA.install()
+    #     GlanceHA.configure()
+    #     GlanceHA.start()
+    #     
+    #     Glance.restart()
+    #     GlanceHA.restart
         
-    print 'start to install======='
-    
-    Prerequisites.prepare()
-    #
-    Glance.install()
-    Glance.configConfFile()
-#     Glance.start()
-# #      
-#     Glance.sourceAdminOpenRC()
-#     #add HA
-#     GlanceHA.install()
-#     GlanceHA.configure()
-#     GlanceHA.start()
-#     
-#     Glance.restart()
-#     GlanceHA.restart
-    
-#     os.system("service openstack-glance-api restart")
-#     os.system("service openstack-glance-registry restart")
-#     
-#     os.system("service haproxy restart")
-    #mark: glance is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+    #     os.system("service openstack-glance-api restart")
+    #     os.system("service openstack-glance-registry restart")
+    #     
+    #     os.system("service haproxy restart")
+        #mark: glance is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     
     print 'hello openstack-icehouse:glance#######'
     pass

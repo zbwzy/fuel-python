@@ -45,6 +45,10 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
         Network.Prepare()
         
         cmd = 'yum install openstack-utils -y'
@@ -72,6 +76,12 @@ class Network(object):
     def Prepare():
         Network.stopIPTables()
         Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
         pass
     
     @staticmethod
@@ -179,7 +189,7 @@ class CinderStorage(object):
         
         ShellCmdExecutor.execCmd("chmod 777 /etc/cinder")
         ShellCmdExecutor.execCmd('cat %s > /tmp/cinder.conf' % cinder_conf_template_file_path)
-        ShellCmdExecutor.execCmd('mv /tmp/cinder.conf /etc/cinder')
+        ShellCmdExecutor.execCmd('mv /tmp/cinder.conf /etc/cinder/')
         ShellCmdExecutor.execCmd('rm -rf /tmp/cinder.conf')
 #         ShellCmdExecutor.execCmd('sudo cp -rf %s %s' % (cinder_conf_template_file_path, cinderConfDir))
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
@@ -226,6 +236,7 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
+        Prerequisites.prepare()
         CinderStorage.install()
         CinderStorage.configConfFile()
     #     CinderStorage.start()

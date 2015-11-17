@@ -15,7 +15,10 @@ import sys
 import os
 import time
 
-debug = True
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -45,6 +48,10 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
         Network.Prepare()
         
         cmd = 'yum install openstack-utils -y'
@@ -72,6 +79,12 @@ class Network(object):
     def Prepare():
         Network.stopIPTables()
         Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
         pass
     
     @staticmethod
@@ -103,18 +116,7 @@ class Nova(object):
         openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler python-novaclient"
         
         ShellCmdExecutor.execCmd(yumCmd)
-        Nova.configConfFile()
-        
-        #special handling
-        PYTHON_SITE_PACKAGE_DIR = '/usr/lib/python2.6/site-packages'
-        if os.path.exists(PYTHON_SITE_PACKAGE_DIR) :
-            ShellCmdExecutor.execCmd('chmod 777 %s' % PYTHON_SITE_PACKAGE_DIR)
-            pass
-            
-        LIB_NOVA_DIR = '/var/lib/nova'
-        if os.path.exists(LIB_NOVA_DIR) :
-            ShellCmdExecutor.execCmd('chown -R nova:nova %s' % LIB_NOVA_DIR)
-            pass
+#         Nova.configConfFile()
         
 #         Nova.start()
         
@@ -222,7 +224,7 @@ vif_plugging_timeout=0
 #         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
         
         ShellCmdExecutor.execCmd("cat %s > /tmp/nova.conf" % nova_api_conf_template_file_path)
-        ShellCmdExecutor.execCmd("mv /tmp/nova.conf /etc/nova")
+        ShellCmdExecutor.execCmd("mv /tmp/nova.conf /etc/nova/")
         ShellCmdExecutor.execCmd("rm -rf /tmp/nova.conf")
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
@@ -245,6 +247,17 @@ vif_plugging_timeout=0
 #         FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', localIP)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
+        
+        #special handling
+        PYTHON_SITE_PACKAGE_DIR = '/usr/lib/python2.6/site-packages'
+        if os.path.exists(PYTHON_SITE_PACKAGE_DIR) :
+            ShellCmdExecutor.execCmd('chmod 777 %s' % PYTHON_SITE_PACKAGE_DIR)
+            pass
+            
+        LIB_NOVA_DIR = '/var/lib/nova'
+        if os.path.exists(LIB_NOVA_DIR) :
+            ShellCmdExecutor.execCmd('chown -R nova:nova %s' % LIB_NOVA_DIR)
+            pass
         pass
     
 
@@ -493,7 +506,7 @@ listen nova_metadata_api_cluster
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
             pass
-        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -644,7 +657,7 @@ if __name__ == '__main__':
         pass
     
     else :
-    
+        Prerequisites.prepare()
         Nova.install()
         Nova.configConfFile()
 #         Nova.start()

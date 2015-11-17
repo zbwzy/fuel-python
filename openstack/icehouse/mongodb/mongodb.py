@@ -45,6 +45,10 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
         Network.Prepare()
         
         cmd = 'yum install openstack-utils -y'
@@ -72,6 +76,12 @@ class Network(object):
     def Prepare():
         Network.stopIPTables()
         Network.stopNetworkManager()
+        pass
+    
+    @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
         pass
     
     @staticmethod
@@ -105,13 +115,13 @@ class MongoDB(object):
 
     @staticmethod
     def restart():
-        #restart cinder service
         ShellCmdExecutor.execCmd("service mongod restart")
         pass
     
     @staticmethod
     def start():        
-        ShellCmdExecutor.execCmd("service mongod start")
+#         ShellCmdExecutor.execCmd("service mongod start")
+        ShellCmdExecutor.execCmd("/usr/bin/mongod --quiet -f /etc/mongodb.conf run")
         ShellCmdExecutor.execCmd("chkconfig mongod on")
         pass
     
@@ -134,7 +144,6 @@ class MongoDB(object):
         
         ShellCmdExecutor.execCmd('cat %s > /tmp/mongodb.conf' % mongodb_conf_template_file_path)
         ShellCmdExecutor.execCmd('mv /tmp/mongodb.conf /etc/')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/mongodb.conf')
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % mongodb_conf_file_path)
         FileUtil.replaceFileContent(mongodb_conf_file_path, '<LOCAL_IP>', localIP)
         ShellCmdExecutor.execCmd("sudo chmod 755 %s" % mongodb_conf_file_path)
@@ -204,6 +213,8 @@ if __name__ == '__main__':
         print 'mongodb installed####'
         print 'exit===='
     else :
+        Prerequisites.prepare()
+        
         MongoDB.install()
         MongoDB.configConfFile()
         MongoDB.start()

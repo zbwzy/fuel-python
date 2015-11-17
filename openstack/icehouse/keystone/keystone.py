@@ -242,9 +242,7 @@ class Keystone(object):
 #         os.system("sudo cp -r %s %s" % (SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH, keystoneConfDir))
         ###NEW
         ShellCmdExecutor.execCmd('cat %s > /tmp/keystone.conf' % SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH)
-        ShellCmdExecutor.execCmd('mv /tmp/keystone.conf /etc/keystone')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/keystone.conf')
-        
+        ShellCmdExecutor.execCmd('mv /tmp/keystone.conf /etc/keystone/')
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
@@ -507,7 +505,7 @@ listen keystone_public_internal_cluster
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
             pass
-        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
         #############
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
         pass
@@ -679,17 +677,6 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
-    
     ###############################
     INSTALL_TAG_FILE = '/opt/keystone_installed'
     

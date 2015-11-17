@@ -18,7 +18,7 @@ import time
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -48,6 +48,10 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
         Network.Prepare()
         
         cmd = 'yum install openstack-utils -y'
@@ -78,6 +82,12 @@ class Network(object):
         pass
     
     @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
+        pass
+    
+    @staticmethod
     def stopNetworkManager():
         stopCmd = "service NetworkManager stop"
         chkconfigOffCmd = "chkconfig NetworkManager off"
@@ -100,20 +110,20 @@ class NovaCompute(object):
     
     @staticmethod
     def install():
-        print 'Nova.install start===='
+        print 'Nova-compute.install start===='
         yumCmd = 'yum install openstack-nova-compute -y'
         ShellCmdExecutor.execCmd(yumCmd)
-        NovaCompute.configConfFile()
+#         NovaCompute.configConfFile()
         
 #         ShellCmdExecutor.execCmd("keystone service-create --name=nova --type=compute --description=\"OpenStack Compute\"")
 #         ShellCmdExecutor.execCmd("keystone endpoint-create --service-id=$(keystone service-list | awk '/ compute / {print $2}') --publicurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s  --internalurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s --adminurl=http://192.168.122.80:8774/v2/%\(tenant_id\)s")
 #         
-        NovaCompute.start()
+#         NovaCompute.start()
         
         #After Network node configuration done
-        NovaCompute.configAfterNetworkNodeConfiguration()
-        NovaCompute.restart()
-        print 'Nova.install done####'
+#         NovaCompute.configAfterNetworkNodeConfiguration()
+#         NovaCompute.restart()
+        print 'Nova-compute.install done####'
         pass
     
     @staticmethod
@@ -135,7 +145,9 @@ vif_plugging_timeout=0
     @staticmethod
     def restart():
         #restart nova-compute service
-        ShellCmdExecutor.execCmd("service openstack-nova-compute start")
+        ShellCmdExecutor.execCmd("service libvirtd restart")
+        ShellCmdExecutor.execCmd("service messagebus restart")
+        ShellCmdExecutor.execCmd("service openstack-nova-compute restart")
         pass
     
     @staticmethod
@@ -191,6 +203,7 @@ admin_password=123456
         '''
         mysql_vip = JSONUtility.getValue("mysql_vip")
         mysql_password = JSONUtility.getValue("mysql_password")
+        nova_mysql_password = JSONUtility.getValue("nova_mysql_password")
         
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
@@ -201,9 +214,6 @@ admin_password=123456
         nova_vip = JSONUtility.getValue("nova_vip")
         
         virt_type = JSONUtility.getValue("virt_type")
-        
-        #controller: Horizon, Neutron-server
-        controller_vip = JSONUtility.getValue("controller_vip")
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
@@ -223,7 +233,7 @@ admin_password=123456
         print 'nova_api_conf_template_file_path=%s' % nova_api_conf_template_file_path
         
         novaConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'NOVA_CONF_DIR')
-        print 'novaConfDir=%s' % novaConfDir #/etc/keystone
+        print 'novaConfDir=%s' % novaConfDir #/etc/nova
         
         nova_conf_file_path = os.path.join(novaConfDir, 'nova.conf')
         print 'nova_conf_file_path=%s' % nova_conf_file_path
@@ -232,15 +242,21 @@ admin_password=123456
             ShellCmdExecutor.execCmd("sudo mkdir %s" % novaConfDir)
             pass
         
+        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % novaConfDir)
+        
         if os.path.exists(nova_conf_file_path) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (nova_api_conf_template_file_path, novaConfDir))
+        ShellCmdExecutor.execCmd("cat %s > /tmp/nova.conf" % nova_api_conf_template_file_path)
+        ShellCmdExecutor.execCmd("mv /tmp/nova.conf /etc/nova/")
+        
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_MYSQL_PASSWORD>', nova_mysql_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
@@ -249,17 +265,35 @@ admin_password=123456
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_HOST>', glance_vip)
-        
+        FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_VIP>', glance_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
-        
         FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_IP>', localIP)
-        
-        FileUtil.replaceFileContent(nova_conf_file_path, '<PUBLIC_LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<MANAGEMENT_LOCAL_IP>', localIP)
         FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', localIP)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
+        
+        #configure libvirtd.conf
+        libvirtd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'libvirtd.conf')
+        libvirtd_conf_file_path = '/etc/libvirt/libvirtd.conf'
+        print "libvirtd_conf_template_file_path=%s--" % libvirtd_conf_template_file_path
+        
+        if os.path.exists(libvirtd_conf_file_path) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % libvirtd_conf_file_path)
+            pass
+        
+        ShellCmdExecutor.execCmd('cat %s > /tmp/libvirtd.conf' % libvirtd_conf_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/libvirtd.conf /etc/libvirt/')
+        
+        #special handling
+        PYTHON_SITE_PACKAGE_DIR = '/usr/lib/python2.6/site-packages'
+        if os.path.exists(PYTHON_SITE_PACKAGE_DIR) :
+            ShellCmdExecutor.execCmd('chmod 777 %s' % PYTHON_SITE_PACKAGE_DIR)
+            pass
+            
+        LIB_NOVA_DIR = '/var/lib/nova'
+        if os.path.exists(LIB_NOVA_DIR) :
+            ShellCmdExecutor.execCmd('chown -R nova:nova %s' % LIB_NOVA_DIR)
+            pass
         pass
     
     @staticmethod
@@ -274,37 +308,21 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
-    
+
     ###############################
     INSTALL_TAG_FILE = '/opt/novacompute_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'nova-compute installed####'
         print 'exit===='
-        exit()
         pass
-    
-    if os.path.exists(INSTALL_TAG_FILE) :
-        print 'nova-compute installed####'
-        print 'exit===='
-        exit()
-        pass
-    
-    NovaCompute.install()
-    NovaCompute.configConfFile()
-    NovaCompute.start()
-    #
-    #mark: nova-compute is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
+    else :
+        Prerequisites.prepare()
+        NovaCompute.install()
+        NovaCompute.configConfFile()
+#         NovaCompute.start()
+        #
+        #mark: nova-compute is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:nova-compute#######'
     pass
 

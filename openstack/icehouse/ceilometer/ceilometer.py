@@ -45,6 +45,10 @@ class Prerequisites(object):
         '''
         Constructor
         '''
+        pass
+    
+    @staticmethod
+    def prepare():
         Network.Prepare()
         
         cmd = 'yum install openstack-utils -y'
@@ -57,7 +61,6 @@ class Prerequisites(object):
         ShellCmdExecutor.execCmd(cmd)
         pass
     pass
-
 
 class Network(object):
     '''
@@ -76,6 +79,12 @@ class Network(object):
         pass
     
     @staticmethod
+    def stopIPTables():
+        stopCmd = "service iptables stop"
+        ShellCmdExecutor.execCmd(stopCmd)
+        pass
+    
+    @staticmethod
     def stopNetworkManager():
         stopCmd = "service NetworkManager stop"
         chkconfigOffCmd = "chkconfig NetworkManager off"
@@ -83,7 +92,6 @@ class Network(object):
         ShellCmdExecutor.execCmd(stopCmd)
         ShellCmdExecutor.execCmd(chkconfigOffCmd)
         pass
-    pass
 
 
 class Ceilometer(object):
@@ -204,10 +212,10 @@ class Ceilometer(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % ceilometer_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (ceilometer_conf_template_file_path, ceilometerConfDir))
+#         ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (ceilometer_conf_template_file_path, ceilometerConfDir))
         
         ShellCmdExecutor.execCmd('cat %s > /tmp/ceilometer.conf' % ceilometer_conf_template_file_path)
-        ShellCmdExecutor.execCmd('mv -f /tmp/ceilometer.conf /etc/ceilometer')
+        ShellCmdExecutor.execCmd('mv -f /tmp/ceilometer.conf /etc/ceilometer/')
         ShellCmdExecutor.execCmd('rm -rf /tmp/ceilometer.conf')
         
         
@@ -393,7 +401,7 @@ class CeilometerHA(object):
         
         if not os.path.exists(haproxyConfFilePath) :
             ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
-            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
             ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
             pass
         
@@ -453,7 +461,7 @@ listen ceilometer_api_cluster
         if os.path.exists(haproxyConfFilePath):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
             pass
-        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy')
+        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
         ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
         
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
@@ -642,6 +650,7 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
+        Prerequisites.prepare()
         Ceilometer.install()
         Ceilometer.configConfFile()
     #     Ceilometer.start()
