@@ -57,6 +57,6 @@ if __name__ == '__main__':
     #     ShellCmdExecutor.execCmd('service haproxy restart')
         #mark: dashboard is installed
         os.system('touch %s' % RESTART_TAG_FILE)
-    print 'hello openstack-icehouse:dashboard installed#######'
+    print 'hello openstack-icehouse:dashboard restarted#######'
     pass
 

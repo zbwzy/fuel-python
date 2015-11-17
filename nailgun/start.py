@@ -160,7 +160,7 @@ def getInitCmdByRole(role):
         pass
     
     if role == 'cinder-storage' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/cinder/initCinderStorage.py'
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/cinderstorage/initCinderStorage.py'
         pass
     
     if role == 'horizon' :
@@ -254,8 +254,18 @@ if __name__ == '__main__':
                 
                 time.sleep(2)
                 pass
-            pass 
+            pass
         
+        #restart horizon
+        if 'horizon' in activeRoles:
+            horizon_ip_list = activeRoleIPMap['horizon']
+            restartCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/dashboard/restartDashboard.py'
+            
+            for horizon_ip in horizon_ip_list :
+                execRemoteCmd(horizon_ip, restartCmd, timeout=600)
+                pass
+            pass
+                    
         os.system('touch %s' % TAG)
         pass
     pass

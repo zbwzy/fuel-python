@@ -46,17 +46,16 @@ from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
 
 
 if __name__ == '__main__':
-    
     print 'hello openstack-icehouse:keystone============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/initKeystone'
+    INSTALL_TAG_FILE = '/opt/initNeutronServer'
     
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'keystone initted####'
+        print 'neutron-server initted####'
         print 'exit===='
     else :
         NeutronServer.start()
@@ -75,6 +74,6 @@ if __name__ == '__main__':
         
         #mark: keystone is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:keystone#######'
+    print 'hello openstack-icehouse:neutron-server initted#######'
     pass
 
