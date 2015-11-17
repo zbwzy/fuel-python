@@ -5,6 +5,8 @@ $master_ip = $fuel_settings['masterip']
 $installDir ='/home/app'
 $role = $fuel_settings['role']
 $mysql_role = $fuel_settings['mysql']
+$keystone_role = $fuel_settings['keystone']
+
 
 
 exec {"fuel_python_dir":
@@ -20,18 +22,17 @@ require => Exec["fuel_python_dir"],
 creates => "/tmp/test1"
 }
 
+
 #exec {"openstack_json":
 #     path => "/usr/bin:/bin",
 #     command => "cp -f /etc/puppet/fuel-python/conf/openstack_params.json /etc/puppet/openstack_conf ",
 #}
 
+
 exec {"openstack_yaml":
      path => "/usr/bin:/bin",
      command => "python /etc/puppet/fuel-python/common/yaml/ParamsProducer.py"
 }
-
-
-$master_ip = file('/opt/mysql_master_ip')
 
 
 #########################################################
@@ -40,24 +41,52 @@ $master_ip = file('/opt/mysql_master_ip')
 notify {"$local_ip==$master_ip":}
 
   case $role {
-  
       'mysql' : {
-          class { 'mysql_galera':
+		
+	if $keystone_role == ''
+	{
+	  class { 'mysql_galera':
         installDir => $installDir,
        root_passwd => "123456",
         mysql_vip => $mysql_vip,
         master_ip => $master_ip,
         nodes_ip => $nodes_ip
        }
+	}
       }
 
       'keystone' : {
+	if $mysql_role ==''
+		{
        exec{"keystone_install":
        path => "/usr/bin:/bin",
        command => "python /etc/puppet/fuel-python/openstack/icehouse/keystone/keystone.py",
        timeout => 3600,
        require => Exec['openstack_yaml']
+	}
+		}
+	else
+	{
+
+	Exec<| title == 'initDB' |> -> Exec['keystone_install2']
+        class { 'mysql_galera':
+        installDir => $installDir,
+       root_passwd => "123456",
+        mysql_vip => $mysql_vip,
+        master_ip => $master_ip,
+        nodes_ip => $nodes_ip,
+	before => Exec['keystone_install2'],
+        require => Exec['openstack_yaml']
+       }
+	
+	 exec{"keystone_install2":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/icehouse/keystone/keystone.py",
+       timeout => 3600,
         }
+
+
+	}
       }
 
       'glance' : {
@@ -66,8 +95,8 @@ notify {"$local_ip==$master_ip":}
        command => "python /etc/puppet/fuel-python/openstack/icehouse/glance/glance.py",
        timeout => 3600,
        require => Exec['openstack_yaml']
-             }
-             }
+ 	     }
+	}
 
       'cinder-api' : {
         exec{"cinder_api_install":
@@ -77,7 +106,7 @@ notify {"$local_ip==$master_ip":}
        require => Exec['openstack_yaml']
               }
         }
-
+       
        'cinder-storage' : {
         exec{"cinder_storage_install":
        path => "/usr/bin:/bin",
@@ -95,15 +124,55 @@ notify {"$local_ip==$master_ip":}
        require => Exec['openstack_yaml']
                }
         }
-      'neutron' : {
-      
+       
+       'mongodb' : {
+       exec{"mongodb_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/icehouse/mongodb/mongodb.py",
+       timeout => 3600,
+       require => Exec['openstack_yaml']
+             }
         }
-      'compute' : {
 
+      'ceilometer' : {
+       exec{"ceilometer_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/icehouse/ceilometer/ceilometer.py",
+       timeout => 3600,
+       require => Exec['openstack_yaml']
+             }
         }
+       
+      'nova-api' : {
+       exec{"nova_api_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/icehouse/nova/nova.py",
+       timeout => 3600,
+       require => Exec['openstack_yaml']
+             }
+        }
+       
+      'nova-compute' : {
+       exec{"nova_compute_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/icehouse/novacompute/novacompute.py",
+       timeout => 3600,
+       require => Exec['openstack_yaml']
+             }
+        }
+        
+       'neutron-server' : {
+       exec{"neutron_server_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/icehouse/neutronserver/neutronserver.py",
+       timeout => 3600,
+       require => Exec['openstack_yaml']
+             }
+        }
+
 
       'rabbitmq' :
-        {
+	{
       $rabbitmq_vip = $fuel_settings['rabbitmq']
       class { 'rabbitmq_clu':
         installDir => $installDir,
@@ -111,10 +180,10 @@ notify {"$local_ip==$master_ip":}
         rabbitmq_vip => $rabbitmq_vip,
         master_ip => $master_ip,
             }
-        }
+	}
 
-        'horizon':
-        {
+	'horizon':
+	{
            exec{"horizon_install":
            path => "/usr/bin:/bin",
            command => "python /etc/puppet/fuel-python/openstack/icehouse/dashboard/dashboard.py",
@@ -122,10 +191,11 @@ notify {"$local_ip==$master_ip":}
            require => Exec['openstack_yaml']
            }
 
-        }
+	}
 
-      default  :
+      default  : {
      #   fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-        notify {"other $role...................................":}
+	notify {"other $role...................................":}
       }
       }
+
