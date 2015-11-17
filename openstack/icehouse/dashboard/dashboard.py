@@ -18,6 +18,9 @@ import sys
 import os
 import time
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
@@ -176,6 +179,17 @@ class Dashboard(object):
 #         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (httpdConfFileTemplatePath, httpdConfFileDir))
         ShellCmdExecutor.execCmd("cat %s > /tmp/httpd.conf" % httpdConfFileTemplatePath)
         ShellCmdExecutor.execCmd("mv /tmp/httpd.conf /etc/httpd/conf/")
+        pass
+    
+    @staticmethod
+    def configureDashboardRights():
+        if os.path.exists("/var/lib/openstack-dashboard") :
+            ShellCmdExecutor.execCmd("chmod 777 /var/lib/openstack-dashboard")
+            pass
+        
+        if os.path.exists("/usr/share/openstack-dashboard/openstack_dashboard/local") :
+            ShellCmdExecutor.execCmd("chmod 777 /usr/share/openstack-dashboard/openstack_dashboard/local")
+            pass
         pass
     pass
 

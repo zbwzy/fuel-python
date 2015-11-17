@@ -111,8 +111,18 @@ class NeutronServer(object):
         #Install Openstack network services
         yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch python-neutronclient which -y"
         ShellCmdExecutor.execCmd(yumCmd)
-        #On Controller node, do Nova.configAfterNetworkNodeConfiguration(), Nova.restart()
         print 'NeutronServer.install done####'
+        pass
+    
+    @staticmethod
+    def start():
+        ShellCmdExecutor.execCmd('service neutron-server start')
+        ShellCmdExecutor.execCmd('chkconfig neutron-server on')
+        pass
+    
+    @staticmethod
+    def restart():
+        ShellCmdExecutor.execCmd('service neutron-server restart')
         pass
     
     @staticmethod
@@ -121,18 +131,21 @@ class NeutronServer(object):
         
         NeutronServer.configML2()
         
-        ##########configure horizon conf dir rights
-        if os.path.exists("/var/lib/openstack-dashboard") :
-            ShellCmdExecutor.execCmd("chmod 777 /var/lib/openstack-dashboard")
-            pass
+        ShellCmdExecutor.execCmd('ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini')
         
-        if os.path.exists("/usr/share/openstack-dashboard/openstack_dashboard/local") :
-            ShellCmdExecutor.execCmd("chmod 777 /usr/share/openstack-dashboard/openstack_dashboard/local")
+        if NeutronServerHA.isMasterNode() :
+            importNeutronDBSchemaCmd = 'su -s /bin/sh -c "neutron-db-manage --config-file /etc/neutron/neutron.conf \
+            --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade juno" neutron'
+            output, exitcode = ShellCmdExecutor.execCmd(importNeutronDBSchemaCmd)
+            print 'importNeutronSchemaOutput=%s--' % output
             pass
         pass
-    
+        
     @staticmethod
     def getServiceTenantID():
+        #install keystone client
+        ShellCmdExecutor.execCmd('yum install python-keystoneclient -y')
+        
         serviceTenantIDScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server','serviceTenantID.sh')
         print 'serviceTenantIDScriptPath=%s' % serviceTenantIDScriptPath
         
@@ -167,8 +180,6 @@ class NeutronServer(object):
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
-        nova_admin_tenant_id = ''
-        
         print 'mysql_vip=%s' % mysql_vip
         print 'mysql_password=%s' % mysql_password
         print 'rabbit_hosts=%s' % rabbit_hosts
@@ -198,7 +209,6 @@ class NeutronServer(object):
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
         serviceTenantID = NeutronServer.getServiceTenantID()
-        
         FileUtil.replaceFileContent(neutron_conf_file_path, '<NOVA_ADMIN_TENANT_ID>', serviceTenantID  )
         FileUtil.replaceFileContent(neutron_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
@@ -223,7 +233,7 @@ class NeutronServer(object):
             ShellCmdExecutor.execCmd('rm -rf %s' % NeutronServer.NEUTRON_ML2_CONF_FILE_PATH)
             pass
         
-        NEUTRON_ML2_CONF_DIR = os.path.dirname(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH)
+        NEUTRON_ML2_CONF_DIR = '/etc/neutron/plugins/ml2/'
         neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini')
         ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_server_ml2_template_file_path, NEUTRON_ML2_CONF_DIR))
         pass

@@ -41,9 +41,8 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.keystone.keystone import Keystone
-from openstack.icehouse.keystone.keystone import KeystoneHA
-
+from openstack.icehouse.neutronserver.neutronserver import NeutronServer
+from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
 
 
 if __name__ == '__main__':
@@ -60,16 +59,15 @@ if __name__ == '__main__':
         print 'keystone initted####'
         print 'exit===='
     else :
-        Keystone.start()
-        Keystone.sourceAdminOpenRC()
+        NeutronServer.start()
         #add HA
-        KeystoneHA.install()
-        KeystoneHA.configure()
-        KeystoneHA.start()
+        NeutronServerHA.install()
+        NeutronServerHA.configure()
+        NeutronServerHA.start()
         
         ##########################
-        Keystone.restart()
-        KeystoneHA.start()
+        NeutronServer.restart()
+        NeutronServerHA.start()
         
     #     os.system("service openstack-keystone restart")
     #     

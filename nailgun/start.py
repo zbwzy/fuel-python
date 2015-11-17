@@ -21,8 +21,7 @@ else :
 
 class Params(object):
     OPENSTACK_ROLES = ['keystone', 'glance', 'cinder-api', 'cinder-storage', 'heat', 
-                       'horizon', 'nova-api', 'nova-compute','neutron-server', 'neutron', 
-                        'mongodb', 'ceilometer']
+                       'horizon', 'nova-api', 'nova-compute', 'ceilometer', 'neutron-server', 'neutron-agent']
     
     CLUSTER_IP_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/{cluster_id}/ip_map_role.json'
     CLUSTER_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/role_ip_map_{cluster_id}.json'
@@ -172,7 +171,21 @@ def getInitCmdByRole(role):
         initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/heat/initHeat.py'
         pass
     
+    if role == 'ceilometer' :
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ceilometer/initCeilometer.py'
+        pass
     
+    if role == 'nova-api' :
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/nova/initNova.py'
+        pass
+    
+    if role == 'nova-compute' :
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/novacompute/initNovaCompute.py'
+        pass
+    
+    if role == 'neutron-server' :
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/neutronserver/initNeutronServer.py'
+        pass
     
     
     return initCmd
@@ -218,10 +231,27 @@ if __name__ == '__main__':
             if role in activeRoles :
                 ip_list = activeRoleIPMap[role]
                 initCmd = getInitCmdByRole(role)
-                for ip in ip_list :
-                    execRemoteCmd(ip, 'echo `date` >> /tmp/testdate.txt', timeout=600)
-                    execRemoteCmd(ip, initCmd, timeout=600)
+                
+                if role == 'neutron-server' :
+                    #re-configure nova-api, then restart nova
+                    nova_ip_list = activeRoleIPMap['nova-api']
+                    reconfigureNovaCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/nova/configureNovaAfterNeutron.py'
+                    
+                    for nova_ip in nova_ip_list :
+                        execRemoteCmd(nova_ip, reconfigureNovaCmd, timeout=600)
+                        pass
+                    #start neutron-server, then configure neutron api cluster HA
+                    for ip in ip_list :
+                        execRemoteCmd(ip, initCmd, timeout=600)
+                        pass
                     pass
+                
+                else :
+                    for ip in ip_list :
+                        execRemoteCmd(ip, initCmd, timeout=600)
+                        pass
+                    pass
+                
                 time.sleep(2)
                 pass
             pass 
