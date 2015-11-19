@@ -220,7 +220,6 @@ class Ceilometer(object):
         ShellCmdExecutor.execCmd('mv -f /tmp/ceilometer.conf /etc/ceilometer/')
         ShellCmdExecutor.execCmd('rm -rf /tmp/ceilometer.conf')
         
-        
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % ceilometer_conf_file_path)
         
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<MONGODB_VIP>', mongodb_vip)

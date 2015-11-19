@@ -336,7 +336,6 @@ if __name__ == '__main__':
     if YAMLUtil.hasRoleInNodes(role):
         cinder_storage_ips_list = YAMLUtil.getRoleIPList(role)
         cinder_storage_ips = ','.join(cinder_storage_ips_list)
-        print 'cinder_storage_ips=%s--' % cinder_ips
         paramsMap['cinder_storage_ips'] = cinder_storage_ips
         pass
     
