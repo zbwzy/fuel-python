@@ -57,6 +57,36 @@ class HAProxy(object):
     pass
 
 
+class NeutronServer(object):
+    '''
+    classdocs
+    '''
+    NEUTRON_CONF_FILE_PATH = "/etc/neutron/neutron.conf"
+    NEUTRON_ML2_CONF_FILE_PATH = "/etc/neutron/plugins/ml2/ml2_conf.ini"
+    
+    def __init__(self):
+        '''
+        Constructor
+        '''
+        pass
+    
+    @staticmethod
+    def install():
+        print 'NeutronServer.install start===='
+        #Install Openstack network services
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch python-neutronclient which -y"
+        ShellCmdExecutor.execCmd(yumCmd)
+        
+        NeutronServer.configConfFile()
+        #On Controller node, do Nova.configAfterNetworkNodeConfiguration(), Nova.restart()
+        print 'NeutronServer.install done####'
+        pass
+    
+    @staticmethod
+    def configConfFile():
+        pass
+
+
         
 class Network(object):
     '''
@@ -75,10 +105,7 @@ class Network(object):
     def install():
         print 'Network.install start===='
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron \
-        openstack-neutron-ml2 openstack-neutron-openvswitch \
-        python-neutronclient which -y"
-        
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch python-neutronclient which -y"
         ShellCmdExecutor.execCmd(yumCmd)
         
         Network.configConfFile()
@@ -98,29 +125,6 @@ class Network(object):
         Network.startNeutron()
         print 'Network.install done####'
         pass
-    
-    @staticmethod
-    def configL3Agent():
-        
-        pass
-    
-    @staticmethod
-    def configDHCPAgent():
-        
-        pass
-    
-    
-    @staticmethod
-    def configMetadataAgent():
-        
-        pass
-    
-    @staticmethod
-    def configOVS():
-        
-        pass
-    
-    
     
     @staticmethod
     def startNeutron():

@@ -176,7 +176,9 @@ class Ceilometer(object):
         
         mongodb_vip = ceilometer_mongo_password = JSONUtility.getValue("mongodb_vip")
         ceilometer_mongo_password = JSONUtility.getValue("ceilometer_mongo_password")
-        metering_secret = Ceilometer.getMeteringSecret()
+        
+        metering_secret = JSONUtility.getValue("ceilometer_metering_secret")
+#         metering_secret = Ceilometer.getMeteringSecret()
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')

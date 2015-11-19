@@ -425,6 +425,10 @@ if __name__ == '__main__':
         paramsMap['ceilometer_mongo_user'] = ceilometer_mongo_user
         paramsMap['ceilometer_mongo_password'] = ceilometer_mongo_password
         paramsMap['ceilometer_ips'] = ceilometer_ips
+        
+        #REFACTOR LATER
+        ceilometer_metering_secret = '7c1edcdfc1b2841c21ff'
+        paramsMap['ceilometer_metering_secret'] = ceilometer_metering_secret
         pass
     
     openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
