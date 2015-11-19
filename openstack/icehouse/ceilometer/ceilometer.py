@@ -174,7 +174,7 @@ class Ceilometer(object):
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
-        mongodb_vip = ceilometer_mongo_password = JSONUtility.getValue("mongodb_vip")
+        mongodb_vip = JSONUtility.getValue("mongodb_vip")
         ceilometer_mongo_password = JSONUtility.getValue("ceilometer_mongo_password")
         
         metering_secret = JSONUtility.getValue("ceilometer_metering_secret")
