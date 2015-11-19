@@ -1,9 +1,44 @@
 '''
-Created on Aug 27, 2015
+Created on Sept 26, 2015
 
 @author: zhangbai
 '''
+
+'''
+usage:
+
+python network.py
+
+NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
+'''
+import sys
+import os
+import time
+
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+debug = False
+
+if debug == True :
+    #MODIFY HERE WHEN TEST ON HOST
+    PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
+    pass
+else :
+    # The real dir in which this project is deployed on PROD env.
+    PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
+    pass
+
+OPENSTACK_VERSION_TAG = 'icehouse'
+OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
+
+sys.path.append(PROJ_HOME_DIR)
+
+
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
+from common.json.JSONUtil import JSONUtility
+from common.properties.PropertiesUtil import PropertiesUtility
+from common.file.FileUtil import FileUtil
 
 class Prerequisites(object):
     '''
@@ -25,9 +60,16 @@ net.ipv4.ip_forward=1
 net.ipv4.conf.all.rp_filter=0
 net.ipv4.conf.default.rp_filter=0
         '''
+        if os.path.exists('/etc/sysctl.conf') :
+            ShellCmdExecutor.execCmd("rm -rf /etc/sysctl.conf")
+            pass
         
+        sysctl_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'sysctl.conf')
+        ShellCmdExecutor.execCmd('cat %s > /tmp/sysctl.conf' % sysctl_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/sysctl.conf /etc/')
         #reload sys configuration
-        ShellCmdExecutor.execCmd("sysctl -p")
+        output, exitcode = ShellCmdExecutor.execCmd("sysctl -p")
+        print 'configSysCtlConfFile.output=%s--' % output
         pass
     
     @staticmethod
@@ -37,27 +79,7 @@ net.ipv4.conf.default.rp_filter=0
         print 'Prerequisites.install done####'
         pass
     
-class HAProxy(object):
-    '''
-    classdocs
-    '''
-    NEUTRON_CONF_FILE_PATH = "/etc/neutron/neutron.conf"
-    NEUTRON_ML2_CONF_FILE_PATH = "/etc/neutron/plugins/ml2/ml2_conf.ini"
-    
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def install():
-        ShellCmdExecutor.execCmd("yum install haproxy -y")
-        pass
-    pass
 
-
-        
 class Network(object):
     '''
     classdocs
@@ -74,6 +96,7 @@ class Network(object):
     @staticmethod
     def install():
         print 'Network.install start===='
+        Prerequisites.install()
         #Install Openstack network services
         yumCmd = "yum install openstack-neutron \
         openstack-neutron-ml2 openstack-neutron-openvswitch \
@@ -146,6 +169,7 @@ class Network(object):
     @staticmethod
     def configConfFile():
         #Use conf file template to replace conf file 
+        #configure neutron.conf on network node
         '''
 1.configure /etc/neutron/neutron.conf
 
@@ -192,6 +216,20 @@ admin_password=123456
 nova_metadata_ip=192.168.XX.XX    # controller node ip
 metadata_proxy_shared_secret=123456    #The same with nova.conf
 
+        '''
+        if os.path.exists(Network.NEUTRON_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_CONF_FILE_PATH)
+            pass
+        
+        neutron_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'neutron.conf')
+        ShellCmdExecutor.execCmd("cat %s > /tmp/neutron.conf" % neutron_template_conf_file_path)
+        ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
+        
+        '''
+        rabbit_host
+        rabbit_userid
+        rabbit_password
+        
         '''
         pass
     
