@@ -60,7 +60,12 @@ if __name__ == '__main__':
     else :
         
         print 'start to install======='
-        
+        #Glance DB Schema
+        if GlanceHA.isMasterNode() :
+            dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'glance_dbschema_init.sh')
+            ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
+            ShellCmdExecutor.execCmd('bash /opt/glance_dbschema_init.sh')
+            pass
         #
         Glance.sourceAdminOpenRC()
         

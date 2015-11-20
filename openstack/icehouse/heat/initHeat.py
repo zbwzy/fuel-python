@@ -64,6 +64,13 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
+        #Heat DB Schema
+        if HeatHA.isMasterNode() :
+            dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'heat', 'heat_dbschema_init.sh')
+            ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
+            ShellCmdExecutor.execCmd('bash /opt/heat_dbschema_init.sh')
+            pass
+        
         Heat.start()
         
         ## Heat HA

@@ -51,6 +51,12 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
+        #Nova DB Schema
+        if NovaHA.isMasterNode() :
+            dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'nova_dbschema_init.sh')
+            ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
+            ShellCmdExecutor.execCmd('bash /opt/nova_dbschema_init.sh')
+            pass
 
         Nova.start()
         
