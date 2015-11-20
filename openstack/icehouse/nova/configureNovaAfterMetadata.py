@@ -36,57 +36,39 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-    
+
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:confiugre nova after neutron============'
+    print 'hello openstack-icehouse:confiugre nova after metadata agent============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    TAG_FILE = '/opt/configureNovaAfterNeutron'
+    TAG_FILE = '/opt/configureNovaAfterMetadata'
     if os.path.exists(TAG_FILE) :
-        print 'After neutron, nova configured####'
+        print 'When configure metadata-agent on neutron-agent, nova configured####'
         print 'exit===='
         pass
     else :
+        print 'When configure metadata-agent on neutron-agent, start to configure nova-api========='
         neutron_vip = JSONUtility.getValue("neutron_vip")
         keystone_vip = JSONUtility.getValue("keystone_vip")
         
-        APIsAndDrivers = '''
-network_api_class = nova.network.neutronv2.api.API
-security_group_api = neutron
-linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
-firewall_driver = nova.virt.firewall.NoopFirewallDriver
-'''
-        APIsAndDrivers = APIsAndDrivers.strip()
+        metadata_secret = JSONUtility.getValue("metadata_secret")
         
-        AccessParameters = '''
-[neutron]
-url = http://<NEUTRON_VIP>:9696
-auth_strategy = keystone
-admin_auth_url = http://<KEYSTONE_VIP>:35357/v2.0
-admin_tenant_name = service
-admin_username = neutron
-admin_password = <NEUTRON_PASS>
+        #MetadataConfiguration
+        metadata_configuration = '''
+service_metadata_proxy = True
+metadata_proxy_shared_secret = <METADATA_SECRET>
         '''
         
-        AccessParameters = AccessParameters.strip()
-        AccessParameters = AccessParameters.replace('<NEUTRON_VIP>', neutron_vip)
-        AccessParameters = AccessParameters.replace('<KEYSTONE_VIP>', keystone_vip)
-        
-        neutron_pass = '123456'
-        AccessParameters = AccessParameters.replace('<NEUTRON_PASS>', neutron_pass)
+        metadata_configuration = metadata_configuration.strip()
+        metadata_configuration = metadata_configuration.replace('<METADATA_SECRET>', metadata_secret)
         
         NOVA_API_CONF_FILE_PATH = '/etc/nova/nova.conf'
-        
-        FileUtil.replaceFileContent(NOVA_API_CONF_FILE_PATH, '#APIsAndDrivers', APIsAndDrivers)
-        FileUtil.replaceFileContent(NOVA_API_CONF_FILE_PATH, '#AccessParameters', AccessParameters)
-        
+        FileUtil.replaceFileContent(NOVA_API_CONF_FILE_PATH, '#MetadataConfiguration', metadata_configuration)
         ShellCmdExecutor.execCmd('service openstack-nova-api restart')
-        ShellCmdExecutor.execCmd('service openstack-nova-scheduler restart')
-        ShellCmdExecutor.execCmd('service openstack-nova-conductor restart')
         
         os.system('touch %s' % TAG_FILE)
         pass
-    print 'Nova is configured after neutron#######'
+    print 'Nova is configured after metadata configured#######'
     pass
 

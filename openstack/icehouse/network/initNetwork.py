@@ -7,7 +7,7 @@ Created on Oct 18, 2015
 '''
 usage:
 
-python initNova.py
+python initNetwork.py
 
 NOTE: the params is from conf/openstack_params.json, this file is initialized when user drives FUEL to install env.
 '''
@@ -37,33 +37,21 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.nova.nova import Nova
-from openstack.icehouse.nova.nova import NovaHA
+from openstack.icehouse.network.network import Network
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:nova-api============'
+    print 'hello openstack-icehouse:network============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/initNovaApi'
+    INSTALL_TAG_FILE = '/opt/initNetwork'
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'nova-api initted####'
+        print 'network initted####'
         print 'exit===='
         pass
     else :
-
-        Nova.start()
-        
-        ## Nova HA
-        NovaHA.install()
-        NovaHA.configure()
-        NovaHA.start()
-        #
-        
-        Nova.restart()
-        NovaHA.start()
-
-        #mark: nova-api is installed
+        Network.finalizeInstallation()
+        #mark: network is initted
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello nova-api initted#######'
     pass

@@ -86,6 +86,9 @@ class Network(object):
     '''
     NEUTRON_CONF_FILE_PATH = "/etc/neutron/neutron.conf"
     NEUTRON_ML2_CONF_FILE_PATH = "/etc/neutron/plugins/ml2/ml2_conf.ini"
+    NEUTRON_L3_CONF_FILE_PATH = "/etc/neutron/l3_agent.ini"
+    NEUTRON_DHCP_CONF_FILE_PATH = "/etc/neutron/dhcp_agent.ini"
+    NEUTRON_METADATA_CONF_FILE_PATH = "/etc/neutron/metadata_agent.ini"
     
     def __init__(self):
         '''
@@ -105,45 +108,98 @@ class Network(object):
         ShellCmdExecutor.execCmd(yumCmd)
         
         Network.configConfFile()
-        #On Controller node, do Nova.configAfterNetworkNodeConfiguration(), Nova.restart()
         
-        Network.configML2()
-        Network.startOVS()
-        Network.addNetworkBridgeCard2OVS()
-        
-        # create soft link: from ml2_conf.ini to plugin.ini
-        ShellCmdExecutor.execCmd("ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini")
-        
-        # create neutron-openvswitch-agent
-        ShellCmdExecutor.execCmd("cp /etc/init.d/neutron-openvswitch-agent /etc/init.d/neutron-openvswitch-agent.orig")
-        ShellCmdExecutor.execCmd("sed -i 's,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g' /etc/init.d/neutron-openvswitch-agent")
-       
-        Network.startNeutron()
         print 'Network.install done####'
         pass
     
     @staticmethod
-    def configL3Agent():
+    def configML2():
+        if os.path.exists(Network.NEUTRON_ML2_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_ML2_CONF_FILE_PATH)
+            pass
         
+        ml2_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'ml2_conf.ini') 
+        ShellCmdExecutor.execCmd('cat %s > /tmp/ml2_conf.ini' % ml2_template_conf_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/ml2_conf.ini /etc/neutron/plugins/ml2/')
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        
+        FileUtil.replaceFileContent(Network.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localIP)
+        pass
+    
+    @staticmethod
+    def configL3Agent():
+        if os.path.exists(Network.NEUTRON_L3_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_L3_CONF_FILE_PATH)
+            pass
+        
+        neutron_l3_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'l3_agent.ini')
+        print 'neutron_l3_template_conf_file_path=%s--' % neutron_l3_template_conf_file_path
+        ShellCmdExecutor.execCmd('cat %s > /tmp/l3_agent.ini' % neutron_l3_template_conf_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/l3_agent.ini /etc/neutron/')
         pass
     
     @staticmethod
     def configDHCPAgent():
+        if os.path.exists(Network.NEUTRON_DHCP_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_DHCP_CONF_FILE_PATH)
+            pass
         
+        neutron_dhcp_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'dhcp_agent.ini')
+        print 'neutron_dhcp_template_conf_file_path=%s--' % neutron_dhcp_template_conf_file_path
+        ShellCmdExecutor.execCmd('cat %s > /tmp/dhcp_agent.ini' % neutron_dhcp_template_conf_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/dhcp_agent.ini /etc/neutron/')
         pass
-    
     
     @staticmethod
     def configMetadataAgent():
+        if os.path.exists(Network.NEUTRON_METADATA_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_METADATA_CONF_FILE_PATH)
+            pass
         
+        neutron_metadata_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'metadata_agent.ini')
+        ShellCmdExecutor.execCmd('cat %s > /tmp/metadata_agent.ini' % neutron_metadata_template_conf_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/metadata_agent.ini /etc/neutron/')
+        
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        nova_vip = JSONUtility.getValue("nova_vip")
+        #REFACTOR LATER
+        neutron_admin_password = '123456'
+        
+        metadata_secret = JSONUtility.getValue("metadata_secret")
+        
+        FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<NOVA_VIP>', nova_vip)
+        FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<NEUTRON_PASS>', neutron_admin_password)
+        FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<METADATA_SECRET>', metadata_secret)
         pass
     
     @staticmethod
     def configOVS():
+        output, exitcode = ShellCmdExecutor.execCmd('service openvswitch restart')
+        print 'start openvswitch, output=%s' % output
+        
+        #Add the external bridge:
+        ShellCmdExecutor.execCmd('ovs-vsctl add-br br-ex')
+        
+        #Add a port to the external bridge that connects to the physical external network interface:
+        #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
+        #REFACTOR LATER
+        physical_external_network_interface = 'eth2'
+        ShellCmdExecutor.execCmd('ovs-vsctl add-port br-ex %s' % physical_external_network_interface)
         
         pass
     
-    
+    @staticmethod
+    def finalizeInstallation():
+        ShellCmdExecutor.execCmd('ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini')
+        ShellCmdExecutor.execCmd('sed -i \'s,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g\' /etc/init.d/neutron-openvswitch-agent')
+        ShellCmdExecutor.execCmd('cp /etc/init.d/neutron-openvswitch-agent /etc/init.d/neutron-openvswitch-agent.orig')
+        
+        ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron')
+        Network.startNeutron()
+        pass
     
     @staticmethod
     def startNeutron():
@@ -157,6 +213,13 @@ class Network(object):
         ShellCmdExecutor.execCmd("chkconfig neutron-dhcp-agent on")
         ShellCmdExecutor.execCmd("chkconfig neutron-metadata-agent on")
         pass
+    
+    @staticmethod
+    def restartNeutron():
+        ShellCmdExecutor.execCmd("service neutron-openvswitch-agent restart")
+        ShellCmdExecutor.execCmd("service neutron-l3-agent restart")
+        ShellCmdExecutor.execCmd("service neutron-dhcp-agent restart")
+        ShellCmdExecutor.execCmd("service neutron-metadata-agent restart")
     
     @staticmethod
     def stopNeutron():
@@ -217,6 +280,7 @@ nova_metadata_ip=192.168.XX.XX    # controller node ip
 metadata_proxy_shared_secret=123456    #The same with nova.conf
 
         '''
+        #configure /etc/neutron/neutron.conf
         if os.path.exists(Network.NEUTRON_CONF_FILE_PATH) :
             ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_CONF_FILE_PATH)
             pass
@@ -225,42 +289,30 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         ShellCmdExecutor.execCmd("cat %s > /tmp/neutron.conf" % neutron_template_conf_file_path)
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
-        '''
-        rabbit_host
-        rabbit_userid
-        rabbit_password
+        rabbit_host = JSONUtility.getValue("rabbit_host")
+        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
+        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_password = JSONUtility.getValue("rabbit_password")
         
-        '''
-        pass
-    
-    @staticmethod
-    def configML2():
-        '''
-1. on Network Node: configure ML2 on Network node:
-modify /etc/neutron/plugins/ml2/ml2_conf.ini
-
-[ml2]
-type_driver=gre,flat
-tenant_network_types=gre,flat
-mechanism_drivers=openvswitch
-
-[ml2_type_flat]
-flat_networks = physnet1
-
- [ml2_type_gre]
-tunnel_id_ranges =1:1000
-
-[securitygroup]
-firewall_driver=neutron.agent.linux.iptables_firewall.OVSHybridIptablesFirewallDriver
-enable_security_group=true
-
-[ovs]
-local_ip = 192.168.XXX.XXX  # network node ip address
-tunnel_type = gre
-enable_tunneling = True
-bridge_mappings=physnet1:br-eth0
-
-        '''
+        keystone_vip = JSONUtility.getValue("keystone_vip")
+        #REFACTOR LATER
+        neutron_admin_password = '123456'
+        
+        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_PASSWORD>', rabbit_password)
+        
+        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<NEUTRON_PASS>', neutron_admin_password)
+        #configure agent
+        Network.configML2()
+        Network.configL3Agent()
+        Network.configDHCPAgent()
+        Network.configMetadataAgent()
+        Network.configOVS()
+        #######
+        
+        ShellCmdExecutor.execCmd('chown -R neutron:neutron %s' % Network.NEUTRON_CONF_FILE_PATH)
         pass
     
     @staticmethod
@@ -383,7 +435,16 @@ device_driver = neutron.services.loadbalancer.drivers.haproxy.namespace_driver.H
 
 if __name__ == '__main__':
     print 'openstack-icehouse:network start============'
-    Network.install()
+    INSTALL_TAG_FILE = '/opt/network_installed'
+    
+    if os.path.exists(INSTALL_TAG_FILE) :
+        print 'network installed####'
+        print 'exit===='
+        pass
+    else :
+        Network.install()
+        Network.configConfFile()
+        
     print 'openstack-icehouse:network done#######'
     pass
 
