@@ -187,6 +187,10 @@ def getInitCmdByRole(role):
         initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/neutronserver/initNeutronServer.py'
         pass
     
+    if role == 'neutron-agent' :
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network/initNetwork.py'
+        pass
+    
     
     return initCmd
     
@@ -246,13 +250,27 @@ if __name__ == '__main__':
                         pass
                     pass
                 
+                elif role == 'neutron-agent' :
+                    #re-configure nova-api, then restart nova-api
+                    nova_ip_list = activeRoleIPMap['nova-api']
+                    reconfigureNovaCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/nova/configureNovaAfterMetadata.py'
+                    
+                    for nova_ip in nova_ip_list :
+                        execRemoteCmd(nova_ip, reconfigureNovaCmd, timeout=600)
+                        pass
+                    
+                    for ip in ip_list :
+                        execRemoteCmd(ip, initCmd, timeout=600)
+                        pass
+                    pass
+                
                 else :
                     for ip in ip_list :
                         execRemoteCmd(ip, initCmd, timeout=600)
                         pass
                     pass
                 
-                time.sleep(2)
+                time.sleep(1)
                 pass
             pass
         

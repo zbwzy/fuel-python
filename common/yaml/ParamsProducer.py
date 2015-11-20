@@ -55,6 +55,17 @@ class ParamsProducer(object):
     def produceIPList(role):
         YAMLUtil.writeIPList(role)
         pass
+    
+    @staticmethod
+    def isExistElementInArray(element, arrayList):
+        boolResult = False
+        for e in arrayList :
+            if element == e :
+                boolResult = True
+                break
+            pass
+        
+        return boolResult
     pass
 
 if __name__ == '__main__':
@@ -72,6 +83,8 @@ if __name__ == '__main__':
     print 'produce all params in /opt/openstack_conf/openstack_params.json'
     paramsMap = {}
     print 'mysql============================'
+    #Judge whether current host is mysql role
+    is_mysql_role_file_path = '/opt/is_mysql_role'
     role = 'mysql'
     if YAMLUtil.hasRoleInNodes(role):
         key = 'mysql_vip'
@@ -98,7 +111,17 @@ if __name__ == '__main__':
         paramsMap['mysql_password'] = mysql_root_password
         paramsMap['mysql_ips'] = mysql_ips
         
-    
+        if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), mysql_ips_list) :
+            FileUtil.writeContent(is_mysql_role_file_path, 'true')
+            pass
+        else:
+            FileUtil.writeContent(is_mysql_role_file_path, 'false')
+            pass
+        pass
+    else :
+        FileUtil.writeContent(is_mysql_role_file_path, 'false')
+        pass
+        
     print 'rabbitmq========================'
     role = 'rabbitmq'
     if YAMLUtil.hasRoleInNodes(role):
@@ -139,11 +162,11 @@ if __name__ == '__main__':
         paramsMap['rabbit_vip_interface'] = rabbit_vip_interface
         paramsMap['rabbit_userid'] = rabbit_userid
         paramsMap['rabbit_password'] = rabbit_password
-        
         pass
     
     print 'keystone========================='
     role = 'keystone'
+    is_keystone_role_file_path = '/opt/is_keystone_role'
     if YAMLUtil.hasRoleInNodes(role):
         key = 'keystone_vip'
         keystone_vip = YAMLUtil.getValue(role, key)
@@ -171,6 +194,15 @@ if __name__ == '__main__':
         paramsMap['keystone_mysql_password'] = keystone_mysql_password
         paramsMap['keystone_ips'] = keystone_ips
         
+        if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), keystone_ips_list) :
+            FileUtil.writeContent(is_keystone_role_file_path, 'true')
+            pass
+        else:
+            FileUtil.writeContent(is_keystone_role_file_path, 'false')
+            pass
+        pass
+    else :
+        FileUtil.writeContent(is_keystone_role_file_path, 'false')
         pass
     
     print 'glance====================================='
@@ -372,6 +404,9 @@ if __name__ == '__main__':
         neutron_service_ips = ','.join(neutron_service_ips_list)
         print 'neutron_service_ips=%s--' % neutron_service_ips
         paramsMap['neutron_service_ips'] = neutron_service_ips
+        
+        #REFACTOR LATER
+        paramsMap['metadata_secret'] = '123456'
         pass
     
     print 'mongodb==========================================='
