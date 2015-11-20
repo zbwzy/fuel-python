@@ -4,10 +4,16 @@ $local_ip = $::ipaddress
 $master_ip = $fuel_settings['masterip']
 $installDir ='/home/app'
 $role = $fuel_settings['role']
-$mysql_role = $fuel_settings['mysql']
-$keystone_role = $fuel_settings['keystone']
+
+stage {'zero': } ->
+
+stage {'first': } 
+
+class {'initParams': stage => 'zero'}
+class {'begin_deploy': stage=> 'first'}
 
 
+class initParams{
 
 exec {"fuel_python_dir":
      path => "/usr/bin:/bin",
@@ -23,11 +29,6 @@ creates => "/tmp/test1"
 }
 
 
-#exec {"openstack_json":
-#     path => "/usr/bin:/bin",
-#     command => "cp -f /etc/puppet/fuel-python/conf/openstack_params.json /etc/puppet/openstack_conf ",
-#}
-
 
 exec {"openstack_yaml":
      path => "/usr/bin:/bin",
@@ -35,15 +36,20 @@ exec {"openstack_yaml":
 }
 
 
-#########################################################
-######haproxy keepalived
-###########################################################
-notify {"$local_ip==$master_ip":}
+
+
+}
+
+class begin_deploy {
+
+
+
+notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
 
   case $role {
       'mysql' : {
 		
-	if $keystone_role == ''
+	if file('/opt/is_keystone_role') == 'false'
 	{
 	  class { 'mysql_galera':
         installDir => $installDir,
@@ -56,7 +62,7 @@ notify {"$local_ip==$master_ip":}
       }
 
       'keystone' : {
-	if $mysql_role ==''
+	if file('/opt/is_mysql_role') =='true'
 		{
        exec{"keystone_install":
        path => "/usr/bin:/bin",
@@ -169,6 +175,15 @@ notify {"$local_ip==$master_ip":}
        require => Exec['openstack_yaml']
              }
         }
+        
+        'neutron-agent' : {
+       exec{"neutron_agent_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/icehouse/network/network.py",
+       timeout => 3600,
+       require => Exec['openstack_yaml']
+             }
+        }
 
 
       'rabbitmq' :
@@ -179,6 +194,7 @@ notify {"$local_ip==$master_ip":}
         guest_passwd => "123456",
         rabbitmq_vip => $rabbitmq_vip,
         master_ip => $master_ip,
+       require => Exec['openstack_yaml']
             }
 	}
 
@@ -197,5 +213,9 @@ notify {"$local_ip==$master_ip":}
      #   fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
 	notify {"other $role...................................":}
       }
+
+
+
+}
       }
 
