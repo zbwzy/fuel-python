@@ -65,7 +65,7 @@ firewall_driver = nova.virt.firewall.NoopFirewallDriver
 [neutron]
 url = http://<NEUTRON_VIP>:9696
 auth_strategy = keystone
-admin_auth_url = http://<KEYSTONE_VIP:35357/v2.0
+admin_auth_url = http://<KEYSTONE_VIP>:35357/v2.0
 admin_tenant_name = service
 admin_username = neutron
 admin_password = <NEUTRON_PASS>
