@@ -9,11 +9,13 @@ stage {'zero': } ->
 
 stage {'first': } 
 
-class {'initParams': stage => 'zero'}
-class {'begin_deploy': stage=> 'first'}
+class {'initParam': stage => 'zero'}
+class {'begin_deploye': stage=> 'first'}
 
 
-class initParams{
+class initParam{
+
+
 
 exec {"fuel_python_dir":
      path => "/usr/bin:/bin",
@@ -40,7 +42,7 @@ exec {"openstack_yaml":
 
 }
 
-class begin_deploy {
+class begin_deploye {
 
 
 
@@ -175,8 +177,8 @@ notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
        require => Exec['openstack_yaml']
              }
         }
-        
-        'neutron-agent11' : {
+
+       'neutron-agent' : {
        exec{"neutron_agent_install":
        path => "/usr/bin:/bin",
        command => "python /etc/puppet/fuel-python/openstack/icehouse/network/network.py",
