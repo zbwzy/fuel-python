@@ -69,7 +69,7 @@ if __name__ == '__main__':
         if CinderHA.isMasterNode() :
             dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_dbschema_init.sh')
             ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
-            ShellCmdExecutor.execCmd('bash /opt/cinder_dbschema_init.sh')
+#             ShellCmdExecutor.execCmd('bash /opt/cinder_dbschema_init.sh')
             pass
         
         Cinder.start()
