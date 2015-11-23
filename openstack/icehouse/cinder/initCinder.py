@@ -43,11 +43,11 @@ from openstack.icehouse.cinder.cinder import CinderHA
 if __name__ == '__main__':
     print 'hello openstack-icehouse:cinder============'
     print 'start time: %s' % time.ctime()
-    dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_dbschema_init.sh')
-    print 'dbSchema_init_script_path=%s' % dbSchema_init_script_path
-    ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
-    ShellCmdExecutor.execCmd('bash /opt/cinder_dbschema_init.sh')
-    exit()
+#     dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_dbschema_init.sh')
+#     print 'dbSchema_init_script_path=%s' % dbSchema_init_script_path
+#     ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
+#     ShellCmdExecutor.execCmd('bash /opt/cinder_dbschema_init.sh')
+#     exit()
     
     debug = False
     if debug :

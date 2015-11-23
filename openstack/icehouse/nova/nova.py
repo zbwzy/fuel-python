@@ -258,6 +258,9 @@ vif_plugging_timeout=0
         if os.path.exists(LIB_NOVA_DIR) :
             ShellCmdExecutor.execCmd('chown -R nova:nova %s' % LIB_NOVA_DIR)
             pass
+        
+        if os.path.exists('/etc/nova/') :
+            ShellCmdExecutor.execCmd("chown -R nova:nova /etc/nova")
         pass
     
 

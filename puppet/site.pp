@@ -176,7 +176,7 @@ notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
              }
         }
         
-        'neutron-agent' : {
+        'neutron-agent11' : {
        exec{"neutron_agent_install":
        path => "/usr/bin:/bin",
        command => "python /etc/puppet/fuel-python/openstack/icehouse/network/network.py",

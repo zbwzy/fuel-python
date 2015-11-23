@@ -399,7 +399,7 @@ class LoadBalance(object):
         '''
         pass
     
-    @staticmethod()
+    @staticmethod
     def install():
         '''
 1)    on Neutron-Controller and Network: neutron.conf
@@ -422,12 +422,12 @@ device_driver = neutron.services.loadbalancer.drivers.haproxy.namespace_driver.H
         ShellCmdExecutor.execCmd("chkconfig neutron-lbaas-agent on")
         pass
     
-    @staticmethod()
+    @staticmethod
     def start():
         ShellCmdExecutor.execCmd("/etc/init.d/neutron-lbaas-agent start")
         pass
     
-    @staticmethod()
+    @staticmethod
     def restart():
         ShellCmdExecutor.execCmd("/etc/init.d/neutron-lbaas-agent restart")
         pass
