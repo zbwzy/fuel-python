@@ -259,12 +259,19 @@ if __name__ == '__main__':
                     nova_ip_list = activeRoleIPMap['nova-api']
                     reconfigureNovaCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/nova/configureNovaAfterMetadata.py'
                     
+                    #re-configure nova-api
                     for nova_ip in nova_ip_list :
                         execRemoteCmd(nova_ip, reconfigureNovaCmd, timeout=600)
                         pass
                     
                     for ip in ip_list :
                         execRemoteCmd(ip, initCmd, timeout=600)
+                        pass
+                    #re-configure nova-compute
+                    nova_compute_ip_list = activeRoleIPMap['nova-compute']
+                    reconfigureNovaComputeCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/novacompute/configureNovaComputeAfterNeutron.py'
+                    for nova_compute_ip in nova_compute_ip_list :
+                        execRemoteCmd(nova_compute_ip, reconfigureNovaComputeCmd, timeout=600)
                         pass
                     pass
                 
