@@ -1643,242 +1643,241 @@ if __name__ == '__main__':
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'openstack db is initted####'
         print 'exit===='
-        exit()
         pass
+    else :
+        print 'start to init======='
         
-    print 'start to init======='
-    
-    Prerequisites.prepare()
-    
-    #init mysql password
-    user = 'root'
-    initPasswd = JSONUtility.getValue('mysql_password')
-    print 'initPasswd=%s--' % initPasswd
-    MySQL.initPassword(user, initPasswd)
-    
-    
-    flushCmd = 'flush privileges;'
-    output, exitcode = ShellCmdExecutor.execCmd('hostname')
-    hostname = output.strip()
-    print 'init============================================'
-    #keystone
-    if YAMLUtil.hasRoleInNodes('keystone') :
-        createDBCmd = 'CREATE DATABASE keystone'
-        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+        Prerequisites.prepare()
         
-        grantCmd1 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        print 'grantCmd1=%s--' % grantCmd1
-        grantCmd2 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        print 'grantCmd2=%s--' % grantCmd2
+        #init mysql password
+        user = 'root'
+        initPasswd = JSONUtility.getValue('mysql_password')
+        print 'initPasswd=%s--' % initPasswd
+        MySQL.initPassword(user, initPasswd)
         
-        grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(hostname=hostname,init_passwd=initPasswd)
         
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-    
-    ########
-        Keystone.install()
+        flushCmd = 'flush privileges;'
+        output, exitcode = ShellCmdExecutor.execCmd('hostname')
+        hostname = output.strip()
+        print 'init============================================'
+        #keystone
+        if YAMLUtil.hasRoleInNodes('keystone') :
+            createDBCmd = 'CREATE DATABASE keystone'
+            MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            grantCmd1 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            print 'grantCmd1=%s--' % grantCmd1
+            grantCmd2 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            print 'grantCmd2=%s--' % grantCmd2
+            
+            grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(hostname=hostname,init_passwd=initPasswd)
+            
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+        
         ########
-        Keystone.configConfFile()
+            Keystone.install()
+            ########
+            Keystone.configConfFile()
+             
+            Keystone.importKeystoneDBSchema()
+            #######
+            Keystone.supportPKIToken()
+                     
+            Keystone.start()
+            
+    #         KeystoneHA.install()
+    #         KeystoneHA.configure()
+    #         KeystoneHA.start()
+            
+            ####NEW
+            Keystone.configureEnvVar()
+            Keystone.sourceAdminOpenRC()####NEW
+            Keystone.initKeystone()
+            Keystone.sourceAdminOpenRC()
+        
+        #glance
+        if YAMLUtil.hasRoleInNodes('glance') :
+            createDBCmd = 'CREATE DATABASE glance'
+            MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            grantCmd1 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantCmd2 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantToHostname = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(hostname=hostname,init_passwd=initPasswd)
+            
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            Glance.install()
+            Glance.configConfFile()
+            
+            Keystone.sourceAdminOpenRC()
+            Glance.initGlance()
+        
+        #nova
+        if YAMLUtil.hasRoleInNodes('nova-api') :
+            createDBCmd = 'CREATE DATABASE nova'
+            MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            grantCmd1 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantCmd2 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantToHostname = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(hostname=hostname,init_passwd=initPasswd)
+            
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            ##nova
+            Nova.install()
+            ShellCmdExecutor.execCmd('chmod 777 /etc/nova')
+            Nova.configConfFile()
+            
+            Keystone.sourceAdminOpenRC()
+            Nova.initNova()
+        
+        #neutron
+        if YAMLUtil.hasRoleInNodes('neutron-server') :
+            createDBCmd = 'CREATE DATABASE neutron'
+            MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            grantCmd1 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantCmd2 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantToHostname = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(hostname=hostname,init_passwd=initPasswd)
+            
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            Keystone.sourceAdminOpenRC()
+            Neutron.initNeutron()
+        
+        #cinder
+        if YAMLUtil.hasRoleInNodes('cinder-api') :
+            createDBCmd = 'CREATE DATABASE cinder'
+            MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            grantCmd1 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantCmd2 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'cinder\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(hostname=hostname,init_passwd=initPasswd)
+            
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            ####Special handling
+            if os.path.isfile('/etc/cinder') :
+                ShellCmdExecutor.execCmd("rm -rf /etc/cinder")
+                pass
+            
+            ShellCmdExecutor.execCmd("yum remove openstack-cinder -y")
+            ##########
+            
+            Cinder.install()
+            Cinder.configConfFile()
+            
+            Keystone.sourceAdminOpenRC()
+            Cinder.initCinder()
+            pass
+        
+        #ceilometer
+        if YAMLUtil.hasRoleInNodes('ceilometer') :
+            Ceilometer.initCeilometer()
+            pass
+            
+        
+        #heat
+        if YAMLUtil.hasRoleInNodes('heat') :
+            createDBCmd = 'CREATE DATABASE heat'
+            MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            grantCmd1 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantCmd2 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(init_passwd=initPasswd)
+            
+            grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'heat\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+            .format(hostname=hostname,init_passwd=initPasswd)
+            
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+            MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            Heat.install()
+            heatConfDir = '/etc/heat'
+            if os.path.exists(heatConfDir) :
+                ShellCmdExecutor.execCmd('chmod 777 %s' % heatConfDir)
+                pass
+            Heat.configConfFile()
+            
+            Keystone.sourceAdminOpenRC()
+            Heat.initHeat()
+          
+        ShellCmdExecutor.execCmd('service haproxy restart')
+        
+        #destroy
+        killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'
+        killGlanceCmd   = 'ps aux |grep python | grep glance | awk \'{print "kill -9 " $2}\' | bash'
+        killNovaCmd   = 'ps aux |grep python | grep nova | awk \'{print "kill -9 " $2}\' | bash'
+        killNeutronCmd   = 'ps aux |grep python | grep neutron | awk \'{print "kill -9 " $2}\' | bash'
          
-        Keystone.importKeystoneDBSchema()
-        #######
-        Keystone.supportPKIToken()
-                 
-        Keystone.start()
+        ShellCmdExecutor.execCmd(killKeystoneCmd)
+        ShellCmdExecutor.execCmd(killGlanceCmd)
+        ShellCmdExecutor.execCmd(killNovaCmd)
+        ShellCmdExecutor.execCmd(killNeutronCmd)
         
-#         KeystoneHA.install()
-#         KeystoneHA.configure()
-#         KeystoneHA.start()
+        #mark: db is initted
         
-        ####NEW
-        Keystone.configureEnvVar()
-        Keystone.sourceAdminOpenRC()####NEW
-        Keystone.initKeystone()
-        Keystone.sourceAdminOpenRC()
-    
-    #glance
-    if YAMLUtil.hasRoleInNodes('glance') :
-        createDBCmd = 'CREATE DATABASE glance'
-        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        grantCmd1 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantCmd2 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantToHostname = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(hostname=hostname,init_passwd=initPasswd)
-        
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        Glance.install()
-        Glance.configConfFile()
-        
-        Keystone.sourceAdminOpenRC()
-        Glance.initGlance()
-    
-    #nova
-    if YAMLUtil.hasRoleInNodes('nova-api') :
-        createDBCmd = 'CREATE DATABASE nova'
-        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        grantCmd1 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantCmd2 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantToHostname = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(hostname=hostname,init_passwd=initPasswd)
-        
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        ##nova
-        Nova.install()
-        ShellCmdExecutor.execCmd('chmod 777 /etc/nova')
-        Nova.configConfFile()
-        
-        Keystone.sourceAdminOpenRC()
-        Nova.initNova()
-    
-    #neutron
-    if YAMLUtil.hasRoleInNodes('neutron-server') :
-        createDBCmd = 'CREATE DATABASE neutron'
-        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        grantCmd1 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantCmd2 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantToHostname = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(hostname=hostname,init_passwd=initPasswd)
-        
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        Keystone.sourceAdminOpenRC()
-        Neutron.initNeutron()
-    
-    #cinder
-    if YAMLUtil.hasRoleInNodes('cinder-api') :
-        createDBCmd = 'CREATE DATABASE cinder'
-        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        grantCmd1 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantCmd2 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'cinder\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(hostname=hostname,init_passwd=initPasswd)
-        
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        ####Special handling
-        if os.path.isfile('/etc/cinder') :
-            ShellCmdExecutor.execCmd("rm -rf /etc/cinder")
-            pass
-        
-        ShellCmdExecutor.execCmd("yum remove openstack-cinder -y")
-        ##########
-        
-        Cinder.install()
-        Cinder.configConfFile()
-        
-        Keystone.sourceAdminOpenRC()
-        Cinder.initCinder()
+        os.system('touch %s' % INSTALL_TAG_FILE)
+        print 'hello openstack is initted#######'
         pass
-    
-    #ceilometer
-    if YAMLUtil.hasRoleInNodes('ceilometer') :
-        Ceilometer.initCeilometer()
-        pass
-        
-    
-    #heat
-    if YAMLUtil.hasRoleInNodes('heat') :
-        createDBCmd = 'CREATE DATABASE heat'
-        MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        grantCmd1 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantCmd2 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(init_passwd=initPasswd)
-        
-        grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'heat\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-        .format(hostname=hostname,init_passwd=initPasswd)
-        
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
-        MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-        MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-        
-        Heat.install()
-        heatConfDir = '/etc/heat'
-        if os.path.exists(heatConfDir) :
-            ShellCmdExecutor.execCmd('chmod 777 %s' % heatConfDir)
-            pass
-        Heat.configConfFile()
-        
-        Keystone.sourceAdminOpenRC()
-        Heat.initHeat()
-      
-    ShellCmdExecutor.execCmd('service haproxy restart')
-    
-    #destroy
-    killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'
-    killGlanceCmd   = 'ps aux |grep python | grep glance | awk \'{print "kill -9 " $2}\' | bash'
-    killNovaCmd   = 'ps aux |grep python | grep nova | awk \'{print "kill -9 " $2}\' | bash'
-    killNeutronCmd   = 'ps aux |grep python | grep neutron | awk \'{print "kill -9 " $2}\' | bash'
-     
-    ShellCmdExecutor.execCmd(killKeystoneCmd)
-    ShellCmdExecutor.execCmd(killGlanceCmd)
-    ShellCmdExecutor.execCmd(killNovaCmd)
-    ShellCmdExecutor.execCmd(killNeutronCmd)
-    
-    #mark: db is initted
-    
-    os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack is initted#######'
-    pass
 
