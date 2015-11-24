@@ -179,15 +179,16 @@ class Network(object):
     def configOVS():
         output, exitcode = ShellCmdExecutor.execCmd('service openvswitch restart')
         print 'start openvswitch, output=%s' % output
-        
+        time.sleep(3)
         #Add the external bridge:
         ShellCmdExecutor.execCmd('ovs-vsctl add-br br-ex')
-        
+        time.sleep(2)
         #Add a port to the external bridge that connects to the physical external network interface:
         #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
         #REFACTOR LATER
         physical_external_network_interface = 'eth2'
-        ShellCmdExecutor.execCmd('ovs-vsctl add-port br-ex %s' % physical_external_network_interface)
+        addExternalBridgeCmd = 'ovs-vsctl add-port br-ex %s' % physical_external_network_interface
+        ShellCmdExecutor.execCmd(addExternalBridgeCmd)
         
         pass
     
