@@ -198,31 +198,35 @@ def getInitCmdByRole(role):
     
 if __name__ == '__main__':
     print 'init OpenStack HA----------------------'
-    TAG = '/opt/openstack_init'
+#     if os.path.exists(TAG) :
+#         logger.info('OpenStack HA has been initted-----')
+#         pass
+#     else :
+    logger.info('start to init OpenStack HA----------------')
+    cluster_id = ''
+    argv = sys.argv
+    argv.pop(0)
+    print "agrv=%s--" % argv
+    if debug == False :
+        if len(argv) > 0 :
+            cluster_id = str(argv[0])
+            pass
+        else :
+            print "ERROR:no params, do not transter cluster_id to this init file yet."
+            exit()
+            pass
+        pass
+    else :
+        print "debug mode.................."
+        cluster_id = str(argv[0])
+        print 'cluster_id=%s' % cluster_id
+        pass
+    
+    TAG = '/opt/openstack_init_{cluster_id}'.format(cluster_id=str(cluster_id))
     if os.path.exists(TAG) :
         logger.info('OpenStack HA has been initted-----')
         pass
     else :
-        logger.info('start to init OpenStack HA----------------')
-        cluster_id = ''
-        argv = sys.argv
-        argv.pop(0)
-        print "agrv=%s--" % argv
-        if debug == False :
-            if len(argv) > 0 :
-                cluster_id = str(argv[0])
-                pass
-            else :
-                print "ERROR:no params, do not transter cluster_id to this init file yet."
-                exit()
-                pass
-            pass
-        else :
-            print "debug mode.................."
-            cluster_id = str(argv[0])
-            print 'cluster_id=%s' % cluster_id
-            pass
-        
         activeRoleIPMap = getActiveRoleIPMap(cluster_id)
         
         CLUSTER_ROLE_MAP_JSON_FILE_PATH = Params.CLUSTER_ROLE_MAP_JSON_FILE_PATH_TEMPLATE.format(cluster_id=cluster_id)
@@ -287,6 +291,7 @@ if __name__ == '__main__':
         os.system('touch %s' % TAG)
         pass
     pass
+
 #     
 #     role = 'glance'
 #     if role in activeRoles :
