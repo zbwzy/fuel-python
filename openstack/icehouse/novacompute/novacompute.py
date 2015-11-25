@@ -265,12 +265,10 @@ admin_password=123456
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_VIP>', glance_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
         FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', localIP)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         

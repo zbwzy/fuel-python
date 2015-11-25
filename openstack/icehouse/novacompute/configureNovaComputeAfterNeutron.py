@@ -82,6 +82,10 @@ class NovaCompute(object):
     def configureML2():
         ml2ConfTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'ml2_conf.ini')
         ShellCmdExecutor.execCmd('cp -r %s /etc/neutron/plugins/ml2/' % ml2ConfTemplatePath)
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        FileUtil.replaceFileContent('/etc/neutron/plugins/ml2/ml2_conf.ini', '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localIP)
         pass
     
     @staticmethod
