@@ -114,13 +114,13 @@ if __name__ == '__main__':
         if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), mysql_ips_list) :
             FileUtil.writeContent(is_mysql_role_file_path, 'true')
             pass
-        else:
-            FileUtil.writeContent(is_mysql_role_file_path, 'false')
-            pass
-        pass
-    else :
-        FileUtil.writeContent(is_mysql_role_file_path, 'false')
-        pass
+#         else:
+#             FileUtil.writeContent(is_mysql_role_file_path, 'false')
+#             pass
+#         pass
+#     else :
+#         FileUtil.writeContent(is_mysql_role_file_path, 'false')
+#         pass
         
     print 'rabbitmq========================'
     role = 'rabbitmq'
@@ -197,13 +197,13 @@ if __name__ == '__main__':
         if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), keystone_ips_list) :
             FileUtil.writeContent(is_keystone_role_file_path, 'true')
             pass
-        else:
-            FileUtil.writeContent(is_keystone_role_file_path, 'false')
-            pass
-        pass
-    else :
-        FileUtil.writeContent(is_keystone_role_file_path, 'false')
-        pass
+#         else:
+#             FileUtil.writeContent(is_keystone_role_file_path, 'false')
+#             pass
+#         pass
+#     else :
+#         FileUtil.writeContent(is_keystone_role_file_path, 'false')
+#         pass
     
     print 'glance====================================='
     role = 'glance'

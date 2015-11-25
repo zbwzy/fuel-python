@@ -92,6 +92,15 @@ class NovaCompute(object):
     def configureOVS():
         ShellCmdExecutor.execCmd("service openvswitch start")
         ShellCmdExecutor.execCmd("chkconfig openvswitch on")
+        
+        scriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'addBridgeAndInterface.sh')
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % scriptPath)
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        
+        FileUtil.replaceFileContent('/opt/addBridgeAndInterface.sh', '<LOCAL_IP>', localIP)
+        ShellCmdExecutor.execCmd('bash /opt/addBridgeAndInterface.sh')
         pass
     
     #configure Compute to use networking
@@ -131,6 +140,13 @@ admin_password = <NEUTRON_PASS>
         FileUtil.replaceFileContent(NOVA_CONF_FILE_PATH, '#APIsAndDrivers', APIsAndDrivers)
         FileUtil.replaceFileContent(NOVA_CONF_FILE_PATH, '#AccessParameters', AccessParameters)
         
+        ##############################
+        FileUtil.replaceFileContent(NOVA_CONF_FILE_PATH, 
+                                    '#vif_plugging_is_fatal=true', 
+                                    'vif_plugging_is_fatal=false')
+        FileUtil.replaceFileContent(NOVA_CONF_FILE_PATH, 
+                                    '#vif_plugging_timeout=300', 
+                                    'vif_plugging_timeout=0')
         pass
     
     @staticmethod
