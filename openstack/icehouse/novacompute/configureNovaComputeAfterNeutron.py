@@ -59,6 +59,10 @@ class NovaCompute(object):
         ShellCmdExecutor.execCmd('cp -r %s /etc/neutron/' % neutronConfTemplateFilePath)
         #configure neutron
         keystone_vip = JSONUtility.getValue('keystone_vip')
+        rabbit_host = JSONUtility.getValue("rabbit_host")
+        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
+        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_password = JSONUtility.getValue("rabbit_password")
         
         #REFACTOR LATER
         neutron_pass = '123456'
@@ -67,6 +71,9 @@ class NovaCompute(object):
         ShellCmdExecutor.execCmd('chmod 777 /etc/neutron/neutron.conf')
         FileUtil.replaceFileContent(neutronConfFilePath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(neutronConfFilePath, '<NEUTRON_PASS>', neutron_pass)
+        FileUtil.replaceFileContent(neutronConfFilePath, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(neutronConfFilePath, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(neutronConfFilePath, '<RABBIT_PASSWORD>', rabbit_password)
         
         ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron')
         pass
