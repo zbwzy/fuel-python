@@ -81,6 +81,14 @@ admin_password = <NEUTRON_PASS>
         FileUtil.replaceFileContent(NOVA_API_CONF_FILE_PATH, '#APIsAndDrivers', APIsAndDrivers)
         FileUtil.replaceFileContent(NOVA_API_CONF_FILE_PATH, '#AccessParameters', AccessParameters)
         
+        #############################################
+        FileUtil.replaceFileContent(NOVA_API_CONF_FILE_PATH, 
+                                    '#vif_plugging_is_fatal=true', 
+                                    'vif_plugging_is_fatal=false')
+        FileUtil.replaceFileContent(NOVA_API_CONF_FILE_PATH, 
+                                    '#vif_plugging_timeout=300', 
+                                    'vif_plugging_timeout=0')
+        
         ShellCmdExecutor.execCmd('service openstack-nova-api restart')
         ShellCmdExecutor.execCmd('service openstack-nova-scheduler restart')
         ShellCmdExecutor.execCmd('service openstack-nova-conductor restart')
