@@ -294,6 +294,14 @@ if __name__ == '__main__':
                 execRemoteCmd(horizon_ip, restartCmd, timeout=600)
                 pass
             pass
+        
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            importImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/glance/importImage.py'
+            
+            glance_master_ip = glance_ip_list[0]
+            execRemoteCmd(glance_master_ip, importImageCmd, timeout=600)
+            pass
                     
         os.system('touch %s' % TAG)
         pass
