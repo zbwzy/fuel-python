@@ -57,16 +57,19 @@ if __name__ == '__main__':
         pass
     else :
         print 'start to import image======='
-        imageFilePath = "/opt/openstack_image/cirros-0.3.0-x86_64-disk.img"
+        imageFilePath = "/etc/puppet/modules/glance/files/cirros-0.3.0-x86_64-disk.img"
         keystone_vip = JSONUtility.getValue('keystone_vip')
         if os.path.exists(imageFilePath) :
             if GlanceHA.isMasterNode() :
                 import_image_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'import_image.sh')
                 ShellCmdExecutor.execCmd('cp -r %s /opt/' % import_image_script_path)
+                ShellCmdExecutor.execCmd('chmod 777 /opt/import_image.sh')
                 
                 FileUtil.replaceFileContent('/opt/import_image.sh', '<KEYSTONE_VIP>', keystone_vip)
                 ShellCmdExecutor.execCmd('bash /opt/import_image.sh')
                 pass
+            
+            os.system('touch %s' % INSTALL_TAG_FILE)
             pass
         else :
             print 'Do not exist file %s.' % imageFilePath

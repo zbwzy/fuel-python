@@ -1,5 +1,8 @@
 echo 'start to add external bridge==========='
 #############
+/etc/init.d/openvswitch restart
+
+sleep 2
 
 #ovs-vsctl add-br br-int
 #ovs-vsctl add-br br-ex
