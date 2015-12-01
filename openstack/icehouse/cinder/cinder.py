@@ -588,10 +588,7 @@ vrrp_instance 42 {
                 CinderHA.restart()
                 pass
             else :
-#                 CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
-                #remove VIP on non-master host, just keep one VIP
-                ShellCmdExecutor.execCmd('service keepalived stop')
-                ShellCmdExecutor.execCmd('service keepalived start')
+                CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
                 pass
             pass
         

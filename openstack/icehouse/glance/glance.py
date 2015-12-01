@@ -638,10 +638,7 @@ vrrp_instance 42 {
             if isMasterNode == True :
                 GlanceHA.restart()
             else :
-#                 GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
-                #remove VIP on non-master host, just keep one VIP
-                ShellCmdExecutor.execCmd('service keepalived stop')
-                ShellCmdExecutor.execCmd('service keepalived start')
+                GlanceHA.deleteVIP(glance_vip, glance_vip_interface)
             pass
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass

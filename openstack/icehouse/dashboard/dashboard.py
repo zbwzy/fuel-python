@@ -599,10 +599,7 @@ vrrp_instance 42 {
                 DashboardHA.restart()
                 pass
             else :
-#                 DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
-                #remove VIP on non-master host, just keep one VIP
-                ShellCmdExecutor.execCmd('service keepalived stop')
-                ShellCmdExecutor.execCmd('service keepalived start')
+                DashboardHA.deleteVIP(dashboard_vip, dashboard_vip_interface)
                 pass
             pass
         ShellCmdExecutor.execCmd('service keepalived restart')

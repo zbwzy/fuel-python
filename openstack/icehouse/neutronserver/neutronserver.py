@@ -607,10 +607,7 @@ vrrp_instance 42 {
                 NeutronServerHA.restart()
                 pass
             else :
-#                 NeutronServerHA.deleteVIP(neutron_vip, neutron_vip_interface)
-                #remove VIP on non-master host, just keep one VIP
-                ShellCmdExecutor.execCmd('service keepalived stop')
-                ShellCmdExecutor.execCmd('service keepalived start')
+                NeutronServerHA.deleteVIP(neutron_vip, neutron_vip_interface)
                 pass
             pass
         ShellCmdExecutor.execCmd('service keepalived restart')

@@ -593,10 +593,7 @@ vrrp_instance 42 {
                 HeatHA.restart()
                 pass
             else :
-#                 HeatHA.deleteVIP(heat_vip, heat_vip_interface)
-                #remove VIP on non-master host, just keep one VIP
-                ShellCmdExecutor.execCmd('service keepalived stop')
-                ShellCmdExecutor.execCmd('service keepalived start')
+                HeatHA.deleteVIP(heat_vip, heat_vip_interface)
                 pass
             pass
         
