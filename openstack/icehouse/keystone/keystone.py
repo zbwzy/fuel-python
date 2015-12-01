@@ -657,7 +657,10 @@ vrrp_instance 42 {
                 KeystoneHA.restart()
                 pass
             else :
-                KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
+#                 KeystoneHA.deleteVIP(keystone_vip, keystone_vip_interface)
+                #remove VIP on non-master host, just keep one VIP
+                ShellCmdExecutor.execCmd('service keepalived stop')
+                ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             pass
         ShellCmdExecutor.execCmd('service keepalived restart')

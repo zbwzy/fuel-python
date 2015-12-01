@@ -57,7 +57,7 @@ if __name__ == '__main__':
         pass
     else :
         print 'start to import image======='
-        imageFilePath = "/etc/puppet/modules/glance/files/cirros-0.3.0-x86_64-disk.img"
+        imageFilePath = "/etc/puppet/modules/glance/files/cirros-0.3.1-x86_64-disk.img"
         keystone_vip = JSONUtility.getValue('keystone_vip')
         if os.path.exists(imageFilePath) :
             if GlanceHA.isMasterNode() :

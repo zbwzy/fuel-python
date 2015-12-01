@@ -616,7 +616,10 @@ vrrp_instance 42 {
                 CeilometerHA.restart()
                 pass
             else :
-                CeilometerHA.deleteVIP(ceilometer_vip, ceilometer_vip_interface)
+#                 CeilometerHA.deleteVIP(ceilometer_vip, ceilometer_vip_interface)
+                #remove VIP on non-master host, just keep one VIP
+                ShellCmdExecutor.execCmd('service keepalived stop')
+                ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             pass
         

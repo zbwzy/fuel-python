@@ -584,8 +584,14 @@ vrrp_instance 42 {
             ShellCmdExecutor.execCmd('service haproxy restart')
             
             isMasterNode = CinderHA.isMasterNode()
-            if isMasterNode == False :
-                CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
+            if isMasterNode == True :
+                CinderHA.restart()
+                pass
+            else :
+#                 CinderHA.deleteVIP(cinder_vip, cinder_vip_interface)
+                #remove VIP on non-master host, just keep one VIP
+                ShellCmdExecutor.execCmd('service keepalived stop')
+                ShellCmdExecutor.execCmd('service keepalived start')
                 pass
             pass
         

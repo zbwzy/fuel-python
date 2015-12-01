@@ -11,7 +11,7 @@ export OS_AUTH_URL=http://<KEYSTONE_VIP>:35357/v2.0
 echo 'start to import image to glance==========='
 
 glance image-create --name='cirros image' --is-public=true \
---container-format=bare --disk-format=qcow2 < /etc/puppet/modules/glance/files/cirros-0.3.0-x86_64-disk.img
+--container-format=bare --disk-format=qcow2 < /etc/puppet/modules/glance/files/cirros-0.3.1-x86_64-disk.img
 
 
 echo 'import image done####'

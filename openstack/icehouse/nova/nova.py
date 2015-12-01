@@ -632,7 +632,10 @@ listen nova_metadata_api_cluster
             if isMasterNode == True :
                 NovaHA.restart()
             else :
-                NovaHA.deleteVIP(nova_vip, nova_vip_interface)
+                #remove VIP on non-master host, just keep one VIP
+                ShellCmdExecutor.execCmd('service keepalived stop')
+                ShellCmdExecutor.execCmd('service keepalived start')
+#                 NovaHA.deleteVIP(nova_vip, nova_vip_interface)
             pass
         ShellCmdExecutor.execCmd('service keepalived restart')
         pass
