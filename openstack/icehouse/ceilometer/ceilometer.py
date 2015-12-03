@@ -167,6 +167,7 @@ class Ceilometer(object):
         mysql_password = JSONUtility.getValue("mysql_password")
         
         rabbit_host = JSONUtility.getValue("rabbit_host")
+        rabbit_vip = JSONUtility.getValue("rabbit_vip")
         
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
@@ -225,7 +226,7 @@ class Ceilometer(object):
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<MONGODB_VIP>', mongodb_vip)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<CEILOMETER_DBPASS>', ceilometer_mongo_password)
         
-        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)

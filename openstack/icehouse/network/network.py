@@ -301,6 +301,7 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
         rabbit_host = JSONUtility.getValue("rabbit_host")
+        rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
@@ -309,7 +310,7 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         #REFACTOR LATER
         neutron_admin_password = '123456'
         
-        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOST>', rabbit_host)
+        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_PASSWORD>', rabbit_password)
         
