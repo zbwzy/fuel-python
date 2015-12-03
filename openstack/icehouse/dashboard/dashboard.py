@@ -179,6 +179,14 @@ class Dashboard(object):
 #         ShellCmdExecutor.execCmd("sudo cp -r %s %s" % (httpdConfFileTemplatePath, httpdConfFileDir))
         ShellCmdExecutor.execCmd("cat %s > /tmp/httpd.conf" % httpdConfFileTemplatePath)
         ShellCmdExecutor.execCmd("mv /tmp/httpd.conf /etc/httpd/conf/")
+        
+        #configure openstack-dashboard.conf
+        dashboardConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'openstack-dashboard.conf')
+        if not os.path.exists('/etc/httpd/conf.d') :
+            ShellCmdExecutor.execCmd('mkdir -p /etc/httpd/conf.d')
+            pass
+        
+        ShellCmdExecutor.execCmd("cp -r %s /etc/httpd/conf.d/" % dashboardConfFileTemplatePath)
         pass
     
     @staticmethod
@@ -619,17 +627,6 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
-    argv = sys.argv
-    argv.pop(0)
-    print "agrv=%s--" % argv
-    LOCAL_IP = ''
-    if len(argv) > 0 :
-        LOCAL_IP = argv[0]
-        pass
-    else :
-        print "ERROR:no params."
-        pass
-    
     ###############################
     INSTALL_TAG_FILE = '/opt/dashboard_installed'
     if os.path.exists(INSTALL_TAG_FILE) :

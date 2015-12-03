@@ -448,18 +448,30 @@ listen nova_metadata_api_cluster
   <NOVA_METADATA_API_SERVER_LIST>
         '''
         
+        vncBackendStringTemplate = '''
+listen vnc_cluster
+  bind <NOVA_VIP>:6080
+  balance source
+  option tcpka
+  option tcplog
+  <VNC_SERVER_LIST>
+        '''
+        
         novaEC2ApiBackendString = novaEC2ApiBackendStringTemplate.replace('<NOVA_VIP>', nova_vip)
         novaComputeApiBackendString = novaComputeApiBackendStringTemplate.replace('<NOVA_VIP>', nova_vip)
         novaMetadataApiBackendString = novaMetadataApiBackendStringTemplate.replace('<NOVA_VIP>', nova_vip)
+        vncBackendString = vncBackendStringTemplate.replace('<NOVA_VIP>', nova_vip)
         ###############
         
         serverNovaEC2APIBackendTemplate = 'server nova-<INDEX> <SERVER_IP>:8773 check inter 2000 rise 2 fall 5'
         serverNovaComputeAPIBackendTemplate = 'server nova-<INDEX> <SERVER_IP>:8774 check inter 2000 rise 2 fall 5'
         serverNovaMetadataAPIBackendTemplate = 'server nova-<INDEX> <SERVER_IP>:8775 check inter 2000 rise 2 fall 5'
+        serverVNCBackendTemplate = 'server nova-<INDEX> <SERVER_IP>:6080 check inter 2000 rise 2 fall 5'
         
         novaEC2APIServerListContent = ''
         novaComputeAPIServerListContent = ''
         novaMetadataAPIServerListContent = ''
+        vncServerListContent = ''
         
         index = 1
         for ip in nova_ip_list:
@@ -467,6 +479,7 @@ listen nova_metadata_api_cluster
             novaEC2APIServerListContent += serverNovaEC2APIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
             novaComputeAPIServerListContent += serverNovaComputeAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
             novaMetadataAPIServerListContent += serverNovaMetadataAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
+            vncServerListContent += serverVNCBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
             
             novaEC2APIServerListContent += '\n'
             novaEC2APIServerListContent += '  '
@@ -476,6 +489,9 @@ listen nova_metadata_api_cluster
             
             novaMetadataAPIServerListContent += '\n'
             novaMetadataAPIServerListContent += '  '
+            
+            vncServerListContent += '\n'
+            vncServerListContent += '  '
             
             index += 1
             pass
@@ -487,6 +503,7 @@ listen nova_metadata_api_cluster
         novaEC2ApiBackendString = novaEC2ApiBackendString.replace('<NOVA_EC2_API_SERVER_LIST>', novaEC2APIServerListContent)
         novaComputeApiBackendString = novaComputeApiBackendString.replace('<NOVA_COMPUTE_API_SERVER_LIST>', novaComputeAPIServerListContent)
         novaMetadataApiBackendString = novaMetadataApiBackendString.replace('<NOVA_METADATA_API_SERVER_LIST>', novaMetadataAPIServerListContent)
+        vncBackendString = vncBackendString.replace('<VNC_SERVER_LIST>', vncServerListContent)
         
         #append to haproxy.cfg
         if os.path.exists(haproxyConfFilePath) :
@@ -504,6 +521,7 @@ listen nova_metadata_api_cluster
         haproxyContent += novaEC2ApiBackendString
         haproxyContent += novaComputeApiBackendString
         haproxyContent += novaMetadataApiBackendString
+        haproxyContent += vncBackendString
         
         FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
         if os.path.exists(haproxyConfFilePath):
