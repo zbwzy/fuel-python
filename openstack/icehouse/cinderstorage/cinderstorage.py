@@ -108,19 +108,32 @@ class CinderStorage(object):
     @staticmethod
     def install():
         print 'Cinder-storage.install start===='
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        print 'start to install prerequisites============='
+        script_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 
+                                                      'cinder-storage', 
+                                                      'cinder_storage_service.sh')
+        
+        ShellCmdExecutor.execCmd('cp -r %s /opt/' % script_file_path)
+        FileUtil.replaceFileContent('/opt/cinder_storage_service.sh', '<KEYSTONE_VIP>', keystone_vip)
+        
+        ShellCmdExecutor.execCmd('bash /opt/cinder_storage_service.sh')
+        
+        print 'install prerequisites done####'
+        
         yumCmd = 'yum install lvm2 -y'
         ShellCmdExecutor.execCmd(yumCmd)
         
-        ShellCmdExecutor.execCmd("service lvm2-lvmetad start")
+        ShellCmdExecutor.execCmd("/etc/init.d/lvm2-lvmetad start")
         ShellCmdExecutor.execCmd("chkconfig lvm2-lvmetad on")
         
         #Default create volume
         #Create the LVM physical volume /dev/sdb1:
-        createCmd = 'pvcreate /dev/sdb1' 
-        ShellCmdExecutor.execCmd(createCmd)
+#         createCmd = 'pvcreate /dev/sdb1' 
+#         ShellCmdExecutor.execCmd(createCmd)
         
-        createCmd = 'vgcreate cinder-volumes /dev/sdb1'
-        ShellCmdExecutor.execCmd(createCmd)
+#         createCmd = 'vgcreate cinder-volumes /dev/sdb1'
+#         ShellCmdExecutor.execCmd(createCmd)
        
         yumCmd = 'yum install openstack-cinder targetcli python-oslo-db MySQL-python -y'
         ShellCmdExecutor.execCmd(yumCmd)
@@ -130,12 +143,14 @@ class CinderStorage(object):
 
     @staticmethod
     def restart():
-        #restart cinder service
+        ShellCmdExecutor.execCmd('/etc/init.d/lvm2-lvmetad restart')
+        ShellCmdExecutor.execCmd('/etc/init.d/tgtd restart')
+        
         ShellCmdExecutor.execCmd("service openstack-cinder-volume restart")
         pass
     
     @staticmethod
-    def start():        
+    def start(): 
         ShellCmdExecutor.execCmd("service openstack-cinder-volume start")
         ShellCmdExecutor.execCmd("chkconfig openstack-cinder-volume on")
         pass
@@ -201,7 +216,7 @@ class CinderStorage(object):
         FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+#         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
