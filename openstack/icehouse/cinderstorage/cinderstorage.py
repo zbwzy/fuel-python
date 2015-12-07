@@ -15,6 +15,9 @@ import sys
 import os
 import time
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
@@ -115,8 +118,8 @@ class CinderStorage(object):
                                                       'cinder_storage_service.sh')
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % script_file_path)
+        ShellCmdExecutor.execCmd('chmod 777 /opt/cinder_storage_service.sh')
         FileUtil.replaceFileContent('/opt/cinder_storage_service.sh', '<KEYSTONE_VIP>', keystone_vip)
-        
         ShellCmdExecutor.execCmd('bash /opt/cinder_storage_service.sh')
         
         print 'install prerequisites done####'
@@ -135,7 +138,7 @@ class CinderStorage(object):
 #         createCmd = 'vgcreate cinder-volumes /dev/sdb1'
 #         ShellCmdExecutor.execCmd(createCmd)
        
-        yumCmd = 'yum install openstack-cinder targetcli python-oslo-db MySQL-python -y'
+        yumCmd = 'yum install openstack-cinder python-oslo-db MySQL-python -y'
         ShellCmdExecutor.execCmd(yumCmd)
         
         print 'Cinder-storage.install done####'
@@ -143,10 +146,12 @@ class CinderStorage(object):
 
     @staticmethod
     def restart():
-        ShellCmdExecutor.execCmd('/etc/init.d/lvm2-lvmetad restart')
-        ShellCmdExecutor.execCmd('/etc/init.d/tgtd restart')
-        
-        ShellCmdExecutor.execCmd("service openstack-cinder-volume restart")
+#         ShellCmdExecutor.execCmd('/etc/init.d/lvm2-lvmetad restart')
+#         ShellCmdExecutor.execCmd('/etc/init.d/tgtd restart')
+#         ShellCmdExecutor.execCmd("service openstack-cinder-volume restart")
+        initCinderVolumeStorageFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder-storage', 'init_cinder_storage_service.sh')
+        print 'initCinderVolumeStorageFilePath=%s---' % initCinderVolumeStorageFilePath
+        ShellCmdExecutor.execCmd("bash %s" % initCinderVolumeStorageFilePath)
         pass
     
     @staticmethod
@@ -237,13 +242,6 @@ class CinderStorage(object):
 if __name__ == '__main__':
     print 'hello openstack-icehouse:cinder-storage============'
     print 'start time: %s' % time.ctime()
-    
-#     debug = False
-#     if debug :
-#         print 'start to debug======'
-#         
-#         print 'end debug######'
-#         exit()
     #when execute script,exec: python <this file absolute path>
     ###############################
     INSTALL_TAG_FILE = '/opt/cinder_stoarge_installed'

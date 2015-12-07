@@ -42,13 +42,6 @@ from openstack.icehouse.cinderstorage.cinderstorage import CinderStorage
 if __name__ == '__main__':
     print 'hello openstack-icehouse:cinder-storage============'
     print 'start time: %s' % time.ctime()
-    
-    debug = False
-    if debug :
-        print 'start to debug======'
-        
-        print 'end debug######'
-        exit()
     #when execute script,exec: python <this file absolute path>
     ###############################
     INSTALL_TAG_FILE = '/opt/initCinderStorage'
