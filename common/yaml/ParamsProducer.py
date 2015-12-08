@@ -485,3 +485,6 @@ if __name__ == '__main__':
     
     print 'produce role list done#######'
     
+    ###zgf add
+    YAMLUtil.setHosts()
+    pass

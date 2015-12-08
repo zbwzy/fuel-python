@@ -219,6 +219,22 @@ class YAMLUtil(object):
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
         return dataMap['ip']
         pass
+    
+    @staticmethod
+    def setHosts():
+        nodes_dict = {}
+        host="127.0.0.1 localhost\n"
+        nodesMap = YAMLUtil.getNodesMap()
+        for node in nodesMap:
+            if nodes_dict.has_key(node['ip']) == False:
+                nodes_dict[node['ip']]=node['name']
+                host = host + node['ip'] + " " + node['name'] + "\n"
+                pass
+            pass
+         
+        print host
+        FileUtil.writeContent("/etc/hosts",host)
+        pass    
         
     
 if __name__ == "__main__":
@@ -241,9 +257,3 @@ if __name__ == "__main__":
     print YAMLUtil.getRoleIPList('mysql')
     print 'has role========================='
     print YAMLUtil.hasRole('cinder')
-
-    
-    
-        
-        
-    
