@@ -229,16 +229,17 @@ if __name__ == "__main__":
                 
                 #restart keepalived
                 ShellCmdExecutor.execCmd('service keepalived restart')
+                
+                print 'delete role vip done##########'
                 pass
             else :
-                xx = 'This is %s master.Do not need to delete VIP.' % role
+                xx = 'This is %s master.Do not need to delete VIP.####' % role
                 print xx
-                file_path = '/tmp/{rolename}_vip_handle.log'.format(rolename=role)
+                file_path = '/tmp/{rolename}_vip_handle.log'.format(rolename=role).replace('-', '_')
                 FileUtil.writeContent(file_path, xx)
             pass
         pass
     
-    print 'delete role vip done##########'
     pass
 
     
