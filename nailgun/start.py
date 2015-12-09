@@ -235,9 +235,14 @@ if __name__ == '__main__':
         activeRoles = activeRoleIPMap.keys()
         print 'activeRoles=%s' % activeRoles
         #######DO EXECUTION
+        #cluster's all IPs
+        cluster_ip_list = []
         for role in Params.OPENSTACK_ROLES :
             if role in activeRoles :
                 ip_list = activeRoleIPMap[role]
+                ####list merge: get cluster' all IPs
+                cluster_ip_list.extend(ip_list)
+                ####################################
                 initCmd = getInitCmdByRole(role)
                 
                 if role == 'neutron-server' :
@@ -285,6 +290,8 @@ if __name__ == '__main__':
                 pass
             pass
         
+        #remove duplicated ip
+        cluster_ip_list = list(set(cluster_ip_list))
         #restart horizon
         if 'horizon' in activeRoles:
             horizon_ip_list = activeRoleIPMap['horizon']
@@ -302,6 +309,14 @@ if __name__ == '__main__':
             glance_master_ip = glance_ip_list[0]
             execRemoteCmd(glance_master_ip, importImageCmd, timeout=600)
             pass
+        
+        #############VIP handling: delete non-master role vip
+        print 'cluster_ip_list=%s--' % cluster_ip_list
+        vip_handling_cmd = 'python /etc/puppet/fuel-python/common/vip/VIPHandler.py'
+        for ip in cluster_ip_list :
+            execRemoteCmd(ip, vip_handling_cmd, timeout=600)
+            pass
+        ####################################################
                     
         os.system('touch %s' % TAG)
         pass
