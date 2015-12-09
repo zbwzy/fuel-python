@@ -163,6 +163,7 @@ if __name__ == '__main__':
         paramsMap['rabbit_vip_interface'] = rabbit_vip_interface
         paramsMap['rabbit_userid'] = rabbit_userid
         paramsMap['rabbit_password'] = rabbit_password
+        paramsMap['rabbitmq_ips'] = rabbit_ips
         
         if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), rabbit_ips_list) :
             FileUtil.writeContent(is_role_file_path, 'true')
