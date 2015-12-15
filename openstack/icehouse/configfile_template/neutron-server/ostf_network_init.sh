@@ -18,11 +18,12 @@ neutron net-create ext-net-flat --shared --provider:network_type flat \
 neutron subnet-create ext-net-flat --name ext-subnet --allocation-pool start=192.168.242.20,end=192.168.242.30 --disable-dhcp --gateway 192.168.242.2 192.168.242.0/24
 
 
+#neutron net-create private-net
 #create private net defaultly
 neutron net-create net04
 
-
-neutron subnet-create net04 --name private-subnet  --gateway 192.168.10.1 192.168.10.0/24
+#neutron subnet-create private-net --name private-subnet  --gateway 192.168.10.1 192.168.10.0/24
+neutron subnet-create net04 --name net04-subnet  --gateway 192.168.10.1 192.168.10.0/24
 
 
 echo 'init ostf network done####'
