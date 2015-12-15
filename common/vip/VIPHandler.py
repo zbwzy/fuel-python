@@ -41,18 +41,13 @@ class VIPHandler(object):
     classdocs
     '''
     ASTUTE_YAML_FILE_PATH = '/etc/astute.yaml'
-    #mongodb, nova-compute, cinder-storage, neutron-agent : 
-    #do not use VIP
+    #mongodb, nova-compute, cinder-storage, neutron-agent : do not use VIP
     OPENSTACK_ROLES = ['mysql', 'rabbitmq', 'keystone', 'glance', 'nova-api', 'neutron-server', 'cinder-api', 'horizon', 'ceilometer', 'heat']
     
     def __init__(self):
         '''
         Constructor
         '''
-        pass
-    
-    @staticmethod
-    def handle():
         pass
     
     @staticmethod
