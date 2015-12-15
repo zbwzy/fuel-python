@@ -56,6 +56,8 @@ if __name__ == '__main__':
             ShellCmdExecutor.execCmd('cp -r %s /opt/' % network_init_script_path)
             ############
             keystone_vip = JSONUtility.getValue('keystone_vip')
+            
+            ShellCmdExecutor.execCmd('chmod 777 /opt/ostf_network_init.sh')
             FileUtil.replaceFileContent('/opt/ostf_network_init.sh', '<KEYSTONE_VIP>', keystone_vip)
             
             ###########

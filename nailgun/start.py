@@ -310,6 +310,16 @@ if __name__ == '__main__':
             execRemoteCmd(glance_master_ip, importImageCmd, timeout=600)
             pass
         
+        #init network for OSTF
+        if 'neutron-server' in activeRoles:
+            neutron_ip_list = activeRoleIPMap['neutron-server']
+            initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
+            
+            for neutron_ip in neutron_ip_list:
+                execRemoteCmd(neutron_ip, initCmd, timeout=600)
+                pass
+            pass
+        
         #############VIP handling: delete non-master role vip
         print 'cluster_ip_list=%s--' % cluster_ip_list
         vip_handling_cmd = 'python /etc/puppet/fuel-python/common/vip/VIPHandler.py'
