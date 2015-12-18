@@ -310,13 +310,33 @@ if __name__ == '__main__':
             execRemoteCmd(glance_master_ip, importImageCmd, timeout=600)
             pass
         
-        #init network for OSTF
+        vxlanConfigCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network_mode/vxlanconfig.py'
         if 'neutron-server' in activeRoles:
             neutron_ip_list = activeRoleIPMap['neutron-server']
+            
+            #init network for OSTF
             initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
             
+            #if necessary, configure vxlan
             for neutron_ip in neutron_ip_list:
                 execRemoteCmd(neutron_ip, initCmd, timeout=600)
+                execRemoteCmd(neutron_ip, vxlanConfigCmd, timeout=600)
+                pass
+            pass
+        
+        if 'nova-compute' in activeRoles:
+            nova_compute_ip_list = activeRoleIPMap['nova-compute']
+            
+            for nova_compute_ip in nova_compute_ip_list:
+                execRemoteCmd(nova_compute_ip, vxlanConfigCmd, timeout=600)
+                pass
+            pass
+        
+        if 'neutron-agent' in activeRoles:
+            neutron_agent_ip_list = activeRoleIPMap['neutron-agent']
+            
+            for neutron_agent_ip in neutron_agent_ip_list:
+                execRemoteCmd(neutron_agent_ip, vxlanConfigCmd, timeout=600)
                 pass
             pass
         

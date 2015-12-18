@@ -156,6 +156,8 @@ admin_password = <NEUTRON_PASS>
         
         ShellCmdExecutor.execCmd('sed -i \'s,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g\' /etc/init.d/neutron-openvswitch-agent')
         ShellCmdExecutor.execCmd('cp /etc/init.d/neutron-openvswitch-agent /etc/init.d/neutron-openvswitch-agent.orig')
+        ########################### assign rights
+        ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron/')
         
         ShellCmdExecutor.execCmd('service openstack-nova-compute restart')
         ShellCmdExecutor.execCmd('service neutron-openvswitch-agent start')

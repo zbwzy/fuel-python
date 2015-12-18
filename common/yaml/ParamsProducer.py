@@ -256,8 +256,8 @@ if __name__ == '__main__':
         key = 'neutron_vip_interface'
         neutron_vip_interface = YAMLUtil.getValue(role, key)
         
-        key = 'network_mode'
-        network_mode = YAMLUtil.getValue(role, key)
+        key = 'neutron_network_mode'
+        neutron_network_mode = YAMLUtil.getValue(role, key)
         
         key = 'neutron_mysql_user'
         neutron_mysql_user = YAMLUtil.getValue(role, key)
@@ -269,7 +269,7 @@ if __name__ == '__main__':
         
         print 'neutron_vip=%s--' % neutron_vip
         print 'neutron_vip_interface=%s--' % neutron_vip_interface
-        print 'network_mode=%s--' % network_mode
+        print 'neutron_network_mode=%s--' % neutron_network_mode
         
         print 'neutron_mysql_user=%s--' % neutron_mysql_user
         print 'neutron_mysql_user_password=%s--' % neutron_mysql_password
@@ -279,7 +279,7 @@ if __name__ == '__main__':
         paramsMap['neutron_vip_interface'] = neutron_vip_interface
         paramsMap['neutron_mysql_user'] = neutron_mysql_user
         paramsMap['neutron_mysql_password'] = neutron_mysql_password
-        paramsMap['network_mode'] = network_mode
+        paramsMap['neutron_network_mode'] = neutron_network_mode
         paramsMap['neutron_ips'] = neutron_ips
         
         if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), neutron_ip_list) :
