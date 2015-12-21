@@ -85,7 +85,7 @@ class VXLANConfig(object):
         if network_mode == 'vxlan' :
             FileUtil.replaceFileContent(VXLANConfig.NEUTRON_ML2_CONF_FILE_PATH, 'type_drivers = flat,gre', 'type_drivers = vxlan,flat,gre')
             FileUtil.replaceFileContent(VXLANConfig.NEUTRON_ML2_CONF_FILE_PATH, 'tenant_network_types = gre', 'tenant_network_types = vxlan,gre')
-            FileUtil.replaceFileContent(VXLANConfig.NEUTRON_ML2_CONF_FILE_PATH, '#vni_ranges=1:1000', 'vni_ranges=1:1000')
+            FileUtil.replaceFileContent(VXLANConfig.NEUTRON_ML2_CONF_FILE_PATH, '#vni_ranges = 1:1000', 'vni_ranges = 1:1000')
             FileUtil.replaceFileContent(VXLANConfig.NEUTRON_ML2_CONF_FILE_PATH, 'tunnel_types = gre', 'tunnel_types = vxlan')
             pass
         pass
