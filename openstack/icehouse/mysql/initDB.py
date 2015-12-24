@@ -1682,6 +1682,13 @@ if __name__ == '__main__':
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            #add default role with specific id
+            print 'add default role with specific id============'
+            addDefaultRoleCmd = 'insert into role(id,name,extra) values(\'9fe2ff9ee4384b1894a90878d3e92bab\',\'__member__\',\'\{\}\')'
+            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            print 'add default role with specific id########'
         
         ########
             Keystone.install()

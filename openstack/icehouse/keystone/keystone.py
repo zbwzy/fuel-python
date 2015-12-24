@@ -445,6 +445,7 @@ listen keystone_admin_cluster
         keystoneBackendPublicApiStringTemplate = '''
 listen keystone_public_internal_cluster
   bind <KEYSTONE_VIP>:5000
+  balance source
   <KEYSTONE_PUBLIC_API_SERVER_LIST>
   '''
         keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate.replace('<KEYSTONE_VIP>', keystone_vip)
