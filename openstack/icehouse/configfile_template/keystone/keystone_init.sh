@@ -35,4 +35,11 @@ keystone tenant-create --name=service --description="Service Tenant"
 keystone service-create --name=keystone --type=identity --description="OpenStack Identity"
 keystone endpoint-create --service-id=$(keystone service-list | awk '/ identity / {print $2}') --publicurl=http://<KEYSTONE_VIP>:5000/v2.0 --internalurl=http://<KEYSTONE_VIP>:5000/v2.0 --adminurl=http://<KEYSTONE_VIP>:35357/v2.0
 
+###########################OSTF
+#ostf data init
+echo 'ostf data init:role create========'
+mysql -uroot -p123456 -e "INSERT INTO keystone.role (id, name, extra) VALUES ('9fe2ff9ee4384b1894a90878d3e92bab', '__member__', '{}')"
+echo 'role create done#####'
+###########################
+
 echo 'init keystone db done####'
