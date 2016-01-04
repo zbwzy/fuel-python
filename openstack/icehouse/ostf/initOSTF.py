@@ -38,6 +38,7 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
 from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
+from openstack.common.role import Role
 
     
 if __name__ == '__main__':
@@ -45,27 +46,74 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/initOSTFNetwork'
-    if os.path.exists(INSTALL_TAG_FILE) :
-        print 'ostf initted####'
-        print 'exit===='
-        pass
-    else :
-        if NeutronServerHA.isMasterNode() :
-            network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ostf_network_init.sh')
-            ShellCmdExecutor.execCmd('cp -r %s /opt/' % network_init_script_path)
-            ############
-            keystone_vip = JSONUtility.getValue('keystone_vip')
-            
-            ShellCmdExecutor.execCmd('chmod 777 /opt/ostf_network_init.sh')
-            FileUtil.replaceFileContent('/opt/ostf_network_init.sh', '<KEYSTONE_VIP>', keystone_vip)
-            
-            ###########
-            ShellCmdExecutor.execCmd('bash /opt/ostf_network_init.sh')
+    if Role.isNeutronServerRole() :
+        NETWORK_INSTALL_TAG_FILE = '/opt/initOSTFNetwork'
+        if os.path.exists(NETWORK_INSTALL_TAG_FILE) :
+            print 'ostf network initted####'
+            print 'exit===='
             pass
-
-        #mark: OSTF is installed
-        os.system('touch %s' % INSTALL_TAG_FILE)
+        else :
+            if NeutronServerHA.isMasterNode() :
+                network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ostf_network_init.sh')
+                ShellCmdExecutor.execCmd('cp -r %s /opt/' % network_init_script_path)
+                ############
+                keystone_vip = JSONUtility.getValue('keystone_vip')
+                
+                ShellCmdExecutor.execCmd('chmod 777 /opt/ostf_network_init.sh')
+                FileUtil.replaceFileContent('/opt/ostf_network_init.sh', '<KEYSTONE_VIP>', keystone_vip)
+                
+                ###########
+                ShellCmdExecutor.execCmd('bash /opt/ostf_network_init.sh')
+                pass
+    
+            #mark: OSTF network is installed
+            os.system('touch %s' % NETWORK_INSTALL_TAG_FILE)
+            pass
+        pass
+    
+    if Role.isGlanceRole() :
+        #To sync image on glance hosts
+        IMAGE_INSTALL_TAG_FILE = '/opt/initOSTFGlance'
+        if os.path.exists(IMAGE_INSTALL_TAG_FILE) :
+            print 'ostf glance image initted####'
+            print 'exit===='
+            pass
+        else :
+            listImageFileCmd = 'ls /var/lib/glance/images/'
+            output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
+            
+            existImageFlag = True
+            if output == '' :
+                existImageFlag = False
+                pass
+            
+            if existImageFlag :
+                imageFileName = output.strip()
+                imageFilePath = os.path.join('/var/lib/glance/images', imageFileName)
+                glance_ips = JSONUtility.getValue('glance_ips')
+                glance_ips_list = glance_ips.strip().split(',')
+                
+                output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+                local_ip = output.strip()
+                
+                dest_glance_ip_list = []
+                
+                for e in glance_ips_list :
+                    if(not e == local_ip) :
+                        dest_glance_ip_list.append(e)
+                        pass
+                    pass
+                
+                for ip in dest_glance_ip_list :
+                    scpCmd = 'scp {imageFilePath} root@{glance_ip}:/var/lib/glance/images/'.format(imageFilePath=imageFilePath, glance_ip=ip)
+                    print 'scpCmd=%s--' % scpCmd
+                    ShellCmdExecutor.execCmd(scpCmd)
+                    pass
+                pass
+            
+            os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)
+            pass
+        pass
     print 'hello ostf initted#######'
     pass
 
