@@ -340,6 +340,16 @@ if __name__ == '__main__':
                 pass
             pass
         
+        #sync image
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            #########image sync
+            syncImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
+            for ip in glance_ip_list:
+                execRemoteCmd(ip, syncImageCmd, timeout=600)
+                pass
+            pass
+        
         #############VIP handling: delete non-master role vip
         print 'cluster_ip_list=%s--' % cluster_ip_list
         vip_handling_cmd = 'python /etc/puppet/fuel-python/common/vip/VIPHandler.py'
