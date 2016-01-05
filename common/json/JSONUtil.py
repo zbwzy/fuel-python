@@ -46,7 +46,7 @@ class JSONUtility(object):
             value = jsonDict[key]
             pass
         else :
-            print 'ERROR:no key % in openstack_params.json.' % key
+            print 'ERROR:no key %s in openstack_params.json.' % str(key)
             pass
         
         #refactor: if key='admin_email', value = 'admin@cmss.chinamobile.com'
@@ -75,7 +75,7 @@ class JSONUtility(object):
             value = jsonDict[key]
             pass
         else :
-            print 'ERROR:no key % in openstack_params.json.' % key
+            print 'ERROR:no key %s in openstack_params.json.' % str(key)
             
         return value
     
