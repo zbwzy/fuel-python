@@ -20,7 +20,7 @@ else :
 
 
 class Params(object):
-    OPENSTACK_ROLES = ['keystone', 'glance', 'cinder-api', 'cinder-storage', 'heat', 
+    OPENSTACK_ROLES = ['rabbitmq', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 'heat', 
                        'horizon', 'nova-api', 'nova-compute', 'ceilometer', 'neutron-server', 'neutron-agent']
     
     CLUSTER_IP_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/{cluster_id}/ip_map_role.json'
@@ -146,6 +146,10 @@ def getActiveRoleIPMap(cluster_id):
 def getInitCmdByRole(role):
     ######DEBUG
     initCmd = 'hostname'
+    
+    if role == 'rabbitmq' :
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/rabbitmq/initRabbitmq.py'
+        pass
     
     if role == 'keystone' :
         initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/keystone/initKeystone.py'

@@ -17,6 +17,14 @@ class Role(object):
         pass
     
     @staticmethod
+    def isRabbitMQRole():
+        if os.path.exists('/opt/is_rabbitmq_role') :
+            return True
+        else :
+            return False
+        pass
+    
+    @staticmethod
     def isNeutronServerRole():
         if os.path.exists('/opt/is_neutron_server_role') :
             return True

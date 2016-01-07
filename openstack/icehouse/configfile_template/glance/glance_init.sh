@@ -10,7 +10,9 @@ export OS_AUTH_URL=http://<LOCAL_IP>:35357/v2.0
 
 echo 'start to init glance db==========='
 
-su -s /bin/sh -c "glance-manage db_sync" glance
+#su -s /bin/sh -c "glance-manage db_sync" glance
+#import glance db
+mysql -uroot -p123456 glance < /etc/puppet/modules/glance/files/glance_db_schema.sql
 
 keystone user-create --name=glance --pass=123456  --email=<ADMIN_EMAIL>
 keystone user-role-add --user=glance --tenant=service --role=admin 
