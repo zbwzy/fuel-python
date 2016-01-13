@@ -15,6 +15,9 @@ import sys
 import os
 import time
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
@@ -31,7 +34,6 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 
 sys.path.append(PROJ_HOME_DIR)
 
-
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
@@ -40,6 +42,47 @@ from common.file.FileUtil import FileUtil
 from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
 from openstack.common.role import Role
 
+#install pexpect package
+pexpectPackagePath = os.path.join(PROJ_HOME_DIR, 'externals', 'pexpect-3.3')
+output, exitcode = ShellCmdExecutor.execCmd('cd {packagePath}; python setup.py install'.format(packagePath=pexpectPackagePath))
+print 'installing pexpect============================'
+print 'output=%s' % output
+
+def scp_image(image_file_name, ip):
+    try:
+        import pexpect
+        
+        '''
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '10.20.0.192' (RSA) to the list of known hosts.
+root@10.20.0.192's password: 
+'''
+        child = pexpect.spawn(scpCmd)
+        child.expect('Are you sure you want to continue connecting.*')
+        child.sendline('yes')
+        
+        expect_pass_string = "root@{ip}'s password:".format(ip=ip)
+        password = "r00tme"
+        child.expect(expect_pass_string)
+        child.sendline(password)
+
+        while True :
+            index = child.expect(['%s.*' % image_file_name, pexpect.EOF, pexpect.TIMEOUT])
+            if index == 0:
+                break
+            elif index == 1:
+                pass   #continue to wait 
+            elif index == 2:
+                pass    #continue to wait 
+            
+        child.sendline('exit')
+        child.sendcontrol('c')
+        child.interact()
+    except OSError:
+        print 'Catch exception %s when sync glance image.' % OSError.strerror
+        sys.exit(0)
+        pass
+    pass
     
 if __name__ == '__main__':
     print 'hello openstack-icehouse:init ostf============'
@@ -107,7 +150,7 @@ if __name__ == '__main__':
                 for ip in dest_glance_ip_list :
                     scpCmd = 'scp {imageFilePath} root@{glance_ip}:/var/lib/glance/images/'.format(imageFilePath=imageFilePath, glance_ip=ip)
                     print 'scpCmd=%s--' % scpCmd
-                    ShellCmdExecutor.execCmd(scpCmd)
+                    scp_image(imageFileName, ip)
                     pass
                 pass
             

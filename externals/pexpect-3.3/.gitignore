@@ -1,0 +1,9 @@
+*.pyc
+doc/_build
+tests/log
+build/
+dist/
+MANIFEST
+*~
+.coverage*
+htmlcov

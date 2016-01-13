@@ -344,6 +344,14 @@ if __name__ == '__main__':
                 pass
             pass
         
+        #############VIP handling: delete non-master role vip
+        print 'cluster_ip_list=%s--' % cluster_ip_list
+        vip_handling_cmd = 'python /etc/puppet/fuel-python/common/vip/VIPHandler.py'
+        for ip in cluster_ip_list :
+            execRemoteCmd(ip, vip_handling_cmd, timeout=600)
+            pass
+        ####################################################
+        
         #sync image
         if 'glance' in activeRoles:
             glance_ip_list = activeRoleIPMap['glance']
@@ -353,14 +361,6 @@ if __name__ == '__main__':
                 execRemoteCmd(ip, syncImageCmd, timeout=600)
                 pass
             pass
-        
-        #############VIP handling: delete non-master role vip
-        print 'cluster_ip_list=%s--' % cluster_ip_list
-        vip_handling_cmd = 'python /etc/puppet/fuel-python/common/vip/VIPHandler.py'
-        for ip in cluster_ip_list :
-            execRemoteCmd(ip, vip_handling_cmd, timeout=600)
-            pass
-        ####################################################
                     
         os.system('touch %s' % TAG)
         pass
