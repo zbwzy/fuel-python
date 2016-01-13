@@ -352,13 +352,22 @@ if __name__ == '__main__':
             pass
         ####################################################
         
-        #sync image
+        #sync glance image
         if 'glance' in activeRoles:
             glance_ip_list = activeRoleIPMap['glance']
             #########image sync
             syncImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
             for ip in glance_ip_list:
                 execRemoteCmd(ip, syncImageCmd, timeout=600)
+                pass
+            pass
+        
+        #assign glance image privilege
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            assignPrivilegeCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTFPrivilege.py'
+            for ip in glance_ip_list:
+                execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
                 pass
             pass
                     
