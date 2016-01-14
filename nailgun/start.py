@@ -310,8 +310,9 @@ if __name__ == '__main__':
             glance_ip_list = activeRoleIPMap['glance']
             importImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/glance/importImage.py'
             
-            glance_master_ip = glance_ip_list[0]
-            execRemoteCmd(glance_master_ip, importImageCmd, timeout=600)
+            for glance_ip in glance_ip_list :
+                execRemoteCmd(glance_ip, importImageCmd, timeout=600)
+                pass
             pass
         
         vxlanConfigCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network_mode/vxlanconfig.py'
