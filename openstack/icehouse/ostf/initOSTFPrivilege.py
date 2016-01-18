@@ -50,9 +50,10 @@ if __name__ == '__main__':
             print 'exit===='
             pass
         else :
-            listImageFileCmd = 'ls /var/lib/glance/images/'
-            output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
+#             listImageFileCmd = 'ls /var/lib/glance/images/'
+#             output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
             
+            output, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
             imageFileName = output.strip()
             imageFilePath = os.path.join('/var/lib/glance/images', imageFileName)
             

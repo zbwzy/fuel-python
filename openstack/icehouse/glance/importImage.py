@@ -85,8 +85,7 @@ if __name__ == '__main__':
                     ShellCmdExecutor.execCmd('bash /opt/import_image.sh')
                     imageFileSize, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageFileSize.sh')
                     imageID, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
-                    
-                    importedImageSizeCmd = "ls -lt /var/lib/glance/images/ | grep %s | awk '{print $5}'" % imageID
+                    importedImageSizeCmd = "ls -lt /var/lib/glance/images/ | grep cirros | awk '{print $5}'"
                     importedImageSize, exitcode = ShellCmdExecutor.execCmd(importedImageSizeCmd)
                     imageID = imageID.strip()
                     imageFileSize = imageFileSize.strip()
