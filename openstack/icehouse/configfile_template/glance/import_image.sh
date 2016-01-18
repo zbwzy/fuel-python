@@ -13,5 +13,5 @@ echo 'start to import image to glance==========='
 glance image-create --name='cirros image' --is-public=true \
 --container-format=bare --disk-format=qcow2 < /etc/puppet/modules/glance/files/cirros-0.3.1-x86_64-disk.img
 
-
+sleep 8
 echo 'import image done####'

@@ -122,8 +122,11 @@ if __name__ == '__main__':
             print 'exit===='
             pass
         else :
-            listImageFileCmd = 'ls /var/lib/glance/images/'
+            output, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
+            imageID = output.strip()
+            listImageFileCmd = 'ls /var/lib/glance/images/ | grep %s' % imageID
             output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
+            output = output.strip()
             
             existImageFlag = True
             if output == '' :
@@ -132,7 +135,7 @@ if __name__ == '__main__':
             
             if existImageFlag :
                 imageFileName = output.strip()
-                imageFilePath = os.path.join('/var/lib/glance/images', imageFileName)
+                imageFilePath = os.path.join('/var/lib/glance/images', imageID)
                 glance_ips = JSONUtility.getValue('glance_ips')
                 glance_ips_list = glance_ips.strip().split(',')
                 

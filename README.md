@@ -26,7 +26,7 @@ init openstack params, and the parameters are put into /opt/openstack_conf/opens
 4).For each component python script:
 debug = False
 
-5).Prepare local ip on localhost:
+5).Prepare local ip(Management IP) on localhost:
 /opt/localip
 
 

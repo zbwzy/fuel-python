@@ -60,13 +60,49 @@ if __name__ == '__main__':
         imageFilePath = "/etc/puppet/modules/glance/files/cirros-0.3.1-x86_64-disk.img"
         keystone_vip = JSONUtility.getValue('keystone_vip')
         if os.path.exists(imageFilePath) :
+            import_image_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'import_image.sh')
+            get_image_id_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'getDefaultImageID.sh')
+            get_image_size_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'getDefaultImageFileSize.sh')
+            
+            ShellCmdExecutor.execCmd('cp -r %s /opt/' % import_image_script_path)
+            ShellCmdExecutor.execCmd('chmod 777 /opt/import_image.sh')
+            
+            ShellCmdExecutor.execCmd('cp -r %s /opt/' % get_image_id_script_path)
+            ShellCmdExecutor.execCmd('chmod 777 /opt/getDefaultImageID.sh')
+            
+            ShellCmdExecutor.execCmd('cp -r %s /opt/' % get_image_size_script_path)
+            ShellCmdExecutor.execCmd('chmod 777 /opt/getDefaultImageFileSize.sh')
+            
+            FileUtil.replaceFileContent('/opt/import_image.sh', '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent('/opt/getDefaultImageID.sh', '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent('/opt/getDefaultImageFileSize.sh', '<KEYSTONE_VIP>', keystone_vip)
+            time.sleep(1)
+            
             if GlanceHA.isMasterNode() :
-                import_image_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'import_image.sh')
-                ShellCmdExecutor.execCmd('cp -r %s /opt/' % import_image_script_path)
-                ShellCmdExecutor.execCmd('chmod 777 /opt/import_image.sh')
+                imported_tag = False
+                retry = 3
+                while retry > 0 :
+                    ShellCmdExecutor.execCmd('bash /opt/import_image.sh')
+                    imageFileSize, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageFileSize.sh')
+                    imageID, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
+                    
+                    importedImageSizeCmd = "ls -lt /var/lib/glance/images/ | grep %s | awk '{print $5}'" % imageID
+                    importedImageSize, exitcode = ShellCmdExecutor.execCmd(importedImageSizeCmd)
+                    imageID = imageID.strip()
+                    imageFileSize = imageFileSize.strip()
+                    importedImageSize = importedImageSize.strip()
+                    if imageFileSize == importedImageSize :
+                        imported_tag = True
+                        break
+                        pass
+                    
+                    retry -= 1
+                    pass
                 
-                FileUtil.replaceFileContent('/opt/import_image.sh', '<KEYSTONE_VIP>', keystone_vip)
-                ShellCmdExecutor.execCmd('bash /opt/import_image.sh')
+                if imported_tag == True :
+                    print 'Success to import image.'
+                else :
+                    print 'Fail to import image.'
                 pass
             
             os.system('touch %s' % INSTALL_TAG_FILE)
