@@ -52,12 +52,13 @@ if __name__ == '__main__':
         else :
 #             listImageFileCmd = 'ls /var/lib/glance/images/'
 #             output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
+#             output, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
+#             imageFileName = output.strip()
+#             imageFilePath = os.path.join('/var/lib/glance/images', imageFileName)
             
-            output, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
-            imageFileName = output.strip()
-            imageFilePath = os.path.join('/var/lib/glance/images', imageFileName)
-            
-            output, exitcode = ShellCmdExecutor.execCmd('chown -R glance:glance %s' % imageFilePath)
+            time.sleep(8)
+            imageFileDir = '/var/lib/glance/images/'
+            output, exitcode = ShellCmdExecutor.execCmd('chown -R glance:glance %s' % imageFileDir)
             os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)
             pass
         pass
