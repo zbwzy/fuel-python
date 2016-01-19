@@ -56,7 +56,7 @@ if __name__ == '__main__':
 #             imageFileName = output.strip()
 #             imageFilePath = os.path.join('/var/lib/glance/images', imageFileName)
             
-            time.sleep(8)
+            time.sleep(5)
             imageFileDir = '/var/lib/glance/images/'
             output, exitcode = ShellCmdExecutor.execCmd('chown -R glance:glance %s' % imageFileDir)
             os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)

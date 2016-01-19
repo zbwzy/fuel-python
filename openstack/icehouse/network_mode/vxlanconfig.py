@@ -111,8 +111,8 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-        VXLANConfig.reConfigureML2()
-        VXLANConfig.restart()
+#         VXLANConfig.reConfigureML2()
+#         VXLANConfig.restart()
         
         os.system('touch %s' % VXLAN_TAG_FILE)
     print 'openstack-icehouse:configure vxlan done#######'

@@ -78,18 +78,21 @@ if __name__ == '__main__':
             FileUtil.replaceFileContent('/opt/getDefaultImageFileSize.sh', '<KEYSTONE_VIP>', keystone_vip)
             time.sleep(1)
             
-            if GlanceHA.isMasterNode() :
+            from openstack.common.role import Role
+            if Role.isGlanceRole() and GlanceHA.isMasterNode():
+#             if GlanceHA.isMasterNode() :
                 imported_tag = False
-                retry = 3
+                retry = 1
                 while retry > 0 :
                     ShellCmdExecutor.execCmd('bash /opt/import_image.sh')
                     imageFileSize, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageFileSize.sh')
                     imageID, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
-                    importedImageSizeCmd = "ls -lt /var/lib/glance/images/ | grep cirros | awk '{print $5}'"
+                    importedImageSizeCmd = "ls -lt /etc/puppet/modules/glance/files/ | grep cirros | awk '{print $5}'"
                     importedImageSize, exitcode = ShellCmdExecutor.execCmd(importedImageSizeCmd)
                     imageID = imageID.strip()
                     imageFileSize = imageFileSize.strip()
                     importedImageSize = importedImageSize.strip()
+                    
                     if imageFileSize == importedImageSize :
                         imported_tag = True
                         break
@@ -103,6 +106,20 @@ if __name__ == '__main__':
                 else :
                     print 'Fail to import image.'
                 pass
+            
+            if Role.isGlanceRole() :
+                listImageFileCmd = 'ls /var/lib/glance/images/'
+                output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
+                output = output.strip()
+                
+                existImageFlag = True
+                if output == '' :
+                    existImageFlag = False
+                    pass
+                
+                if existImageFlag :
+                    os.system('touch /opt/existGlanceFileOnHost')
+                    pass
             
             os.system('touch %s' % INSTALL_TAG_FILE)
             pass

@@ -67,7 +67,7 @@ root@10.20.0.192's password:
         child.sendline(password)
 
         while True :
-            index = child.expect(['%s.*' % image_file_name, pexpect.EOF, pexpect.TIMEOUT])
+            index = child.expect(['%s.*' % image_file_name, pexpect.EOF, 20]) #pexpect.TIMEOUT, default timeout is 20 secs
             if index == 0:
                 break
             elif index == 1:
@@ -75,6 +75,7 @@ root@10.20.0.192's password:
             elif index == 2:
                 pass    #continue to wait 
             
+        time.sleep(5)
         child.sendline('exit')
         child.sendcontrol('c')
         child.interact()
@@ -122,19 +123,14 @@ if __name__ == '__main__':
             print 'exit===='
             pass
         else :
-            output, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
-            imageID = output.strip()
-            listImageFileCmd = 'ls /var/lib/glance/images/ | grep %s' % imageID
-            output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
-            output = output.strip()
+            if os.path.exists('/opt/existGlanceFileOnHost') :
+                output, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
+                imageID = output.strip()
+#                 listImageFileCmd = 'ls /var/lib/glance/images/ | grep %s' % imageID
+#                 output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
+#                 output = output.strip()
             
-            existImageFlag = True
-            if output == '' :
-                existImageFlag = False
-                pass
-            
-            if existImageFlag :
-                imageFileName = output.strip()
+                imageFileName = imageID
                 imageFilePath = os.path.join('/var/lib/glance/images', imageID)
                 glance_ips = JSONUtility.getValue('glance_ips')
                 glance_ips_list = glance_ips.strip().split(',')

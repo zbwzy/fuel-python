@@ -312,6 +312,7 @@ if __name__ == '__main__':
             
             for glance_ip in glance_ip_list :
                 execRemoteCmd(glance_ip, importImageCmd, timeout=600)
+                time.sleep(10)
                 pass
             pass
         
