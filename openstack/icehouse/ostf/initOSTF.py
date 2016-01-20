@@ -48,7 +48,7 @@ output, exitcode = ShellCmdExecutor.execCmd('cd {packagePath}; python setup.py i
 print 'installing pexpect============================'
 print 'output=%s' % output
 
-def scp_image(image_file_name, ip):
+def scp_image(scpCmd, image_file_name, ip):
     try:
         import pexpect
         
@@ -67,7 +67,7 @@ root@10.20.0.192's password:
         child.sendline(password)
 
         while True :
-            index = child.expect(['%s.*' % image_file_name, pexpect.EOF, 20]) #pexpect.TIMEOUT, default timeout is 20 secs
+            index = child.expect(['%s.*' % image_file_name, pexpect.EOF, pexpect.TIMEOUT]) #pexpect.TIMEOUT, default timeout is 20 secs
             if index == 0:
                 break
             elif index == 1:
@@ -149,7 +149,7 @@ if __name__ == '__main__':
                 for ip in dest_glance_ip_list :
                     scpCmd = 'scp {imageFilePath} root@{glance_ip}:/var/lib/glance/images/'.format(imageFilePath=imageFilePath, glance_ip=ip)
                     print 'scpCmd=%s--' % scpCmd
-                    scp_image(imageFileName, ip)
+                    scp_image(scpCmd, imageFileName, ip)
                     pass
                 pass
             
