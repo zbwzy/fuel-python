@@ -309,7 +309,6 @@ if __name__ == '__main__':
         if 'glance' in activeRoles:
             glance_ip_list = activeRoleIPMap['glance']
             importImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/glance/importImage.py'
-            
             for glance_ip in glance_ip_list :
                 execRemoteCmd(glance_ip, importImageCmd, timeout=600)
                 time.sleep(10)
@@ -370,6 +369,7 @@ if __name__ == '__main__':
             assignPrivilegeCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTFPrivilege.py'
             for ip in glance_ip_list:
                 execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
+                execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
                 pass
             pass
                     
