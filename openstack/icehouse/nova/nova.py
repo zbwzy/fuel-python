@@ -176,8 +176,8 @@ vif_plugging_timeout=0
         mysql_vip = JSONUtility.getValue("mysql_vip")
         mysql_password = JSONUtility.getValue("mysql_password")
         
-        rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_vip = JSONUtility.getValue("rabbit_vip")
+#         rabbit_host = JSONUtility.getValue("rabbit_host")
+#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
@@ -236,10 +236,9 @@ vif_plugging_timeout=0
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_MYSQL_PASSWORD>', nova_mysql_password)
         
-        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
-        
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)

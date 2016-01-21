@@ -169,8 +169,8 @@ class NeutronServer(object):
         mysql_password = JSONUtility.getValue("mysql_password")
         neutron_mysql_password = JSONUtility.getValue("neutron_mysql_password")
         
-        rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_vip = JSONUtility.getValue("rabbit_vip")
+#         rabbit_host = JSONUtility.getValue("rabbit_host")
+#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
@@ -215,7 +215,7 @@ class NeutronServer(object):
         FileUtil.replaceFileContent(neutron_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<NEUTRON_MYSQL_PASSWORD>', neutron_mysql_password)
         
-        FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
+#         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)

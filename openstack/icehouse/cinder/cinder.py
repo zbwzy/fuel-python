@@ -132,7 +132,7 @@ class Cinder(object):
         mysql_password = JSONUtility.getValue("mysql_password")
         
         rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_vip = JSONUtility.getValue("rabbit_vip")
+#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
@@ -188,7 +188,7 @@ class Cinder(object):
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
         
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
+#         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)

@@ -166,8 +166,8 @@ class Glance(object):
         print "glance_ips=%s" % glance_ips
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_vip = JSONUtility.getValue("rabbit_vip")
+#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
+        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
@@ -230,7 +230,8 @@ class Glance(object):
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
         
-        FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
+#         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
+        FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
