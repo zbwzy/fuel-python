@@ -21,7 +21,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'icehouse'
+OPENSTACK_VERSION_TAG = 'kilo'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_COMPUTE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova-compute', 'nova.conf')
 

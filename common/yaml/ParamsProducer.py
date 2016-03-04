@@ -43,7 +43,9 @@ class ParamsProducer(object):
     classdocs
     '''
     OPENSTACK_ROLES = ['mysql', 'rabbitmq', 'mongodb', 'keystone', 'glance', 'nova-api', 'nova-compute',
-                       'ceilometer', 'neutron-server', 'neutron', 'horizon', 'cinder-api', 'cinder-storage', 'heat']
+                       'ceilometer', 'neutron-server', 'neutron', 'horizon', 'cinder-api', 'cinder-storage', 
+                       'heat', 'haproxy-keepalived'
+                       ]
     
     def __init__(self):
         '''
