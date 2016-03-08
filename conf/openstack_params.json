@@ -1,4 +1,5 @@
-{
+{   
+    "mysql_ips": "10.20.0.84,10.20.0.85,10.20.0.86", 
     "mysql_vip": "192.168.11.131",
     "mysql_vip_interface": "eth0",
     "mysql_password": "123456",
