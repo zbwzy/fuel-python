@@ -45,12 +45,15 @@ class SSH(object):
         id_rsa_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'id_rsa')
         id_rsa_pub_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'id_rsa.pub')
         authorized_keys_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'authorized_keys')
+        sshd_config_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'sshd_config')
         ShellCmdExecutor.execCmd('cp -r %s %s' % (id_rsa_file_path, root_ssh_dir_path))
         ShellCmdExecutor.execCmd('cp -r %s %s' % (id_rsa_pub_file_path, root_ssh_dir_path))
         ShellCmdExecutor.execCmd('cp -r %s %s' % (authorized_keys_file_path, root_ssh_dir_path))
+        ShellCmdExecutor.execCmd('cp -r %s /etc/ssh/' % sshd_config_file_path)
         
         ShellCmdExecutor.execCmd('chmod 700 /root/.ssh/')
         ShellCmdExecutor.execCmd('chown -R root:root /root/.ssh/')
+        ShellCmdExecutor.execCmd('/bin/systemctl restart sshd.service')
         pass
     
     
