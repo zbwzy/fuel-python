@@ -43,11 +43,10 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from openstack.icehouse.dashboard.dashboard import Dashboard
-from openstack.icehouse.dashboard.dashboard import DashboardHA
     
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:dashboard============'
+    print 'hello openstack-kilo:dashboard============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -60,16 +59,8 @@ if __name__ == '__main__':
         pass
     else :
         Dashboard.start()
-    
-        DashboardHA.install()
-        DashboardHA.configure()
-        DashboardHA.start()
-        #
-        Dashboard.restart()
-        DashboardHA.start()
-    #     ShellCmdExecutor.execCmd('service haproxy restart')
-        #mark: dashboard is installed
+        #mark: dashboard is started
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:dashboard installed#######'
+    print 'hello openstack-kilo:dashboard installed#######'
     pass
 

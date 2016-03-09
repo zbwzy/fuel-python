@@ -36,5 +36,6 @@
     "dashboard_vip": "192.168.11.100",
     "dashboard_vip_interface": "eth0",
     "dashboard_ips": "192.168.11.131,192.168.11.132",
-    "neutron_vip": "192.168.11.131"
+    "neutron_vip": "192.168.11.131",
+    "haproxy_vip1": "10.20.0.82"
 }
