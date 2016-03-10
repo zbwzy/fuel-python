@@ -8,6 +8,9 @@ import sys
 import os
 import time
 
+reload(sys)
+sys.setdefaultencoding('utf8')
+
 debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
