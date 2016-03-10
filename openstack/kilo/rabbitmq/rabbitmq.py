@@ -128,8 +128,6 @@ class RabbitMQ(object):
         FileUtil.replaceFileContent(init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
         FileUtil.replaceFileContent(init_script_path, '<RABBIT_PASS>', rabbit_password)
         output,exitcode = ShellCmdExecutor.execCmd('bash %s' % init_script_path)
-        print 'pppp======'
-        print output
         pass
     pass
 
