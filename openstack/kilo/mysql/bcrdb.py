@@ -35,12 +35,14 @@ sys.path.append(PROJ_HOME_DIR)
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.file.FileUtil import FileUtil
+from openstack.common.serverSequence import ServerSequence
 
 class BCRDB(object):
     '''
     classdocs
     '''
     ROLE = 'mysql'
+    TIMEOUT = 600 #unit:second
     def __init__(self):
         '''
         Constructor
@@ -115,19 +117,49 @@ class BCRDB(object):
         if index == 0 :
             start_cmd = '/opt/bcrdb/support-files/mysql.server bootstrap'
             ShellCmdExecutor.execCmd(start_cmd)
+            #Mutual trust has been established when execute prerequisites.py, send tag to the rest bcrdb servers
+            #to mark that the first bcrdb server has been launched.
+            from openstack.kilo.ssh.SSH import SSH
+            
+            tag_file_name = 'bcrdb_0' #The first server of bcrdb cluster
+            slave_mysql_server_list = mysql_ip_list[1:]
+            for slave_ip in slave_mysql_server_list :
+                SSH.sendTagTo(slave_ip, tag_file_name)
+                pass
+            
+            keystone_ips = JSONUtility.getValue("keystone_ips")
+            keystone_ip_list = keystone_ips.strip().split(',')
+            #send tag to first server of keystone cluster
+            SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
             pass
         else :
+            #wait bcrdb first server launched
+            
             start_cmd = '/opt/bcrdb/support-files/mysql.server start'
             ShellCmdExecutor.execCmd(start_cmd)
+            
+            #send tag to the first server of keystone cluster:
+            #when all servers are launched,keystone is used to register info to RDB.
+            index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
+            tag_file_name = 'bcrdb_{index}'.format(index=str(index))
+            SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
             pass
         pass
-    pass
+    
 
 if __name__ == '__main__':
         
     print 'hello openstack-kilo:rdb======='
-    BCRDB.install()
-    BCRDB.config()
+    INSTALL_TAG_FILE = '/opt/initBCRDB'
+    if os.path.exists(INSTALL_TAG_FILE) :
+        print 'bcrdb cluster initted####'
+        print 'exit===='
+        pass
+    else :
+        BCRDB.install()
+        BCRDB.config()
+        BCRDB.start()
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:rdb installed#######'
     pass
 
