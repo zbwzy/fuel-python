@@ -87,6 +87,9 @@ class SSH(object):
         ShellCmdExecutor.execCmd('cp -r %s /etc/ssh/' % sshd_config_file_path)
         
         ShellCmdExecutor.execCmd('chmod 700 /root/.ssh/')
+        ShellCmdExecutor.execCmd('chmod 400 /root/.ssh/authorized_keys')
+        ShellCmdExecutor.execCmd('chmod 400 /root/.ssh/id_rsa')
+        ShellCmdExecutor.execCmd('chmod 400 /root/.ssh/id_rsa.pub')
         ShellCmdExecutor.execCmd('chown -R root:root /root/.ssh/')
         ShellCmdExecutor.execCmd('/bin/systemctl restart sshd.service')
         pass
@@ -97,6 +100,10 @@ class SSH(object):
     def sendTagTo(server_management_ip, tag_file_name): # The file <tag_file_name> is produced in /opt/openstack_conf/tag/.
         try:
             import pexpect
+            #To make the interact string: Are you sure you want to continue connecting.* always appear
+            if os.path.exists('/root/.ssh/known_hosts') :
+                os.system('rm -rf /root/.ssh/known_hosts')
+                pass
     
     #         child = pexpect.spawn(scpCmd)
             cmd = 'ssh root@{ip} "mkdir -p /opt/openstack_conf/tag/;\

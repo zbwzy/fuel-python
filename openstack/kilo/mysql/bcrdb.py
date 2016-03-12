@@ -113,8 +113,14 @@ class BCRDB(object):
         local_management_ip = output.strip()
         
         index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
+        print 'mysql index=%s--' % str(index)
         #Judge master
+        if not os.path.exists('/opt/openstack_conf/tag/') :
+            ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
+            pass
+        
         if index == 0 :
+            print 'start to launch mysql master==============='
             start_cmd = '/opt/bcrdb/support-files/mysql.server bootstrap'
             ShellCmdExecutor.execCmd(start_cmd)
             #Mutual trust has been established when execute prerequisites.py, send tag to the rest bcrdb servers
@@ -133,15 +139,36 @@ class BCRDB(object):
             SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
             pass
         else :
+            print 'start to launch mysql slave================'
             #wait bcrdb first server launched
-            
-            start_cmd = '/opt/bcrdb/support-files/mysql.server start'
-            ShellCmdExecutor.execCmd(start_cmd)
+            file_path = '/opt/openstack_conf/tag/bcrdb_0'
+            time_count = 0
+            while True:
+                flag = os.path.exists(file_path)
+                if flag == True :
+                    print 'wait time: %s second(s).' % time_count
+                    print 'If first mysql is launched,then start mysql slave========='
+                    start_cmd = '/opt/bcrdb/support-files/mysql.server start'
+                    ShellCmdExecutor.execCmd(start_cmd)
+                    print 'done to start mysql slave######'
+                    break
+                else :
+                    step = 1
+        #             print 'wait %s second(s)......' % step
+                    time_count += step
+                    time.sleep(1)
+                    pass
+                
+                if time_count == BCRDB.TIMEOUT :
+                    print 'Do nothing!timeout=%s.' % BCRDB.TIMEOUT
+                    break
+                pass
             
             #send tag to the first server of keystone cluster:
             #when all servers are launched,keystone is used to register info to RDB.
             index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
             tag_file_name = 'bcrdb_{index}'.format(index=str(index))
+            print 'slave mysql tag_file_name=%s' % tag_file_name
             SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
             pass
         pass
