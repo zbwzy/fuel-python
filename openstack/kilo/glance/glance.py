@@ -289,6 +289,9 @@ if __name__ == '__main__':
                     break
                 pass
             pass
+        
+        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        AdminOpenrc.prepareAdminOpenrc()
         #mark: glance is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     
