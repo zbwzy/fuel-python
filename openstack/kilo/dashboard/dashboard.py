@@ -221,7 +221,7 @@ if __name__ == '__main__':
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/dashboard_installed'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/dashboard_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'dashboard installed####'
         print 'exit===='

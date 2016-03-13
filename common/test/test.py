@@ -1,4 +1,9 @@
 '''
+Created on Mar 13, 2016
+
+@author: zhangbai
+'''
+'''
 Created on Dec 15, 2015
 
 @author: zhangbai
@@ -45,10 +50,30 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    foo('hello', 'beijing')
+    #TEST:wc -l ====
+    output, exitcode = ShellCmdExecutor.execCmd('ls -lt /opt/openstack_conf/tag/ | grep bcrdb_ | wc -l')
+    bcrdb_mark_num = output.strip()
+    print 'output=%s--' % bcrdb_mark_num
+    if bcrdb_mark_num == "2" :
+        print 'exist file regex:bcrdb.'
+        pass
+    else :
+        print "TTTT"
+        pass
+    #itoa
+    num = 66
+    str1 = "%d" % num
+    print str1
+    print type(str1)
+    arr = [1,2,3]
+    bb = '%d'% len(arr)
+    print 'array num:%s' % bb
+    print type(bb)
+    exit()
+    #TEST:wc -l ####
     #TEST:array===
     b = []
-    a = [1,2]
+    a = [1,2,3]
     b = a[1:]
     print b
 

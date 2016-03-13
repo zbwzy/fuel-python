@@ -70,6 +70,7 @@ class BCRDB(object):
         DEST_RDB_CONF_DIR = os.path.join(RDB_DEPLOY_DIR, 'conf')
         RDB_CONF_FILE_PATH = os.path.join(DEST_RDB_CONF_DIR, 'my.cnf')
         EXECUTE_MYSQL_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysql')
+        MYSQLADMIN_BIN_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysqladmin')
         
         ShellCmdExecutor.execCmd('cp -r %s %s' % (SOURCE_RDB_CONF_FILE_TEMPLATE_PATH, DEST_RDB_CONF_DIR))
         mysql_ips = JSONUtility.getValue("mysql_ips")
@@ -99,6 +100,8 @@ class BCRDB(object):
         
         #cp mysql to /usr/bin
         ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % EXECUTE_MYSQL_PATH)
+        
+        ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % MYSQLADMIN_BIN_PATH)
         pass
     
     @staticmethod
@@ -119,15 +122,19 @@ class BCRDB(object):
             ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
             pass
         
+        from openstack.kilo.ssh.SSH import SSH
         if index == 0 :
             print 'start to launch mysql master==============='
             start_cmd = '/opt/bcrdb/support-files/mysql.server bootstrap'
             ShellCmdExecutor.execCmd(start_cmd)
-            #Mutual trust has been established when execute prerequisites.py, send tag to the rest bcrdb servers
-            #to mark that the first bcrdb server has been launched.
-            from openstack.kilo.ssh.SSH import SSH
             
+            #Mutual trust has been established when execute prerequisites.py, then send tag to the rest bcrdb servers
+            #to mark that the first bcrdb server has been launched.
             tag_file_name = 'bcrdb_0' #The first server of bcrdb cluster
+            #mark master
+            mark_cmd = 'touch /opt/openstack_conf/tag/{file}'.format(file=tag_file_name)
+            os.system(mark_cmd)
+            #mark slave
             slave_mysql_server_list = mysql_ip_list[1:]
             for slave_ip in slave_mysql_server_list :
                 SSH.sendTagTo(slave_ip, tag_file_name)
@@ -170,6 +177,10 @@ class BCRDB(object):
             tag_file_name = 'bcrdb_{index}'.format(index=str(index))
             print 'slave mysql tag_file_name=%s' % tag_file_name
             SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
+            
+            print 'send tag to first mysql===='
+            SSH.sendTagTo(mysql_ip_list[0], tag_file_name)
+            print 'done to send tag to first mysql####'
             pass
         pass
     
@@ -177,7 +188,7 @@ class BCRDB(object):
 if __name__ == '__main__':
         
     print 'hello openstack-kilo:rdb======='
-    INSTALL_TAG_FILE = '/opt/initBCRDB'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initBCRDB'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'bcrdb cluster initted####'
         print 'exit===='

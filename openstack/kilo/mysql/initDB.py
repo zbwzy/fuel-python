@@ -98,8 +98,8 @@ class MySQL(object):
         pass
     
     @staticmethod
-    def initPassword(user, initPasswd):
-        initPasswdCmd = 'mysqladmin -u%s password %s' % (user, initPasswd)
+    def initPassword(user, old_password, new_password):
+        initPasswdCmd = 'mysqladmin -u%s -p%s password %s' % (user, old_password, new_password)
         ShellCmdExecutor.execCmd(initPasswdCmd)
         pass
     
@@ -154,121 +154,6 @@ class MySQL(object):
         output, exitcode = ShellCmdExecutor.execCmd(myqlCmd)
         print 'output=%s--' % output
         pass
-    
-class VIP(object):
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def isExistVIP(vip, interface):
-        cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
-        output, exitcode = ShellCmdExecutor.execCmd(cmd)
-        output = output.strip()
-        if output == None or output == '':
-            print 'Do no exist vip %s on interface %s.' % (vip, interface)
-            return False
-        
-        if debug == True :
-            output = '''
-            xxxx
-            inet 192.168.11.100/32 scope global eth0
-            xxxx
-            '''
-            pass
-        
-        newString = vip + '/'
-        if newString in output :
-            print 'exist vip %s on interface %s.' % (vip, interface)
-            return True
-        else :
-            print 'Do no exist vip %s on interface %s.' % (vip, interface)
-            return False
-        pass
-    
-    #return value: 192.168.11.100/32
-    @staticmethod
-    def getVIPFormatString(vip, interface):
-        vipFormatString = ''
-        if VIP.isExistVIP(vip, interface) :
-            print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
-            cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
-            output, exitcode = ShellCmdExecutor.execCmd(cmd)
-            vipFormatString = output.strip()
-            if debug == True :
-                fakeVIPFormatString = 'inet 192.168.11.100/32 scope global eth0'
-                vipFormatString = fakeVIPFormatString
-                pass
-            
-            result = vipFormatString.split(' ')[1]
-            pass
-        else :
-            #construct vip format string
-            print 'getVIPFormatString====do not exist vip %s on interface %s, to construct vip format string' % (vip, interface) 
-            vipFormatString = '{vip}/32'.format(vip=vip)
-            print 'vipFormatString=%s--' % vipFormatString
-            result = vipFormatString
-            pass
-        
-        return result
-    
-    @staticmethod
-    def addVIP(vip, interface):
-        result = VIP.getVIPFormatString(vip, interface)
-        print 'result===%s--' % result
-        if not VIP.isExistVIP(vip, interface) :
-            print 'NOT exist vip %s on interface %s.' % (vip, interface)
-            addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
-            print 'addVIPCmd=%s--' % addVIPCmd
-            ShellCmdExecutor.execCmd(addVIPCmd)
-            pass
-        else :
-            print 'The VIP %s already exists on interface %s.' % (vip, interface)
-            pass
-        pass
-    
-    @staticmethod
-    def deleteVIP(vip, interface):
-        result = VIP.getVIPFormatString(vip, interface)
-        print 'result===%s--' % result
-        if VIP.isExistVIP(vip, interface) :
-            deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
-            print 'deleteVIPCmd=%s--' % deleteVIPCmd
-            ShellCmdExecutor.execCmd(deleteVIPCmd)
-            pass
-        else :
-            print 'The VIP %s does not exist on interface %s.' % (vip, interface)
-            pass
-        pass
-
-class Network(object):
-    '''
-    classdocs
-    '''
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def Prepare():
-#         Network.stopIPTables()
-        Network.stopNetworkManager()
-        pass
-    
-    @staticmethod
-    def stopNetworkManager():
-        stopCmd = "service NetworkManager stop"
-        chkconfigOffCmd = "chkconfig NetworkManager off"
-        
-        ShellCmdExecutor.execCmd(stopCmd)
-        ShellCmdExecutor.execCmd(chkconfigOffCmd)
-        pass
-    
-
 
 class Glance(object):
     '''
@@ -1624,7 +1509,8 @@ if __name__ == '__main__':
     #Produce params
     paramsProducerPath = os.path.join(PROJ_HOME_DIR, 'common', 'yaml', 'ParamsProducer.py')
     
-    ShellCmdExecutor.execCmd('python %s' % paramsProducerPath)
+    #Refactor
+#     ShellCmdExecutor.execCmd('python %s' % paramsProducerPath)
         
     output, exitcode = ShellCmdExecutor.execCmd('cat /opt/mysql_ip_list')
     mysql_ip_list = output.strip().split(',')
@@ -1638,7 +1524,8 @@ if __name__ == '__main__':
         exit()
         pass
     
-    INSTALL_TAG_FILE = '/opt/db_init'
+    os.system('mkdir -p /opt/openstack_conf/tag/')
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/db_init'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'openstack db is initted####'
@@ -1647,13 +1534,14 @@ if __name__ == '__main__':
     else :
         print 'start to init======='
         
-        Prerequisites.prepare()
+#         Prerequisites.prepare()
         
         #init mysql password
         user = 'root'
         initPasswd = JSONUtility.getValue('mysql_password')
+        oldPasswd = 'bcrdb'
         print 'initPasswd=%s--' % initPasswd
-        MySQL.initPassword(user, initPasswd)
+        MySQL.initPassword(user, oldPasswd, initPasswd)
         
         
         flushCmd = 'flush privileges;'
@@ -1661,7 +1549,7 @@ if __name__ == '__main__':
         hostname = output.strip()
         print 'init============================================'
         #keystone
-        if YAMLUtil.hasRoleInNodes('keystone') :
+        if False :#YAMLUtil.hasRoleInNodes('keystone') :
             createDBCmd = 'CREATE DATABASE keystone'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1673,22 +1561,26 @@ if __name__ == '__main__':
             .format(init_passwd=initPasswd)
             print 'grantCmd2=%s--' % grantCmd2
             
-            grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-            .format(hostname=hostname,init_passwd=initPasswd)
+#             grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+#             .format(hostname=hostname,init_passwd=initPasswd)
             
             MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
             MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+#             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+#             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             
             #add default role with specific id
             print 'add default role with specific id============'
-            addDefaultRoleCmd = 'insert into role(id,name,extra) values(\'9fe2ff9ee4384b1894a90878d3e92bab\',\'__member__\',\'\{\}\')'
-            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+#             addDefaultRoleCmd = 'insert into role(id,name,extra) values(\'9fe2ff9ee4384b1894a90878d3e92bab\',\'__member__\',\'\{\}\')'
+#             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+#             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             print 'add default role with specific id########'
+            
+            #TEST
+            print 'Just for test===='
+            exit()
         
         ########
             Keystone.install()
@@ -1712,7 +1604,8 @@ if __name__ == '__main__':
             Keystone.sourceAdminOpenRC()
         
         #glance
-        if YAMLUtil.hasRoleInNodes('glance') :
+        if True : #YAMLUtil.hasRoleInNodes('glance') :
+            print 'create glance mysql user============'
             createDBCmd = 'CREATE DATABASE glance'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1723,15 +1616,19 @@ if __name__ == '__main__':
             grantCmd2 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
             .format(init_passwd=initPasswd)
             
-            grantToHostname = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-            .format(hostname=hostname,init_passwd=initPasswd)
+#             grantToHostname = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+#             .format(hostname=hostname,init_passwd=initPasswd)
             
             MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
             MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+#             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+#             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            #Refactor
+            print 'glance db init test=============='
+            exit()
             
             Glance.install()
             Glance.configConfFile()
@@ -1740,7 +1637,7 @@ if __name__ == '__main__':
             Glance.initGlance()
         
         #nova
-        if YAMLUtil.hasRoleInNodes('nova-api') :
+        if True :#YAMLUtil.hasRoleInNodes('nova-api') :
             createDBCmd = 'CREATE DATABASE nova'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1751,15 +1648,16 @@ if __name__ == '__main__':
             grantCmd2 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
             .format(init_passwd=initPasswd)
             
-            grantToHostname = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-            .format(hostname=hostname,init_passwd=initPasswd)
+#             grantToHostname = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+#             .format(hostname=hostname,init_passwd=initPasswd)
             
             MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
             MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+#             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+#             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            exit()
             
             ##nova
             Nova.install()
@@ -1770,7 +1668,7 @@ if __name__ == '__main__':
             Nova.initNova()
         
         #neutron
-        if YAMLUtil.hasRoleInNodes('neutron-server') :
+        if True : #YAMLUtil.hasRoleInNodes('neutron-server') :
             createDBCmd = 'CREATE DATABASE neutron'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1781,21 +1679,23 @@ if __name__ == '__main__':
             grantCmd2 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
             .format(init_passwd=initPasswd)
             
-            grantToHostname = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-            .format(hostname=hostname,init_passwd=initPasswd)
+#             grantToHostname = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+#             .format(hostname=hostname,init_passwd=initPasswd)
             
             MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+#             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+#             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            #Refactor
+            exit()
             
             Keystone.sourceAdminOpenRC()
             Neutron.initNeutron()
         
         #cinder
-        if YAMLUtil.hasRoleInNodes('cinder-api') :
+        if True :#YAMLUtil.hasRoleInNodes('cinder-api') :
             createDBCmd = 'CREATE DATABASE cinder'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1806,15 +1706,18 @@ if __name__ == '__main__':
             grantCmd2 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
             .format(init_passwd=initPasswd)
             
-            grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'cinder\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-            .format(hostname=hostname,init_passwd=initPasswd)
+#             grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'cinder\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+#             .format(hostname=hostname,init_passwd=initPasswd)
             
             MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
             MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+#             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+#             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            
+            #Refactor
+            exit()
             
             ####Special handling
             if os.path.isfile('/etc/cinder') :
@@ -1849,15 +1752,15 @@ if __name__ == '__main__':
             grantCmd2 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
             .format(init_passwd=initPasswd)
             
-            grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'heat\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
-            .format(hostname=hostname,init_passwd=initPasswd)
+#             grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'heat\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
+#             .format(hostname=hostname,init_passwd=initPasswd)
             
             MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
             MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
-            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+#             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
+#             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             
             Heat.install()
             heatConfDir = '/etc/heat'
