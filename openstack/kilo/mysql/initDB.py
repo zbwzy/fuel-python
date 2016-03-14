@@ -1548,8 +1548,14 @@ if __name__ == '__main__':
         output, exitcode = ShellCmdExecutor.execCmd('hostname')
         hostname = output.strip()
         print 'init============================================'
+        if YAMLUtil.hasRoleInNodes('haproxy-keepalived') :
+            grantHaproxyUserUsage = 'grant usage on *.* to haproxy@\'%\''
+            MySQL.execMySQLCmd(user, initPasswd, grantHaproxyUserUsage)
+            MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+            pass
+        
         #keystone
-        if False :#YAMLUtil.hasRoleInNodes('keystone') :
+        if YAMLUtil.hasRoleInNodes('keystone') :
             createDBCmd = 'CREATE DATABASE keystone'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1578,10 +1584,6 @@ if __name__ == '__main__':
 #             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             print 'add default role with specific id########'
             
-            #TEST
-            print 'Just for test===='
-            exit()
-        
         ########
             Keystone.install()
             ########
@@ -1592,10 +1594,6 @@ if __name__ == '__main__':
             Keystone.supportPKIToken()
                      
             Keystone.start()
-            
-    #         KeystoneHA.install()
-    #         KeystoneHA.configure()
-    #         KeystoneHA.start()
             
             ####NEW
             Keystone.configureEnvVar()

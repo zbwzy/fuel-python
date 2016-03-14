@@ -1,124 +1,171 @@
----
-status: error
-puppet_modules_source: rsync://10.20.0.2:/puppet/2014.2-6.0/modules/
-ceilometer:
-  ceilometer_vip_interface: eth0
-  ceilometer_vip: 10.20.0.111
-  ceilometer_mongo_password: '123456'
-  install: true
-  ceilometer_mongo_user: ceilometer
-uid: '21'
-keystone:
-  keystone_vip: 10.20.0.111
-  keystone_mysql_password: '123456'
-  keystone_mysql_user: keystone
-  keystone_vip_interface: eth0
-  install: true
-puppet_manifests_source: rsync://10.20.0.2:/puppet/2014.2-6.0/manifests/
-ip: 10.20.0.134
-mysql:
-  action: config
-  mysql_vip: 10.20.0.111
-  mysql_vip_interface: eth0
-  install: true
-  root_password: '123456'
-fqdn: compute-134.domain.tld
-rabbitmq:
-  rabbit_vip: 10.20.0.111
-  rabbit_vip_interface: eth0
-  rabbit_userid: guest
-  action: config
-  install: true
-  rabbit_password: '123456'
-priority: 500
-mongodb:
-  mongo_user: ceilometer
-  install: true
-  mongo_password: '123456'
-repo_metadata:
-  2014.2-6.0: http://10.20.0.2:8080/2014.2-6.0/centos/x86_64
-role: rabbitmq
-online: true
-fail_if_error: false
-cobbler:
-  profile: centos-x86_64
-nodes:
-- swift_zone: '21'
-  uid: '21'
-  ip: 10.20.0.134
-  fqdn: compute-134.domain.tld
-  role: ceilometer
-  name: compute-134
-- swift_zone: '21'
-  uid: '21'
-  ip: 10.20.0.134
-  fqdn: compute-134.domain.tld
-  role: heat
-  name: compute-134
-- swift_zone: '21'
-  uid: '21'
-  ip: 10.20.0.134
-  fqdn: compute-134.domain.tld
-  role: keystone
-  name: compute-134
-- swift_zone: '21'
-  uid: '21'
-  ip: 10.20.0.134
-  fqdn: compute-134.domain.tld
-  role: mongodb
-  name: compute-134
-- swift_zone: '21'
-  uid: '21'
-  ip: 10.20.0.134
-  fqdn: compute-134.domain.tld
-  role: mysql
-  name: compute-134
-- swift_zone: '21'
-  uid: '21'
-  ip: 10.20.0.134
-  fqdn: compute-134.domain.tld
-  role: rabbitmq
-  name: compute-134
-- swift_zone: '22'
-  uid: '22'
-  ip: 10.20.0.9
-  fqdn: compute-133.domain.tld
-  role: ceilometer
-  name: compute-133
-- swift_zone: '22'
-  uid: '22'
-  ip: 10.20.0.9
-  fqdn: compute-133.domain.tld
-  role: heat
-  name: compute-133
-- swift_zone: '22'
-  uid: '22'
-  ip: 10.20.0.9
-  fqdn: compute-133.domain.tld
-  role: keystone
-  name: compute-133
-- swift_zone: '22'
-  uid: '22'
-  ip: 10.20.0.9
-  fqdn: compute-133.domain.tld
-  role: mongodb
-  name: compute-133
-- swift_zone: '22'
-  uid: '22'
-  ip: 10.20.0.9
-  fqdn: compute-133.domain.tld
-  role: mysql
-  name: compute-133
-- swift_zone: '22'
-  uid: '22'
-  ip: 10.20.0.9
-  fqdn: compute-133.domain.tld
-  role: rabbitmq
-  name: compute-133
-heat:  
-  heat_vip_interface: eth0
-  heat_mysql_password: '123456'
-  install: true
+heat: 
   heat_mysql_user: heat
-  heat_vip: 10.20.0.111
+  heat_vip_interface: eth0
+  heat_vip: 10.20.0.66
+  bond_2: ""
+  bond_1: ""
+  install: true
+  heat_mysql_password: 3570c543c9f63d7044d8
+horizon: 
+  dashboard_vip_interface: eth0
+  dashboard_vip: 10.20.0.66
+  bond_2: ""
+  bond_1: ""
+  install: true
+ceilometer: 
+  ceilometer_vip_interface: eth0
+  ceilometer_mongo_user: ceilometer
+  ceilometer_mongo_password: 8b37c90d910b8d3734a4
+  ceilometer_vip: 10.20.0.66
+  bond_2: ""
+  bond_1: ""
+  install: true
+  metadata_secret: a9c8d2f9cf00ca82aa92
+neutron-agent: 
+  interface_name: bond1
+  bond_2: ""
+  bond_1: 10.20.0.4
+  install: true
+  neutron_network_mode: gre
+haproxy-keepalived: 
+  haproxy_vip2: ""
+  haproxy_vip1: ""
+  haproxy_vipinterface2: eth0
+  haproxy_vipinterface1: eth0
+  bond_2: ""
+  bond_1: ""
+  install: true
+cinder-storage: 
+  cinder_mysql_password: fc5db4982d6ff87c3164
+  cinder_mysql_user: cinder
+  bond_2: 10.20.0.4
+  bond_1: ""
+  install: true
+global: 
+  cinder_dbpass: a20b8111eb780206aa17
+  keystone_heat_password: 5b03007991281947d49f
+  admin_token: fbfcb90ad5ec2e42abb6
+  keystone_neutron_password: 7424457ef54d1d0d8d2b
+  keystone_admin_password: 035a46aced74e92c6773
+  keystone_glance_password: 01c116cf9e147ba1180a
+  neutron_dbpass: b2686f8b083194a61c88
+  keystone_cinder_password: 2ef34577b16387aa70c8
+  nova_dbpass: 8765e972f573338a0dc3
+  keystone_nova_password: 31c9d779a99ced738f63
+  ceilometer_dbpass: 92370f977e3c3f7d590f
+  heat_dbpass: 5e10e8bf0cf59c766b5d
+  bclinux_repo_url: 10.20.0.4
+  glance_dbpass: 54cfcd1424ae21aef4f6
+  keystone_dbpass: 422e46075403c1f9d6eb
+  keystone_ceilometer_password: 67fb7fdd7c053cff14a4
+  cluster_id: 8
+  fuel_master_ip: 10.20.0.4
+masterip: 
+puppet_modules_source: rsync://10.20.0.2:/puppet/2014.2-6.0/modules/
+fail_if_error: false
+mysql: 
+  mysql_vip_interface: eth0
+  action: config
+  root_password: 58c35521bd44095d3ea8
+  mysql_vip: 10.20.0.66
+  bond_2: ""
+  bond_1: ""
+  install: true
 deployment_id: 8
+neutron-server: 
+  neutron_vip_interface: eth0
+  neutron_mysql_password: 0c5b57bb0fee0787ab7f
+  neutron_mysql_user: neutron
+  neutron_vip: 10.20.0.66
+  bond_2: 10.20.0.4
+  bond_1: ""
+  install: true
+  neutron_network_mode: gre
+role: nova-compute
+rabbitmq: 
+  action: config
+  rabbit_vip_interface: eth0
+  bond_2: ""
+  bond_1: ""
+  install: true
+  rabbit_vip: 10.20.0.66
+  rabbit_userid: guest
+  rabbit_password: 4afc548a39a36dce0ddc
+mongodb: 
+  mongodb_vip: 10.20.0.66
+  mongodb_vip_interface: eth0
+  mongo_user: ceilometer
+  bond_1: ""
+  bond_2: ""
+  install: true
+  mongo_password: bf1f88efe6fca4caaae0
+keystone: 
+  keystone_mysql_user: keystone
+  bond_2: ""
+  bond_1: ""
+  keystone_vip: 10.20.0.66
+  install: true
+  keystone_mysql_password: 16bbba2184112b2791e3
+  keystone_vip_interface: eth0
+glance: 
+  glance_mysql_password: 850643b72a23ff42fc68
+  glance_mysql_user: glance
+  bond_1: ""
+  bond_2: ""
+  install: true
+  glance_vip_interface: eth0
+  glance_vip: 10.20.0.66
+nova-api: 
+  nova_mysql_user: nova
+  nova_vip_interface: eth0
+  bond_2: 10.20.0.4
+  bond_1: 10.20.0.4
+  nova_mysql_password: 296c4cbabcb8e665b9dc
+  install: true
+  nova_vip: 10.20.0.66
+priority: 500
+cinder-api: 
+  cinder_mysql_password: dae02e0b3ca07f559195
+  cinder_vip_interface: eth0
+  cinder_vip: 10.20.0.66
+  cinder_mysql_user: cinder
+  bond_2: ""
+  bond_1: ""
+  install: true
+fqdn: 10.20.0.132.domain.tld
+ip: 10.20.0.132
+repo_metadata: 
+  2014.2-6.0: http://10.20.0.2:8080/2014.2-6.0/centos/x86_64
+status: provisioned
+puppet_manifests_source: rsync://10.20.0.2:/puppet/2014.2-6.0/manifests/
+nova-compute: 
+  virt_type: qemu
+  bond_2: 10.20.0.4
+  bond_1: ""
+  install: true
+nodes: 
+- swift_zone: "6"
+  role: glance
+  cabinet: ""
+  name: 10.20.0.132
+  fqdn: 10.20.0.132.domain.tld
+  ip: 10.20.0.132
+  uid: "6"
+- swift_zone: "6"
+  role: nova-api
+  cabinet: ""
+  name: 10.20.0.132
+  fqdn: 10.20.0.132.domain.tld
+  ip: 10.20.0.132
+  uid: "6"
+- swift_zone: "6"
+  role: nova-compute
+  cabinet: ""
+  name: 10.20.0.132
+  fqdn: 10.20.0.132.domain.tld
+  ip: 10.20.0.132
+  uid: "6"
+cobbler: 
+  profile: centos-x86_64
+online: true
+uid: "6"
