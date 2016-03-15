@@ -17,10 +17,15 @@ export OS_ENDPOINT_TYPE='internalURL'
 export OS_VOLUME_API_VERSION=2
 
 #
-echo 'init glance in keystone===='
-keystone user-create --name=glance --pass=<KEYSTONE_GLANCE_PASSWORD>
-openstack role add --project service --user glance admin
-openstack service create --name glance --description "OpenStack Image service" image
-openstack endpoint create --publicurl http://<GLANCE_VIP>:9292 --internalurl http://<GLANCE_VIP>:9292 --adminurl http://<GLANCE_VIP>:9292 --region RegionOne image
+echo 'init nova in keystone===='
+keystone user-create --name=nova --pass=<KEYSTONE_NOVA_PASSWORD>
+openstack role add --project service --user nova admin
+openstack service create --name nova --description "OpenStack Compute" compute
+openstack endpoint create \
+--publicurl http://<NOVA_VIP>:8774/v2/%\(tenant_id\)s \
+--internalurl http://<NOVA_VIP>:8774/v2/%\(tenant_id\)s \
+--adminurl http://<NOVA_VIP>:8774/v2/%\(tenant_id\)s \
+--region RegionOne \
+compute
 
-echo 'done to init glance in keystone####'
+echo 'done to init nova in keystone####'

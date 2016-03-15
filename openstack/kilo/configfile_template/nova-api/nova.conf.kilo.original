@@ -1,14 +1,11 @@
 [DEFAULT]
-network_api_class = nova.network.neutronv2.api.API
-security_group_api = neutron
-linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
-firewall_driver = nova.virt.firewall.NoopFirewallDriver
+rpc_backend = rabbit
+auth_strategy = keystone
 
-#configure ceilometer
-instance_usage_audit = True
-instance_usage_audit_period = hour
-notify_on_state_change = vm_and_task_state
-notification_driver = messagingv2
+vncserver_listen = 10.20.0.85
+vncserver_proxyclient_address = 10.20.0.85
+
+verbose = True
 #
 # From oslo.messaging
 #
@@ -68,7 +65,6 @@ notification_driver = messagingv2
 # The messaging driver to use, defaults to rabbit. Other drivers include qpid
 # and zmq. (string value)
 #rpc_backend=rabbit
-rpc_backend=rabbit
 
 # The default exchange under which topics are scoped. May be overridden by an
 # exchange name specified in the transport_url option. (string value)
@@ -132,7 +128,7 @@ rpc_backend=rabbit
 
 # IP address of this host (string value)
 #my_ip=10.0.0.1
-my_ip=10.20.0.86
+my_ip=10.20.0.85
 
 # Block storage IP address of this host (string value)
 #my_block_storage_ip=$my_ip
@@ -434,7 +430,6 @@ my_ip=10.20.0.86
 # regardless of the passed in user, noauth2 only does if
 # 'admin' is specified as the username.  (string value)
 #auth_strategy=keystone
-auth_strategy=keystone
 
 # Treat X-Forwarded-For as the canonical remote address. Only
 # enable this if you have a sanitizing proxy. (boolean value)
@@ -1064,6 +1059,12 @@ auth_strategy=keystone
 # value)
 #network_api_class=nova.network.api.API
 
+#Configure compute after neutron server
+network_api_class = nova.network.neutronv2.api.API
+security_group_api = neutron
+linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
+firewall_driver = nova.virt.firewall.NoopFirewallDriver
+
 #
 # Options defined in nova.network.driver
 #
@@ -1383,7 +1384,6 @@ auth_strategy=keystone
 # Print more verbose output (set logging level to INFO instead of default
 # WARNING level). (boolean value)
 #verbose=false
-verbose=True
 
 # The name of a logging configuration file. This file is appended to any
 # existing logging configuration files. For details about logging configuration
@@ -1829,7 +1829,6 @@ verbose=True
 # Location of VNC console proxy, in the form
 # "http://127.0.0.1:6080/vnc_auto.html" (string value)
 #novncproxy_base_url=http://127.0.0.1:6080/vnc_auto.html
-novncproxy_base_url=http://10.20.0.85:6080/vnc_auto.html
 
 # Location of nova xvp VNC console proxy, in the form
 # "http://127.0.0.1:6081/console" (string value)
@@ -1838,17 +1837,13 @@ novncproxy_base_url=http://10.20.0.85:6080/vnc_auto.html
 # IP address on which instance vncservers should listen
 # (string value)
 #vncserver_listen=127.0.0.1
-vncserver_listen=0.0.0.0
-#vncserver_listen=10.20.0.86
 
 # The address to which proxy clients (like nova-xvpvncproxy)
 # should connect (string value)
 #vncserver_proxyclient_address=127.0.0.1
-vncserver_proxyclient_address=10.20.0.86
 
 # Enable VNC related features (boolean value)
 #vnc_enabled=true
-vnc_enabled=True
 
 # Keymap for VNC (string value)
 #vnc_keymap=en-us
@@ -2227,7 +2222,7 @@ vnc_enabled=True
 # Deprecated group;name - [DATABASE]/sql_connection
 # Deprecated group;name - [sql]/connection
 #connection=<None>
-
+connection = mysql://nova:123456@10.20.0.82/nova
 # The SQLAlchemy connection string to use to connect to the slave database.
 # (string value)
 #slave_connection=<None>
@@ -2348,9 +2343,10 @@ vnc_enabled=True
 
 # Default glance hostname or IP address (string value)
 #host=$my_ip
-host=10.20.0.82
+host=10.20.0.84
 
 # Default glance port (integer value)
+#port=9292
 #port=9292
 
 # Default protocol to use when connecting to glance. Set to
@@ -2564,6 +2560,7 @@ user_domain_id = default
 project_name = service
 username = nova
 password = 123456 
+
 #
 # From keystonemiddleware.auth_token
 #
@@ -2741,7 +2738,6 @@ password = 123456
 # Libvirt domain type (valid options are: kvm, lxc, qemu, uml,
 # xen and parallels) (string value)
 #virt_type=kvm
-virt_type=qemu
 
 # Override the default libvirt URI (which is dependent on
 # virt_type) (string value)
@@ -3047,12 +3043,6 @@ virt_type=qemu
 
 
 [neutron]
-url = http://10.20.0.85:9696
-auth_strategy = keystone
-admin_auth_url = http://10.20.0.82:35357/v2.0
-admin_tenant_name = service
-admin_username = neutron
-admin_password = 123456 
 
 #
 # Options defined in nova.api.metadata.handler
@@ -3062,9 +3052,13 @@ admin_password = 123456
 # and resolve instance ids. (boolean value)
 #service_metadata_proxy=false
 
+#Configure after network configuration
+service_metadata_proxy=True
+
 # Shared secret to validate proxies Neutron metadata requests
 # (string value)
 #metadata_proxy_shared_secret=
+metadata_proxy_shared_secret=123456
 
 
 #
@@ -3073,6 +3067,14 @@ admin_password = 123456
 
 # URL for connecting to neutron (string value)
 #url=http://127.0.0.1:9696
+
+#Configure after neutron server
+url = http://10.20.0.85:9696
+auth_strategy = keystone
+admin_auth_url = http://10.20.0.82:35357/v2.0 
+admin_tenant_name = service 
+admin_username = neutron
+admin_password = 123456
 
 # User id for connecting to neutron in admin context.
 # DEPRECATED: specify an auth_plugin and appropriate

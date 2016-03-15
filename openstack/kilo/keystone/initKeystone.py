@@ -63,7 +63,7 @@ class InitKeystone(object):
     @staticmethod
     def initKeystone():
         admin_token = JSONUtility.getValue('admin_token')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_vip = JSONUtility.getValue('ha_vip1')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         if Keystone.getServerIndex() == 0 :
             output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
@@ -121,7 +121,7 @@ class InitKeystone(object):
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         keystone_vip = JSONUtility.getValue('keystone_vip')
         keystone_glance_password = JSONUtility.getValue('keystone_glance_password')
-        glance_vip = JSONUtility.getValue('glance_vip')
+        glance_vip = JSONUtility.getValue('ha_vip1')
         
         initGlanceScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'initGlance.sh')
         ##
@@ -139,6 +139,32 @@ class InitKeystone(object):
         FileUtil.replaceFileContent(initGlanceScriptPath, '<KEYSTONE_GLANCE_PASSWORD>', keystone_glance_password)
         FileUtil.replaceFileContent(initGlanceScriptPath, '<GLANCE_VIP>', glance_vip)
         ShellCmdExecutor.execCmd('bash %s' % initGlanceScriptPath)
+        pass
+    
+    @staticmethod
+    def initNova():
+        #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_NOVA_PASSWORD NOVA_VIP
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_nova_password = JSONUtility.getValue('keystone_nova_password')
+        nova_vip = JSONUtility.getValue('ha_vip1')
+        
+        initNovaScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova', 'initNova.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initNovaScriptTemplatePath, openstackScriptDirPath))
+        
+        initNovaScriptPath = os.path.join(openstackScriptDirPath, 'initNova.sh')
+        FileUtil.replaceFileContent(initNovaScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initNovaScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initNovaScriptPath, '<KEYSTONE_NOVA_PASSWORD>', keystone_nova_password)
+        FileUtil.replaceFileContent(initNovaScriptPath, '<NOVA_VIP>', nova_vip)
+        ShellCmdExecutor.execCmd('bash %s' % initNovaScriptPath)
         pass
 
 

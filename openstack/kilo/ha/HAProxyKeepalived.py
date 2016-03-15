@@ -35,7 +35,6 @@ class HA(object):
     classdocs
     '''
     HaproxyConfFilePath = '/etc/haproxy/haproxy.cfg'
-
     def __init__(self):
         '''
         Constructor

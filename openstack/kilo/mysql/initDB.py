@@ -1602,7 +1602,7 @@ if __name__ == '__main__':
             Keystone.sourceAdminOpenRC()
         
         #glance
-        if True : #YAMLUtil.hasRoleInNodes('glance') :
+        if YAMLUtil.hasRoleInNodes('glance') :
             print 'create glance mysql user============'
             createDBCmd = 'CREATE DATABASE glance'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
@@ -1635,7 +1635,7 @@ if __name__ == '__main__':
             Glance.initGlance()
         
         #nova
-        if True :#YAMLUtil.hasRoleInNodes('nova-api') :
+        if YAMLUtil.hasRoleInNodes('nova-api') :
             createDBCmd = 'CREATE DATABASE nova'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
