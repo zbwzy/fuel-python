@@ -111,7 +111,7 @@ class NovaCompute(object):
     @staticmethod
     def install():
         print 'Nova-compute.install start===='
-        yumCmd = 'yum install openstack-nova-compute -y'
+        yumCmd = 'yum install openstack-nova-compute sysfsutils -y'
         ShellCmdExecutor.execCmd(yumCmd)
 #         NovaCompute.configConfFile()
         
@@ -145,25 +145,33 @@ vif_plugging_timeout=0
     @staticmethod
     def restart():
         #restart nova-compute service
-        ShellCmdExecutor.execCmd("service libvirtd restart")
-        ShellCmdExecutor.execCmd("service messagebus restart")
-        ShellCmdExecutor.execCmd("service openstack-nova-compute restart")
+        ShellCmdExecutor.execCmd("systemctl enable libvirtd.service")
+        ShellCmdExecutor.execCmd("systemctl enable openstack-nova-compute.service")
+        ShellCmdExecutor.execCmd("systemctl restart libvirtd.service")
+        ShellCmdExecutor.execCmd("systemctl restart openstack-nova-compute.service")
         pass
     
     @staticmethod
     def start():        
-        ShellCmdExecutor.execCmd("service libvirtd start")
-        ShellCmdExecutor.execCmd("service messagebus start")
-        
-        ShellCmdExecutor.execCmd("chkconfig libvirtd on")
-        ShellCmdExecutor.execCmd("chkconfig messagebus on")
-        
-        ShellCmdExecutor.execCmd("service openstack-nova-compute start")
-        ShellCmdExecutor.execCmd("chkconfig openstack-nova-compute on")
+        ShellCmdExecutor.execCmd("systemctl enable libvirtd.service")
+        ShellCmdExecutor.execCmd("systemctl enable openstack-nova-compute.service")
+        ShellCmdExecutor.execCmd("systemctl start libvirtd.service")
+        ShellCmdExecutor.execCmd("systemctl start openstack-nova-compute.service")
         pass
     
     @staticmethod
     def configConfFile():
+        '''
+        MYSQL_VIP
+        LOCAL_MANAGEMENT_IP
+        GLANCE_VIP
+        KEYSTONE_VIP
+        KEYSTONE_NOVA_PASSWORD
+        NEUTRON_VIP
+        KEYSTONE_NEUTRON_PASSWORD
+        RABBIT_PASSWORD
+        RABBIT_HOSTS
+        '''
         #use conf template file to replace <CONTROLLER_IP>
         '''
         #modify nova.conf:
@@ -201,33 +209,43 @@ admin_tenant_name=service
 admin_user=nova
 admin_password=123456
         '''
+        '''
+        MYSQL_VIP
+        LOCAL_MANAGEMENT_IP
+        GLANCE_VIP
+        KEYSTONE_VIP
+        KEYSTONE_NOVA_PASSWORD
+        NEUTRON_VIP
+        KEYSTONE_NEUTRON_PASSWORD
+        RABBIT_PASSWORD
+        RABBIT_HOSTS
+        '''
         mysql_vip = JSONUtility.getValue("mysql_vip")
-        mysql_password = JSONUtility.getValue("mysql_password")
-        nova_mysql_password = JSONUtility.getValue("nova_mysql_password")
         
 #         rabbit_host = JSONUtility.getValue("rabbit_host")
 #         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
         glance_vip = JSONUtility.getValue("glance_vip")
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        nova_vip = JSONUtility.getValue("nova_vip")
+        neutron_vip = JSONUtility.getValue("neutron_vip")
+        keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
+        keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
+#         nova_vip = JSONUtility.getValue("nova_vip")
         
-        virt_type = JSONUtility.getValue("virt_type")
+#         virt_type = JSONUtility.getValue("virt_type")
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
         print 'nova compute configuration========='
         print 'mysql_vip=%s' % mysql_vip
-        print 'mysql_password=%s' % mysql_password
         print 'rabbit_hosts=%s' % rabbit_hosts
-        print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
         print 'keystone_vip=%s' % keystone_vip
-        print 'nova_vip=%s' % nova_vip
+#         print 'nova_vip=%s' % nova_vip
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -241,10 +259,10 @@ admin_password=123456
         print 'nova_conf_file_path=%s' % nova_conf_file_path
         
         if not os.path.exists(novaConfDir) :
-            ShellCmdExecutor.execCmd("sudo mkdir %s" % novaConfDir)
+            ShellCmdExecutor.execCmd("mkdir %s" % novaConfDir)
             pass
         
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % novaConfDir)
+        ShellCmdExecutor.execCmd("chmod 777 %s" % novaConfDir)
         
         if os.path.exists(nova_conf_file_path) :
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
@@ -257,37 +275,36 @@ admin_password=123456
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_MYSQL_PASSWORD>', nova_mysql_password)
-        
 #         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
-        
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', neutron_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_NOVA_PASSWORD>', keystone_nova_password)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_VIP>', glance_vip)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_IP>', localIP)
-        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
+#         FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         
         #configure libvirtd.conf
-        libvirtd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'libvirtd.conf')
-        libvirtd_conf_file_path = '/etc/libvirt/libvirtd.conf'
-        print "libvirtd_conf_template_file_path=%s--" % libvirtd_conf_template_file_path
-        
-        if os.path.exists(libvirtd_conf_file_path) :
-            ShellCmdExecutor.execCmd("rm -rf %s" % libvirtd_conf_file_path)
-            pass
-        
-        ShellCmdExecutor.execCmd('cat %s > /tmp/libvirtd.conf' % libvirtd_conf_template_file_path)
-        ShellCmdExecutor.execCmd('mv /tmp/libvirtd.conf /etc/libvirt/')
+#         libvirtd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'libvirtd.conf')
+#         libvirtd_conf_file_path = '/etc/libvirt/libvirtd.conf'
+#         print "libvirtd_conf_template_file_path=%s--" % libvirtd_conf_template_file_path
+#         
+#         if os.path.exists(libvirtd_conf_file_path) :
+#             ShellCmdExecutor.execCmd("rm -rf %s" % libvirtd_conf_file_path)
+#             pass
+#         
+#         ShellCmdExecutor.execCmd('cat %s > /tmp/libvirtd.conf' % libvirtd_conf_template_file_path)
+#         ShellCmdExecutor.execCmd('mv /tmp/libvirtd.conf /etc/libvirt/')
         
         #special handling
-        PYTHON_SITE_PACKAGE_DIR = '/usr/lib/python2.6/site-packages'
+        PYTHON_SITE_PACKAGE_DIR = '/usr/lib/python2.7/site-packages'
         if os.path.exists(PYTHON_SITE_PACKAGE_DIR) :
             ShellCmdExecutor.execCmd('chmod 777 %s' % PYTHON_SITE_PACKAGE_DIR)
             pass
@@ -298,27 +315,23 @@ admin_password=123456
             pass
         pass
     
-    @staticmethod
-    def configDB():
-        pass
-
     
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:nova-compute============'
+    print 'hello openstack-kilo:nova-compute============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
 
     ###############################
-    INSTALL_TAG_FILE = '/opt/novacompute_installed'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/novacompute_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'nova-compute installed####'
         print 'exit===='
         pass
     else :
-        Prerequisites.prepare()
+#         Prerequisites.prepare()
         NovaCompute.install()
         NovaCompute.configConfFile()
 #         NovaCompute.start()

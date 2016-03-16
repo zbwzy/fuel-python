@@ -1,154 +1,24 @@
 [DEFAULT]
-service_neutron_metadata_proxy=true
-neutron_metadata_proxy_shared_secret=123456
+network_api_class = nova.network.neutronv2.api.API
+security_group_api = neutron
+linuxnet_interface_driver = nova.network.linux_net.LinuxOVSInterfaceDriver
+firewall_driver = nova.virt.firewall.NoopFirewallDriver
 
-network_api_class=nova.network.neutronv2.api.API
-neutron_url=http://controller:9696
-neutron_auth_strategy=keystone
-neutron_admin_tenant_name=service
-neutron_admin_username=neutron
-neutron_admin_password=123456
-neutron_admin_auth_url=http://controller:35357/v2.0
-linuxnet_interface_driver=nova.network.linux_net.LinuxOVSInterfaceDriver
-firewall_driver=nova.virt.firewall.NoopFirewallDriver
-security_group_api=neutron
-
+#configure ceilometer
+instance_usage_audit = True
+instance_usage_audit_period = hour
+notify_on_state_change = vm_and_task_state
+notification_driver = messagingv2
+#
+# From oslo.messaging
 #
 
-auth_strategy=keystone
-rpc_backend=rabbit
-rabbit_host=192.168.122.80
-rabbit_password=123456
-my_ip=192.168.122.80
-vncserver_listen=192.168.122.80
-vncserver_proxyclient_address=192.168.122.80
-#
-# Options defined in oslo.messaging
-#
-
-# Use durable queues in amqp. (boolean value)
-# Deprecated group;name - DEFAULT;rabbit_durable_queues
-#amqp_durable_queues=false
-
-# Auto-delete queues in amqp. (boolean value)
-#amqp_auto_delete=false
-
-# Size of RPC connection pool. (integer value)
-#rpc_conn_pool_size=30
-
-# Modules of exceptions that are permitted to be recreated
-# upon receiving exception data from an rpc call. (list value)
-#allowed_rpc_exception_modules=oslo.messaging.exceptions,nova.exception,cinder.exception,exceptions
-
-# Qpid broker hostname. (string value)
-#qpid_hostname=localhost
-
-# Qpid broker port. (integer value)
-#qpid_port=5672
-
-# Qpid HA cluster host:port pairs. (list value)
-#qpid_hosts=$qpid_hostname:$qpid_port
-
-# Username for Qpid connection. (string value)
-#qpid_username=
-
-# Password for Qpid connection. (string value)
-#qpid_password=
-
-# Space separated list of SASL mechanisms to use for auth.
-# (string value)
-#qpid_sasl_mechanisms=
-
-# Seconds between connection keepalive heartbeats. (integer
-# value)
-#qpid_heartbeat=60
-
-# Transport to use, either 'tcp' or 'ssl'. (string value)
-#qpid_protocol=tcp
-
-# Whether to disable the Nagle algorithm. (boolean value)
-#qpid_tcp_nodelay=true
-
-# The qpid topology version to use.  Version 1 is what was
-# originally used by impl_qpid.  Version 2 includes some
-# backwards-incompatible changes that allow broker federation
-# to work.  Users should update to version 2 when they are
-# able to take everything down, as it requires a clean break.
-# (integer value)
-#qpid_topology_version=1
-
-# SSL version to use (valid only if SSL enabled). valid values
-# are TLSv1, SSLv23 and SSLv3. SSLv2 may be available on some
-# distributions. (string value)
-#kombu_ssl_version=
-
-# SSL key file (valid only if SSL enabled). (string value)
-#kombu_ssl_keyfile=
-
-# SSL cert file (valid only if SSL enabled). (string value)
-#kombu_ssl_certfile=
-
-# SSL certification authority file (valid only if SSL
-# enabled). (string value)
-#kombu_ssl_ca_certs=
-
-# How long to wait before reconnecting in response to an AMQP
-# consumer cancel notification. (floating point value)
-#kombu_reconnect_delay=1.0
-
-# The RabbitMQ broker address where a single node is used.
-# (string value)
-#rabbit_host=localhost
-
-# The RabbitMQ broker port where a single node is used.
-# (integer value)
-#rabbit_port=5672
-
-# RabbitMQ HA cluster host:port pairs. (list value)
-#rabbit_hosts=$rabbit_host:$rabbit_port
-
-# Connect over SSL for RabbitMQ. (boolean value)
-#rabbit_use_ssl=false
-
-# The RabbitMQ userid. (string value)
-#rabbit_userid=guest
-
-# The RabbitMQ password. (string value)
-#rabbit_password=guest
-
-# the RabbitMQ login method (string value)
-#rabbit_login_method=AMQPLAIN
-
-# The RabbitMQ virtual host. (string value)
-#rabbit_virtual_host=/
-
-# How frequently to retry connecting with RabbitMQ. (integer
-# value)
-#rabbit_retry_interval=1
-
-# How long to backoff for between retries when connecting to
-# RabbitMQ. (integer value)
-#rabbit_retry_backoff=2
-
-# Maximum number of RabbitMQ connection retries. Default is 0
-# (infinite retry count). (integer value)
-#rabbit_max_retries=0
-
-# Use HA queues in RabbitMQ (x-ha-policy: all). If you change
-# this option, you must wipe the RabbitMQ database. (boolean
-# value)
-#rabbit_ha_queues=false
-
-# If passed, use a fake RabbitMQ provider. (boolean value)
-#fake_rabbit=false
-
-# ZeroMQ bind address. Should be a wildcard (*), an ethernet
-# interface, or IP. The "host" option should point or resolve
-# to this address. (string value)
+# ZeroMQ bind address. Should be a wildcard (*), an ethernet interface, or IP.
+# The "host" option should point or resolve to this address. (string value)
 #rpc_zmq_bind_address=*
 
 # MatchMaker driver. (string value)
-#rpc_zmq_matchmaker=oslo.messaging._drivers.matchmaker.MatchMakerLocalhost
+#rpc_zmq_matchmaker=oslo_messaging._drivers.matchmaker.MatchMakerLocalhost
 
 # ZeroMQ receiver listening port. (integer value)
 #rpc_zmq_port=9501
@@ -156,20 +26,19 @@ vncserver_proxyclient_address=192.168.122.80
 # Number of ZeroMQ contexts, defaults to 1. (integer value)
 #rpc_zmq_contexts=1
 
-# Maximum number of ingress messages to locally buffer per
-# topic. Default is unlimited. (integer value)
+# Maximum number of ingress messages to locally buffer per topic. Default is
+# unlimited. (integer value)
 #rpc_zmq_topic_backlog=<None>
 
 # Directory for holding IPC sockets. (string value)
 #rpc_zmq_ipc_dir=/var/run/openstack
 
-# Name of this node. Must be a valid hostname, FQDN, or IP
-# address. Must match "host" option, if running Nova. (string
-# value)
-#rpc_zmq_host=nova
+# Name of this node. Must be a valid hostname, FQDN, or IP address. Must match
+# "host" option, if running Nova. (string value)
+#rpc_zmq_host=localhost
 
-# Seconds to wait before a cast expires (TTL). Only supported
-# by impl_zmq. (integer value)
+# Seconds to wait before a cast expires (TTL). Only supported by impl_zmq.
+# (integer value)
 #rpc_cast_timeout=30
 
 # Heartbeat frequency. (integer value)
@@ -178,21 +47,11 @@ vncserver_proxyclient_address=192.168.122.80
 # Heartbeat time-to-live. (integer value)
 #matchmaker_heartbeat_ttl=600
 
-# Host to locate redis. (string value)
-#host=127.0.0.1
-
-# Use this port to connect to redis host. (integer value)
-#port=6379
-
-# Password for Redis server (optional). (string value)
-#password=<None>
-
-# Size of RPC greenthread pool. (integer value)
+# Size of RPC thread pool. (integer value)
 #rpc_thread_pool_size=64
 
-# Driver or drivers to handle sending notifications. (multi
-# valued)
-#notification_driver=
+# Driver or drivers to handle sending notifications. (multi valued)
+#notification_driver =
 
 # AMQP topic used for OpenStack notifications. (list value)
 # Deprecated group;name - [rpc_notifier2]/topics
@@ -201,18 +60,18 @@ vncserver_proxyclient_address=192.168.122.80
 # Seconds to wait for a response from a call. (integer value)
 #rpc_response_timeout=60
 
-# A URL representing the messaging driver to use and its full
-# configuration. If not set, we fall back to the rpc_backend
-# option and driver specific configuration. (string value)
+# A URL representing the messaging driver to use and its full configuration. If
+# not set, we fall back to the rpc_backend option and driver specific
+# configuration. (string value)
 #transport_url=<None>
 
-# The messaging driver to use, defaults to rabbit. Other
-# drivers include qpid and zmq. (string value)
+# The messaging driver to use, defaults to rabbit. Other drivers include qpid
+# and zmq. (string value)
 #rpc_backend=rabbit
+rpc_backend=rabbit
 
-# The default exchange under which topics are scoped. May be
-# overridden by an exchange name specified in the
-# transport_url option. (string value)
+# The default exchange under which topics are scoped. May be overridden by an
+# exchange name specified in the transport_url option. (string value)
 #control_exchange=openstack
 
 
@@ -273,6 +132,10 @@ vncserver_proxyclient_address=192.168.122.80
 
 # IP address of this host (string value)
 #my_ip=10.0.0.1
+my_ip=10.20.0.86
+
+# Block storage IP address of this host (string value)
+#my_block_storage_ip=$my_ip
 
 # Name of this node.  This can be an opaque identifier.  It is
 # not necessarily a hostname, FQDN, or IP address. However,
@@ -325,17 +188,6 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
-# Options defined in nova.policy
-#
-
-# JSON file representing policy (string value)
-#policy_file=policy.json
-
-# Rule checked when requested rule is not found (string value)
-#policy_default_rule=default
-
-
-#
 # Options defined in nova.quota
 #
 
@@ -366,9 +218,8 @@ vncserver_proxyclient_address=192.168.122.80
 # Number of bytes allowed per injected file (integer value)
 #quota_injected_file_content_bytes=10240
 
-# Number of bytes allowed per injected file path (integer
-# value)
-#quota_injected_file_path_bytes=255
+# Length of injected file path (integer value)
+#quota_injected_file_path_length=255
 
 # Number of security groups per project (integer value)
 #quota_security_groups=10
@@ -379,15 +230,28 @@ vncserver_proxyclient_address=192.168.122.80
 # Number of key pairs per user (integer value)
 #quota_key_pairs=100
 
+# Number of server groups per project (integer value)
+#quota_server_groups=10
+
+# Number of servers per server group (integer value)
+#quota_server_group_members=10
+
 # Number of seconds until a reservation expires (integer
 # value)
 #reservation_expire=86400
 
-# Count of reservations until usage is refreshed (integer
-# value)
+# Count of reservations until usage is refreshed. This
+# defaults to 0(off) to avoid additional load but it is useful
+# to turn on to help keep quota usage up to date and reduce
+# the impact of out of sync usage issues. (integer value)
 #until_refresh=0
 
-# Number of seconds between subsequent usage refreshes
+# Number of seconds between subsequent usage refreshes. This
+# defaults to 0(off) to avoid additional load but it is useful
+# to turn on to help keep quota usage up to date and reduce
+# the impact of out of sync usage issues. Note that quotas are
+# not updated on a periodic task, they will update on a new
+# reservation if max_age has passed since the last reservation
 # (integer value)
 #max_age=0
 
@@ -480,14 +344,6 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
-# Options defined in nova.test
-#
-
-# File name of clean sqlite db (string value)
-#sqlite_clean_db=clean.sqlite
-
-
-#
 # Options defined in nova.utils
 #
 
@@ -551,6 +407,16 @@ vncserver_proxyclient_address=192.168.122.80
 # with big service catalogs). (integer value)
 #max_header_line=16384
 
+# If False, closes the client socket connection explicitly.
+# (boolean value)
+#wsgi_keep_alive=true
+
+# Timeout for client connections' socket operations. If an
+# incoming connection is idle for this number of seconds it
+# will be closed. A value of '0' means wait forever. (integer
+# value)
+#client_socket_timeout=900
+
 
 #
 # Options defined in nova.api.auth
@@ -561,9 +427,14 @@ vncserver_proxyclient_address=192.168.122.80
 # v3 api. (boolean value)
 #api_rate_limit=false
 
-# The strategy to use for auth: noauth or keystone. (string
-# value)
-#auth_strategy=noauth
+#  The strategy to use for auth: keystone, noauth
+# (deprecated), or noauth2. Both noauth and noauth2 are
+# designed for testing only, as they do no actual credential
+# checking. noauth provides administrative credentials
+# regardless of the passed in user, noauth2 only does if
+# 'admin' is specified as the username.  (string value)
+#auth_strategy=keystone
+auth_strategy=keystone
 
 # Treat X-Forwarded-For as the canonical remote address. Only
 # enable this if you have a sanitizing proxy. (boolean value)
@@ -597,6 +468,9 @@ vncserver_proxyclient_address=192.168.122.80
 # Time in seconds before ec2 timestamp expires (integer value)
 #ec2_timestamp_expiry=300
 
+# Disable SSL certificate verification. (boolean value)
+#keystone_ec2_insecure=false
+
 
 #
 # Options defined in nova.api.ec2.cloud
@@ -617,7 +491,7 @@ vncserver_proxyclient_address=192.168.122.80
 
 # The path prefix used to call the ec2 API server (string
 # value)
-#ec2_path=/services/Cloud
+#ec2_path=/
 
 # List of region=fqdn pairs separated by commas (list value)
 #region_list=
@@ -639,20 +513,20 @@ vncserver_proxyclient_address=192.168.122.80
 # Options defined in nova.api.metadata.handler
 #
 
-# Set flag to indicate Neutron will proxy metadata requests
-# and resolve instance ids. (boolean value)
-#service_neutron_metadata_proxy=false
-
-# Shared secret to validate proxies Neutron metadata requests
-# (string value)
-#neutron_metadata_proxy_shared_secret=
+# Time in seconds to cache metadata; 0 to disable metadata
+# caching entirely (not recommended). Increasingthis should
+# improve response times of the metadata API when under heavy
+# load. Higher values may increase memoryusage and result in
+# longer times for host metadata changes to take effect.
+# (integer value)
+#metadata_cache_expiration=15
 
 
 #
 # Options defined in nova.api.metadata.vendordata_json
 #
 
-# File to load json formatted vendor data from (string value)
+# File to load JSON formatted vendor data from (string value)
 #vendordata_jsonfile_path=<None>
 
 
@@ -715,6 +589,10 @@ vncserver_proxyclient_address=192.168.122.80
 # value)
 #neutron_default_tenant_id=default
 
+# Number of private networks allowed per project (integer
+# value)
+#quota_networks=3
+
 
 #
 # Options defined in nova.api.openstack.compute.extensions
@@ -742,15 +620,6 @@ vncserver_proxyclient_address=192.168.122.80
 # hypervisor does not support password injection then the
 # password returned will not be correct (boolean value)
 #enable_instance_password=true
-
-
-#
-# Options defined in nova.api.sizelimit
-#
-
-# The maximum body size per each osapi request(bytes) (integer
-# value)
-#osapi_max_request_body_size=114688
 
 
 #
@@ -826,18 +695,6 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
-# Options defined in nova.cmd.spicehtml5proxy
-#
-
-# Host on which to listen for incoming requests (string value)
-#spicehtml5proxy_host=0.0.0.0
-
-# Port on which to listen for incoming requests (integer
-# value)
-#spicehtml5proxy_port=6082
-
-
-#
 # Options defined in nova.compute.api
 #
 
@@ -868,7 +725,7 @@ vncserver_proxyclient_address=192.168.122.80
 # hostnames. To restore legacy behavior of every instance
 # having the same name, set this option to "%(name)s".  Valid
 # keys for the template are: name, uuid, count. (string value)
-#multi_instance_display_name_template=%(name)s-%(uuid)s
+#multi_instance_display_name_template=%(name)s-%(count)d
 
 # Maximum number of devices that will result in a local image
 # being created on the hypervisor node. Setting this to 0
@@ -922,19 +779,29 @@ vncserver_proxyclient_address=192.168.122.80
 # (integer value)
 #network_allocate_retries=0
 
+# Maximum number of instance builds to run concurrently
+# (integer value)
+#max_concurrent_builds=10
+
+# Number of times to retry block device allocation on failures
+# (integer value)
+#block_device_allocate_retries=60
+
 # The number of times to attempt to reap an instance's files.
 # (integer value)
 #maximum_instance_delete_attempts=5
 
 # Interval to pull network bandwidth usage info. Not supported
-# on all hypervisors. Set to 0 to disable. (integer value)
+# on all hypervisors. Set to -1 to disable. Setting this to 0
+# will run at the default rate. (integer value)
 #bandwidth_poll_interval=600
 
 # Interval to sync power states between the database and the
-# hypervisor (integer value)
+# hypervisor. Set to -1 to disable. Setting this to 0 will run
+# at the default rate. (integer value)
 #sync_power_state_interval=600
 
-# Number of seconds between instance info_cache self healing
+# Number of seconds between instance network information cache
 # updates (integer value)
 #heal_instance_info_cache_interval=60
 
@@ -946,8 +813,9 @@ vncserver_proxyclient_address=192.168.122.80
 # value)
 #volume_usage_poll_interval=0
 
-# Interval in seconds for polling shelved instances to offload
-# (integer value)
+# Interval in seconds for polling shelved instances to
+# offload. Set to -1 to disable.Setting this to 0 will run at
+# the default rate. (integer value)
 #shelved_poll_interval=3600
 
 # Time in seconds before a shelved instance is eligible for
@@ -956,12 +824,24 @@ vncserver_proxyclient_address=192.168.122.80
 #shelved_offload_time=0
 
 # Interval in seconds for retrying failed instance file
-# deletes (integer value)
+# deletes. Set to -1 to disable. Setting this to 0 will run at
+# the default rate. (integer value)
 #instance_delete_interval=300
 
-# Action to take if a running deleted instance is
-# detected.Valid options are 'noop', 'log', 'shutdown', or
-# 'reap'. Set to 'noop' to take no action. (string value)
+# Waiting time interval (seconds) between block device
+# allocation retries on failures (integer value)
+#block_device_allocate_retries_interval=3
+
+# Waiting time interval (seconds) between sending the
+# scheduler a list of current instance UUIDs to verify that
+# its view of instances is in sync with nova. If the CONF
+# option `scheduler_tracks_instance_changes` is False,
+# changing this option will have no effect. (integer value)
+#scheduler_instance_sync_interval=120
+
+# Action to take if a running deleted instance is detected.
+# Valid options are 'noop', 'log', 'shutdown', or 'reap'. Set
+# to 'noop' to take no action. (string value)
 #running_deleted_instance_action=reap
 
 # Number of seconds to wait between runs of the cleanup task.
@@ -979,7 +859,8 @@ vncserver_proxyclient_address=192.168.122.80
 #reboot_timeout=0
 
 # Amount of time in seconds an instance can be in BUILD before
-# going into ERROR status.Set to 0 to disable. (integer value)
+# going into ERROR status. Set to 0 to disable. (integer
+# value)
 #instance_build_timeout=0
 
 # Automatically unrescue an instance after N seconds. Set to 0
@@ -989,6 +870,10 @@ vncserver_proxyclient_address=192.168.122.80
 # Automatically confirm resizes after N seconds. Set to 0 to
 # disable. (integer value)
 #resize_confirm_window=0
+
+# Total amount of time to wait in seconds for an instance to
+# perform a clean shutdown. (integer value)
+#shutdown_timeout=60
 
 
 #
@@ -1018,6 +903,9 @@ vncserver_proxyclient_address=192.168.122.80
 # Class that will manage stats for the local compute host
 # (string value)
 #compute_stats_class=nova.compute.stats.Stats
+
+# The names of the extra resources to track. (list value)
+#compute_resources=vcpu
 
 
 #
@@ -1058,18 +946,6 @@ vncserver_proxyclient_address=192.168.122.80
 
 # The topic console proxy nodes listen on (string value)
 #console_topic=console
-
-
-#
-# Options defined in nova.console.vmrc
-#
-
-# Port for VMware VMRC connections (integer value)
-#console_vmrc_port=443
-
-# Number of retries for retrieving VMRC information (integer
-# value)
-#console_vmrc_error_retries=10
 
 
 #
@@ -1144,39 +1020,6 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
-# Options defined in nova.image.glance
-#
-
-# Default glance hostname or IP address (string value)
-#glance_host=$my_ip
-
-# Default glance port (integer value)
-#glance_port=9292
-
-# Default protocol to use when connecting to glance. Set to
-# https for SSL. (string value)
-#glance_protocol=http
-
-# A list of the glance api servers available to nova. Prefix
-# with https:// for ssl-based glance api servers.
-# ([hostname|ip]:port) (list value)
-#glance_api_servers=$glance_host:$glance_port
-
-# Allow to perform insecure SSL (https) requests to glance
-# (boolean value)
-#glance_api_insecure=false
-
-# Number of retries when downloading an image from glance
-# (integer value)
-#glance_num_retries=0
-
-# A list of url scheme that can be downloaded directly via the
-# direct_url.  Currently supported schemes: [file]. (list
-# value)
-#allowed_direct_url_schemes=
-
-
-#
 # Options defined in nova.image.s3
 #
 
@@ -1220,7 +1063,6 @@ vncserver_proxyclient_address=192.168.122.80
 # The full class name of the network API class to use (string
 # value)
 #network_api_class=nova.network.api.API
-
 
 #
 # Options defined in nova.network.driver
@@ -1307,9 +1149,6 @@ vncserver_proxyclient_address=192.168.122.80
 # Interface for public IP addresses (string value)
 #public_interface=eth0
 
-# MTU setting for network interface (integer value)
-#network_device_mtu=<None>
-
 # Location of nova-dhcpbridge (string value)
 #dhcpbridge=/usr/bin/nova-dhcpbridge
 
@@ -1317,7 +1156,7 @@ vncserver_proxyclient_address=192.168.122.80
 #routing_source_ip=$my_ip
 
 # Lifetime of a DHCP lease in seconds (integer value)
-#dhcp_lease_time=120
+#dhcp_lease_time=86400
 
 # If set, uses specific DNS server for dnsmasq. Can be
 # specified multiple times. (multi valued)
@@ -1327,7 +1166,7 @@ vncserver_proxyclient_address=192.168.122.80
 # servers. (boolean value)
 #use_network_dns_servers=false
 
-# A list of dmz range that should be accepted (list value)
+# A list of dmz ranges that should be accepted (list value)
 #dmz_cidr=
 
 # Traffic to this range will always be snatted to the fallback
@@ -1367,12 +1206,12 @@ vncserver_proxyclient_address=192.168.122.80
 # The port for the metadata API port (integer value)
 #metadata_port=8775
 
-# Regular expression to match iptables rule that should always
-# be on the top. (string value)
+# Regular expression to match the iptables rule that should
+# always be on the top. (string value)
 #iptables_top_regex=
 
-# Regular expression to match iptables rule that should always
-# be on the bottom. (string value)
+# Regular expression to match the iptables rule that should
+# always be on the bottom. (string value)
 #iptables_bottom_regex=
 
 # The table that iptables to jump to when a packet is to be
@@ -1387,6 +1226,14 @@ vncserver_proxyclient_address=192.168.122.80
 # If passed, use fake network devices and addresses (boolean
 # value)
 #fake_network=false
+
+# Number of times to retry ebtables commands on failure.
+# (integer value)
+#ebtables_exec_attempts=3
+
+# Number of seconds to wait between ebtables retries.
+# (floating point value)
+#ebtables_retry_interval=1.0
 
 
 #
@@ -1458,12 +1305,6 @@ vncserver_proxyclient_address=192.168.122.80
 # (boolean value)
 #force_dhcp_release=True
 
-# If True in multi_host mode, all compute hosts share the same
-# dhcp address. The same IP address used for DHCP will be
-# added on each nova-network node which is only visible to the
-# vms on the same host. (boolean value)
-#share_dhcp_address=false
-
 # If True, when a DNS entry must be updated, it sends a fanout
 # cast to all network hosts to update their DNS entries in
 # multi host mode (boolean value)
@@ -1478,63 +1319,6 @@ vncserver_proxyclient_address=192.168.122.80
 
 # Indicates underlying L3 management library (string value)
 #l3_lib=nova.network.l3.LinuxNetL3
-
-
-#
-# Options defined in nova.network.neutronv2.api
-#
-
-# URL for connecting to neutron (string value)
-#neutron_url=http://127.0.0.1:9696
-
-# Timeout value for connecting to neutron in seconds (integer
-# value)
-#neutron_url_timeout=30
-
-# Username for connecting to neutron in admin context (string
-# value)
-#neutron_admin_username=<None>
-
-# Password for connecting to neutron in admin context (string
-# value)
-#neutron_admin_password=<None>
-
-# Tenant id for connecting to neutron in admin context (string
-# value)
-#neutron_admin_tenant_id=<None>
-
-# Tenant name for connecting to neutron in admin context. This
-# option is mutually exclusive with neutron_admin_tenant_id.
-# Note that with Keystone V3 tenant names are only unique
-# within a domain. (string value)
-#neutron_admin_tenant_name=<None>
-
-# Region name for connecting to neutron in admin context
-# (string value)
-#neutron_region_name=<None>
-
-# Authorization URL for connecting to neutron in admin context
-# (string value)
-#neutron_admin_auth_url=http://localhost:5000/v2.0
-
-# If set, ignore any SSL validation issues (boolean value)
-#neutron_api_insecure=false
-
-# Authorization strategy for connecting to neutron in admin
-# context (string value)
-#neutron_auth_strategy=keystone
-
-# Name of Integration Bridge used by Open vSwitch (string
-# value)
-#neutron_ovs_bridge=br-int
-
-# Number of seconds before querying neutron for extensions
-# (integer value)
-#neutron_extension_sync_interval=600
-
-# Location of CA certificates file to use for neutron client
-# requests. (string value)
-#neutron_ca_certificates_file=<None>
 
 
 #
@@ -1559,6 +1343,22 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
+# Options defined in nova.objects.network
+#
+
+# DEPRECATED: THIS VALUE SHOULD BE SET WHEN CREATING THE
+# NETWORK. If True in multi_host mode, all compute hosts share
+# the same dhcp address. The same IP address used for DHCP
+# will be added on each nova-network node which is only
+# visible to the vms on the same host. (boolean value)
+#share_dhcp_address=false
+
+# DEPRECATED: THIS VALUE SHOULD BE SET WHEN CREATING THE
+# NETWORK. MTU setting for network interface. (integer value)
+#network_device_mtu=<None>
+
+
+#
 # Options defined in nova.objectstore.s3server
 #
 
@@ -1573,142 +1373,92 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
-# Options defined in nova.openstack.common.eventlet_backdoor
+# From oslo.log
 #
 
-# Enable eventlet backdoor. Acceptable values are 0, <port>
-# and <start>:<end>, where 0 results in listening on a random
-# tcp port number, <port> results in listening on the
-# specified port number and not enabling backdoorif it is in
-# use and <start>:<end> results in listening on the smallest
-# unused port number within the specified range of port
-# numbers. The chosen port is displayed in the service's log
-# file. (string value)
-#backdoor_port=<None>
-
-
-#
-# Options defined in nova.openstack.common.lockutils
-#
-
-# Whether to disable inter-process locks (boolean value)
-#disable_process_locking=false
-
-# Directory to use for lock files. (string value)
-#lock_path=/var/lib/nova/tmp
-
-
-#
-# Options defined in nova.openstack.common.log
-#
-
-# Print debugging output (set logging level to DEBUG instead
-# of default WARNING level). (boolean value)
+# Print debugging output (set logging level to DEBUG instead of default WARNING
+# level). (boolean value)
 #debug=false
 
-# Print more verbose output (set logging level to INFO instead
-# of default WARNING level). (boolean value)
+# Print more verbose output (set logging level to INFO instead of default
+# WARNING level). (boolean value)
 #verbose=false
+verbose=True
 
-# Log output to standard error (boolean value)
-#use_stderr=False
-
-# format string to use for log messages with context (string
-# value)
-#logging_context_format_string=%(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user)s %(tenant)s] %(instance)s%(message)s
-
-# format string to use for log messages without context
-# (string value)
-#logging_default_format_string=%(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [-] %(instance)s%(message)s
-
-# data to append to log format when level is DEBUG (string
-# value)
-#logging_debug_format_suffix=%(funcName)s %(pathname)s:%(lineno)d
-
-# prefix each line of exception output with this format
-# (string value)
-#logging_exception_prefix=%(asctime)s.%(msecs)03d %(process)d TRACE %(name)s %(instance)s
-
-# list of logger=LEVEL pairs (list value)
-#default_log_levels=amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,oslo.messaging=INFO,iso8601=WARN
-
-# publish error events (boolean value)
-#publish_errors=false
-
-# make deprecations fatal (boolean value)
-#fatal_deprecations=false
-
-# If an instance is passed with the log message, format it
-# like this (string value)
-#instance_format="[instance: %(uuid)s] "
-
-# If an instance UUID is passed with the log message, format
-# it like this (string value)
-#instance_uuid_format="[instance: %(uuid)s] "
-
-# The name of logging configuration file. It does not disable
-# existing loggers, but just appends specified logging
-# configuration to any other existing logging options. Please
-# see the Python logging module documentation for details on
-# logging configuration files. (string value)
+# The name of a logging configuration file. This file is appended to any
+# existing logging configuration files. For details about logging configuration
+# files, see the Python logging module documentation. (string value)
 # Deprecated group;name - DEFAULT;log_config
 #log_config_append=<None>
 
-# DEPRECATED. A logging.Formatter log message format string
-# which may use any of the available logging.LogRecord
-# attributes. This option is deprecated.  Please use
-# logging_context_format_string and
-# logging_default_format_string instead. (string value)
+# DEPRECATED. A logging.Formatter log message format string which may use any
+# of the available logging.LogRecord attributes. This option is deprecated.
+# Please use logging_context_format_string and logging_default_format_string
+# instead. (string value)
 #log_format=<None>
 
-# Format string for %%(asctime)s in log records. Default:
-# %(default)s (string value)
+# Format string for %%(asctime)s in log records. Default: %(default)s . (string
+# value)
 #log_date_format=%Y-%m-%d %H:%M:%S
 
-# (Optional) Name of log file to output to. If no default is
-# set, logging will go to stdout. (string value)
+# (Optional) Name of log file to output to. If no default is set, logging will
+# go to stdout. (string value)
 # Deprecated group;name - DEFAULT;logfile
 #log_file=<None>
 
-# (Optional) The base directory used for relative --log-file
-# paths (string value)
+# (Optional) The base directory used for relative --log-file paths. (string
+# value)
 # Deprecated group;name - DEFAULT;logdir
 #log_dir=/var/log/nova
 
-# Use syslog for logging. Existing syslog format is DEPRECATED
-# during I, and then will be changed in J to honor RFC5424
-# (boolean value)
+# Use syslog for logging. Existing syslog format is DEPRECATED during I, and
+# will change in J to honor RFC5424. (boolean value)
 #use_syslog=false
 
-# (Optional) Use syslog rfc5424 format for logging. If
-# enabled, will add APP-NAME (RFC5424) before the MSG part of
-# the syslog message.  The old format without APP-NAME is
-# deprecated in I, and will be removed in J. (boolean value)
+# (Optional) Enables or disables syslog rfc5424 format for logging. If enabled,
+# prefixes the MSG part of the syslog message with APP-NAME (RFC5424). The
+# format without the APP-NAME is deprecated in I, and will be removed in J.
+# (boolean value)
 #use_syslog_rfc_format=false
 
-# syslog facility to receive log lines (string value)
+# Syslog facility to receive log lines. (string value)
 #syslog_log_facility=LOG_USER
 
+# Log output to standard error. (boolean value)
+#use_stderr=False
+
+# Format string to use for log messages with context. (string value)
+#logging_context_format_string=%(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [%(request_id)s %(user_identity)s] %(instance)s%(message)s
+
+# Format string to use for log messages without context. (string value)
+#logging_default_format_string=%(asctime)s.%(msecs)03d %(process)d %(levelname)s %(name)s [-] %(instance)s%(message)s
+
+# Data to append to log format when level is DEBUG. (string value)
+#logging_debug_format_suffix=%(funcName)s %(pathname)s:%(lineno)d
+
+# Prefix each line of exception output with this format. (string value)
+#logging_exception_prefix=%(asctime)s.%(msecs)03d %(process)d TRACE %(name)s %(instance)s
+
+# List of logger=LEVEL pairs. (list value)
+#default_log_levels=amqp=WARN,amqplib=WARN,boto=WARN,qpid=WARN,sqlalchemy=WARN,suds=INFO,oslo.messaging=INFO,iso8601=WARN,requests.packages.urllib3.connectionpool=WARN,urllib3.connectionpool=WARN,websocket=WARN,requests.packages.urllib3.util.retry=WARN,urllib3.util.retry=WARN,keystonemiddleware=WARN,routes.middleware=WARN,stevedore=WARN
+
+# Enables or disables publication of error events. (boolean value)
+#publish_errors=false
+
+# Enables or disables fatal status of deprecations. (boolean value)
+#fatal_deprecations=false
+
+# The format for an instance that is passed with the log message. (string
+# value)
+#instance_format="[instance: %(uuid)s] "
+
+# The format for an instance UUID that is passed with the log message. (string
+# value)
+#instance_uuid_format="[instance: %(uuid)s] "
+
 
 #
-# Options defined in nova.openstack.common.memorycache
-#
-
-# Memcached servers or None for in process cache. (list value)
-#memcached_servers=<None>
-
-
-#
-# Options defined in nova.openstack.common.periodic_task
-#
-
-# Some periodic tasks can be run in a separate process. Should
-# we run them here? (boolean value)
-#run_external_periodic_tasks=true
-
-
-#
-# Options defined in nova.pci.pci_request
+# Options defined in nova.pci.request
 #
 
 # An alias for a PCI passthrough device requirement. This
@@ -1722,7 +1472,7 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
-# Options defined in nova.pci.pci_whitelist
+# Options defined in nova.pci.whitelist
 #
 
 # White list of PCI devices available to VMs. For example:
@@ -1737,10 +1487,6 @@ vncserver_proxyclient_address=192.168.122.80
 
 # The scheduler host manager class to use (string value)
 #scheduler_host_manager=nova.scheduler.host_manager.HostManager
-
-# Maximum number of attempts to schedule an instance (integer
-# value)
-#scheduler_max_attempts=3
 
 
 #
@@ -1794,8 +1540,9 @@ vncserver_proxyclient_address=192.168.122.80
 # Options defined in nova.scheduler.filters.io_ops_filter
 #
 
-# Ignore hosts that have too many
-# builds/resizes/snaps/migrations (integer value)
+# Tells filters to ignore hosts that have this many or more
+# instances currently in build, resize, snapshot, migrate,
+# rescue or unshelve task states (integer value)
 #max_io_ops_per_host=8
 
 
@@ -1840,8 +1587,8 @@ vncserver_proxyclient_address=192.168.122.80
 
 # Filter classes available to the scheduler which may be
 # specified more than once.  An entry of
-# "nova.scheduler.filters.standard_filters" maps to all
-# filters included with nova. (multi valued)
+# "nova.scheduler.filters.all_filters" maps to all filters
+# included with nova. (multi valued)
 #scheduler_available_filters=nova.scheduler.filters.all_filters
 
 # Which filter class names to use for filtering hosts when not
@@ -1851,6 +1598,23 @@ vncserver_proxyclient_address=192.168.122.80
 # Which weight class names to use for weighing hosts (list
 # value)
 #scheduler_weight_classes=nova.scheduler.weights.all_weighers
+
+# Determines if the Scheduler tracks changes to instances to
+# help with its filtering decisions. (boolean value)
+#scheduler_tracks_instance_changes=true
+
+
+#
+# Options defined in nova.scheduler.ironic_host_manager
+#
+
+# Which filter class names to use for filtering baremetal
+# hosts when not specified in the request. (list value)
+#baremetal_scheduler_default_filters=RetryFilter,AvailabilityZoneFilter,ComputeFilter,ComputeCapabilitiesFilter,ImagePropertiesFilter,ExactRamFilter,ExactDiskFilter,ExactCoreFilter
+
+# Flag to decide whether to use
+# baremetal_scheduler_default_filters or not. (boolean value)
+#scheduler_use_baremetal_filters=false
 
 
 #
@@ -1886,6 +1650,25 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
+# Options defined in nova.scheduler.utils
+#
+
+# Maximum number of attempts to schedule an instance (integer
+# value)
+#scheduler_max_attempts=3
+
+
+#
+# Options defined in nova.scheduler.weights.io_ops
+#
+
+# Multiplier used for weighing host io ops. Negative numbers
+# mean a preference to choose light workload compute hosts.
+# (floating point value)
+#io_ops_weight_multiplier=-1.0
+
+
+#
 # Options defined in nova.scheduler.weights.ram
 #
 
@@ -1911,12 +1694,9 @@ vncserver_proxyclient_address=192.168.122.80
 # (string value)
 #config_drive_format=iso9660
 
-# Where to put temporary files associated with config drive
-# creation (string value)
-#config_drive_tempdir=<None>
-
-# Set to force injection to take place on a config drive (if
-# set, valid options are: always) (string value)
+# Set to "always" to force injection to take place on a config
+# drive. NOTE: The "always" will be deprecated in the Liberty
+# release cycle. (string value)
 #force_config_drive=<None>
 
 # Name and optionally path of the tool used for ISO image
@@ -1925,20 +1705,8 @@ vncserver_proxyclient_address=192.168.122.80
 
 
 #
-# Options defined in nova.virt.cpu
-#
-
-# Defines which pcpus that instance vcpus can use. For
-# example, "4-12,^8,15" (string value)
-#vcpu_pin_set=<None>
-
-
-#
 # Options defined in nova.virt.disk.api
 #
-
-# Template file for injected network (string value)
-#injected_network_template=/usr/share/nova/interfaces.template
 
 # Name of the mkfs commands for ephemeral device. The format
 # is <os_type>=<mkfs command> (multi valued)
@@ -1968,8 +1736,7 @@ vncserver_proxyclient_address=192.168.122.80
 # Driver to use for controlling virtualization. Options
 # include: libvirt.LibvirtDriver, xenapi.XenAPIDriver,
 # fake.FakeDriver, baremetal.BareMetalDriver,
-# vmwareapi.VMwareESXDriver, vmwareapi.VMwareVCDriver (string
-# value)
+# vmwareapi.VMwareVCDriver, hyperv.HyperVDriver (string value)
 #compute_driver=libvirt.LibvirtDriver
 
 # The default format an ephemeral_volume will be formatted
@@ -1985,14 +1752,14 @@ vncserver_proxyclient_address=192.168.122.80
 #use_cow_images=true
 
 # Fail instance boot if vif plugging fails (boolean value)
-vif_plugging_is_fatal=false
+#vif_plugging_is_fatal=true
 
 # Number of seconds to wait for neutron vif plugging events to
 # arrive before continuing or failing (see
 # vif_plugging_is_fatal). If this is set to zero and
 # vif_plugging_is_fatal is False, events should not be
 # expected to arrive at all. (integer value)
-vif_plugging_timeout=0
+#vif_plugging_timeout=300
 
 
 #
@@ -2009,17 +1776,26 @@ vif_plugging_timeout=0
 
 
 #
+# Options defined in nova.virt.hardware
+#
+
+# Defines which pcpus that instance vcpus can use. For
+# example, "4-12,^8,15" (string value)
+#vcpu_pin_set=<None>
+
+
+#
 # Options defined in nova.virt.imagecache
 #
 
 # Number of seconds to wait between runs of the image cache
-# manager (integer value)
+# manager. Set to -1 to disable. Setting this to 0 will run at
+# the default rate. (integer value)
 #image_cache_manager_interval=2400
 
 # Where cached images are stored under $instances_path. This
 # is NOT the full path - just a folder name. For per-compute-
 # host cached images, set to _base_$my_ip (string value)
-# Deprecated group;name - DEFAULT;base_dir_name
 #image_cache_subdirectory_name=_base
 
 # Should unused base images be removed? (boolean value)
@@ -2031,22 +1807,19 @@ vif_plugging_timeout=0
 
 
 #
-# Options defined in nova.virt.imagehandler
-#
-
-# Specifies which image handler extension names to use for
-# handling images. The first extension in the list which can
-# handle the image with a suitable location will be used.
-# (list value)
-#image_handlers=download
-
-
-#
 # Options defined in nova.virt.images
 #
 
 # Force backing images to raw format (boolean value)
 #force_raw_images=true
+
+
+#
+# Options defined in nova.virt.netutils
+#
+
+# Template file for injected network (string value)
+#injected_network_template=/usr/share/nova/interfaces.template
 
 
 #
@@ -2056,6 +1829,7 @@ vif_plugging_timeout=0
 # Location of VNC console proxy, in the form
 # "http://127.0.0.1:6080/vnc_auto.html" (string value)
 #novncproxy_base_url=http://127.0.0.1:6080/vnc_auto.html
+novncproxy_base_url=http://10.20.0.85:6080/vnc_auto.html
 
 # Location of nova xvp VNC console proxy, in the form
 # "http://127.0.0.1:6081/console" (string value)
@@ -2064,13 +1838,17 @@ vif_plugging_timeout=0
 # IP address on which instance vncservers should listen
 # (string value)
 #vncserver_listen=127.0.0.1
+vncserver_listen=0.0.0.0
+#vncserver_listen=10.20.0.86
 
 # The address to which proxy clients (like nova-xvpvncproxy)
 # should connect (string value)
 #vncserver_proxyclient_address=127.0.0.1
+vncserver_proxyclient_address=10.20.0.86
 
 # Enable VNC related features (boolean value)
 #vnc_enabled=true
+vnc_enabled=True
 
 # Keymap for VNC (string value)
 #vnc_keymap=en-us
@@ -2097,203 +1875,139 @@ vif_plugging_timeout=0
 
 
 #
-# Options defined in nova.volume.cinder
+# Options defined in nova.openstack.common.eventlet_backdoor
 #
 
-# Info to match when looking for cinder in the service
+# Enable eventlet backdoor.  Acceptable values are 0, <port>,
+# and <start>:<end>, where 0 results in listening on a random
+# tcp port number; <port> results in listening on the
+# specified port number (and not enabling backdoor if that
+# port is in use); and <start>:<end> results in listening on
+# the smallest unused port number within the specified range
+# of port numbers.  The chosen port is displayed in the
+# service's log file. (string value)
+#backdoor_port=<None>
+
+
+#
+# Options defined in nova.openstack.common.memorycache
+#
+
+# Memcached servers or None for in process cache. (list value)
+#memcached_servers=<None>
+
+
+#
+# Options defined in nova.openstack.common.periodic_task
+#
+
+# Some periodic tasks can be run in a separate process. Should
+# we run them here? (boolean value)
+#run_external_periodic_tasks=true
+
+
+#
+# Options defined in nova.openstack.common.policy
+#
+
+# The JSON file that defines policies. (string value)
+#policy_file=policy.json
+
+# Default rule. Enforced when a requested rule is not found.
+# (string value)
+#policy_default_rule=default
+
+# Directories where policy configuration files are stored.
+# They can be relative to any directory in the search path
+# defined by the config_dir option, or absolute paths. The
+# file defined by policy_file must exist for these directories
+# to be searched.  Missing or empty directories are ignored.
+# (multi valued)
+#policy_dirs=policy.d
+
+
+#
+# Options defined in nova.openstack.common.versionutils
+#
+
+# Enables or disables fatal status of deprecations. (boolean
+# value)
+#fatal_deprecations=false
+
+
+[api_database]
+
+#
+# Options defined in nova.db.sqlalchemy.api
+#
+
+# The SQLAlchemy connection string to use to connect to the
+# Nova API database. (string value)
+#connection=mysql://nova:nova@localhost/nova
+
+# If True, SQLite uses synchronous mode. (boolean value)
+#sqlite_synchronous=true
+
+# Timeout before idle SQL connections are reaped. (integer
+# value)
+#idle_timeout=3600
+
+# Maximum number of SQL connections to keep open in a pool.
+# (integer value)
+#max_pool_size=<None>
+
+# Maximum number of database connection retries during
+# startup. Set to -1 to specify an infinite retry count.
+# (integer value)
+#max_retries=-1
+
+# Interval between retries of opening a SQL connection.
+# (integer value)
+#retry_interval=10
+
+# If set, use this value for max_overflow with SQLAlchemy.
+# (integer value)
+#max_overflow=<None>
+
+# Verbosity of SQL debugging information: 0=None,
+# 100=Everything. (integer value)
+#connection_debug=0
+
+# Add Python stack traces to SQL as comment strings. (boolean
+# value)
+#connection_trace=false
+
+# If set, use this value for pool_timeout with SQLAlchemy.
+# (integer value)
+#pool_timeout=<None>
+
+
+[barbican]
+
+#
+# Options defined in nova.keymgr.barbican
+#
+
+# Info to match when looking for barbican in the service
 # catalog. Format is: separated values of the form:
 # <service_type>:<service_name>:<endpoint_type> (string value)
-#cinder_catalog_info=volume:cinder:publicURL
+#catalog_info=key-manager:barbican:public
 
-# Override service catalog lookup with template for cinder
-# endpoint e.g. http://localhost:8776/v1/%(project_id)s
+# Override service catalog lookup with template for barbican
+# endpoint e.g. http://localhost:9311/v1/%(project_id)s
 # (string value)
-#cinder_endpoint_template=<None>
+#endpoint_template=<None>
 
 # Region name of this node (string value)
 #os_region_name=<None>
 
-# Location of ca certificates file to use for cinder client
-# requests. (string value)
-#cinder_ca_certificates_file=<None>
-
-# Number of cinderclient retries on failed http calls (integer
-# value)
-#cinder_http_retries=3
-
-# Allow to perform insecure SSL requests to cinder (boolean
-# value)
-#cinder_api_insecure=false
-
-# Allow attach between instance and volume in different
-# availability zones. (boolean value)
-#cinder_cross_az_attach=true
-
-
-[baremetal]
 
 #
-# Options defined in nova.virt.baremetal.db.api
+# Options defined in nova.volume.cinder
 #
 
-# The backend to use for bare-metal database (string value)
-#db_backend=sqlalchemy
-
-
-#
-# Options defined in nova.virt.baremetal.db.sqlalchemy.session
-#
-
-# The SQLAlchemy connection string used to connect to the
-# bare-metal database (string value)
-#sql_connection=sqlite:///$state_path/baremetal_nova.sqlite
-
-
-#
-# Options defined in nova.virt.baremetal.driver
-#
-
-# Baremetal VIF driver. (string value)
-#vif_driver=nova.virt.baremetal.vif_driver.BareMetalVIFDriver
-
-# Baremetal volume driver. (string value)
-#volume_driver=nova.virt.baremetal.volume_driver.LibvirtVolumeDriver
-
-# A list of additional capabilities corresponding to
-# flavor_extra_specs for this compute host to advertise. Valid
-# entries are name=value, pairs For example, "key1:val1,
-# key2:val2" (list value)
-# Deprecated group;name - DEFAULT;instance_type_extra_specs
-#flavor_extra_specs=
-
-# Baremetal driver back-end (pxe or tilera) (string value)
-#driver=nova.virt.baremetal.pxe.PXE
-
-# Baremetal power management method (string value)
-#power_manager=nova.virt.baremetal.ipmi.IPMI
-
-# Baremetal compute node's tftp root path (string value)
-#tftp_root=/tftpboot
-
-
-#
-# Options defined in nova.virt.baremetal.ipmi
-#
-
-# Path to baremetal terminal program (string value)
-#terminal=shellinaboxd
-
-# Path to baremetal terminal SSL cert(PEM) (string value)
-#terminal_cert_dir=<None>
-
-# Path to directory stores pidfiles of baremetal_terminal
-# (string value)
-#terminal_pid_dir=$state_path/baremetal/console
-
-# Maximal number of retries for IPMI operations (integer
-# value)
-#ipmi_power_retry=10
-
-
-#
-# Options defined in nova.virt.baremetal.pxe
-#
-
-# Default kernel image ID used in deployment phase (string
-# value)
-#deploy_kernel=<None>
-
-# Default ramdisk image ID used in deployment phase (string
-# value)
-#deploy_ramdisk=<None>
-
-# Template file for injected network config (string value)
-#net_config_template=$pybasedir/nova/virt/baremetal/net-dhcp.ubuntu.template
-
-# Additional append parameters for baremetal PXE boot (string
-# value)
-#pxe_append_params=nofb nomodeset vga=normal
-
-# Template file for PXE configuration (string value)
-#pxe_config_template=$pybasedir/nova/virt/baremetal/pxe_config.template
-
-# If True, enable file injection for network info, files and
-# admin password (boolean value)
-#use_file_injection=false
-
-# Timeout for PXE deployments. Default: 0 (unlimited) (integer
-# value)
-#pxe_deploy_timeout=0
-
-# If set, pass the network configuration details to the
-# initramfs via cmdline. (boolean value)
-#pxe_network_config=false
-
-# This gets passed to Neutron as the bootfile dhcp parameter.
-# (string value)
-#pxe_bootfile_name=pxelinux.0
-
-
-#
-# Options defined in nova.virt.baremetal.tilera_pdu
-#
-
-# IP address of tilera pdu (string value)
-#tile_pdu_ip=10.0.100.1
-
-# Management script for tilera pdu (string value)
-#tile_pdu_mgr=/tftpboot/pdu_mgr
-
-# Power status of tilera PDU is OFF (integer value)
-#tile_pdu_off=2
-
-# Power status of tilera PDU is ON (integer value)
-#tile_pdu_on=1
-
-# Power status of tilera PDU (integer value)
-#tile_pdu_status=9
-
-# Wait time in seconds until check the result after tilera
-# power operations (integer value)
-#tile_power_wait=9
-
-
-#
-# Options defined in nova.virt.baremetal.virtual_power_driver
-#
-
-# IP or name to virtual power host (string value)
-#virtual_power_ssh_host=
-
-# Port to use for ssh to virtual power host (integer value)
-#virtual_power_ssh_port=22
-
-# Base command to use for virtual power(vbox, virsh) (string
-# value)
-#virtual_power_type=virsh
-
-# User to execute virtual power commands as (string value)
-#virtual_power_host_user=
-
-# Password for virtual power host_user (string value)
-#virtual_power_host_pass=
-
-# The ssh key for virtual power host_user (string value)
-#virtual_power_host_key=<None>
-
-
-#
-# Options defined in nova.virt.baremetal.volume_driver
-#
-
-# Do not set this out of dev/test environments. If a node does
-# not have a fixed PXE IP address, volumes are exported with
-# globally opened ACL (boolean value)
-#use_unsafe_iscsi=false
-
-# The iSCSI IQN prefix used in baremetal volume connections.
-# (string value)
-#iscsi_iqn_prefix=iqn.2010-10.org.openstack.baremetal
+# Region name of this node (string value)
+#os_region_name=<None>
 
 
 [cells]
@@ -2443,6 +2157,31 @@ vif_plugging_timeout=0
 #offset_weight_multiplier=1.0
 
 
+[cinder]
+
+#
+# Options defined in nova.volume.cinder
+#
+
+# Info to match when looking for cinder in the service
+# catalog. Format is: separated values of the form:
+# <service_type>:<service_name>:<endpoint_type> (string value)
+#catalog_info=volumev2:cinderv2:publicURL
+
+# Override service catalog lookup with template for cinder
+# endpoint e.g. http://localhost:8776/v1/%(project_id)s
+# (string value)
+#endpoint_template=<None>
+
+# Number of cinderclient retries on failed http calls (integer
+# value)
+#http_retries=3
+
+# Allow attach between instance and volume in different
+# availability zones. (boolean value)
+#cross_az_attach=true
+
+
 [conductor]
 
 #
@@ -2465,112 +2204,186 @@ vif_plugging_timeout=0
 
 
 [database]
-connection=mysql://nova:123456@controller/nova
-#
-# Options defined in nova.db.sqlalchemy.api
-#
-
-# The SQLAlchemy connection string used to connect to the
-# slave database (string value)
-#slave_connection=<None>
-
 
 #
-# Options defined in nova.openstack.common.db.options
+# From oslo.db
 #
 
-# The file name to use with SQLite (string value)
-#sqlite_db=nova.sqlite
+# The file name to use with SQLite. (string value)
+# Deprecated group;name - DEFAULT;sqlite_db
+#sqlite_db=oslo.sqlite
 
-# If True, SQLite uses synchronous mode (boolean value)
+# If True, SQLite uses synchronous mode. (boolean value)
+# Deprecated group;name - DEFAULT;sqlite_synchronous
 #sqlite_synchronous=true
 
-# The backend to use for db (string value)
+# The back end to use for the database. (string value)
 # Deprecated group;name - DEFAULT;db_backend
 #backend=sqlalchemy
 
-# The SQLAlchemy connection string used to connect to the
-# database (string value)
+# The SQLAlchemy connection string to use to connect to the database. (string
+# value)
 # Deprecated group;name - DEFAULT;sql_connection
 # Deprecated group;name - [DATABASE]/sql_connection
 # Deprecated group;name - [sql]/connection
-#connection=mysql://nova:nova@localhost/nova
+#connection=<None>
 
-# The SQL mode to be used for MySQL sessions (default is
-# empty, meaning do not override any server-side SQL mode
-# setting) (string value)
-#mysql_sql_mode=<None>
+# The SQLAlchemy connection string to use to connect to the slave database.
+# (string value)
+#slave_connection=<None>
 
-# Timeout before idle sql connections are reaped (integer
-# value)
+# The SQL mode to be used for MySQL sessions. This option, including the
+# default, overrides any server-set SQL mode. To use whatever SQL mode is set
+# by the server configuration, set this to no value. Example: mysql_sql_mode=
+# (string value)
+#mysql_sql_mode=TRADITIONAL
+
+# Timeout before idle SQL connections are reaped. (integer value)
 # Deprecated group;name - DEFAULT;sql_idle_timeout
 # Deprecated group;name - [DATABASE]/sql_idle_timeout
 # Deprecated group;name - [sql]/idle_timeout
 #idle_timeout=3600
 
-# Minimum number of SQL connections to keep open in a pool
-# (integer value)
+# Minimum number of SQL connections to keep open in a pool. (integer value)
 # Deprecated group;name - DEFAULT;sql_min_pool_size
 # Deprecated group;name - [DATABASE]/sql_min_pool_size
 #min_pool_size=1
 
-# Maximum number of SQL connections to keep open in a pool
-# (integer value)
+# Maximum number of SQL connections to keep open in a pool. (integer value)
 # Deprecated group;name - DEFAULT;sql_max_pool_size
 # Deprecated group;name - [DATABASE]/sql_max_pool_size
 #max_pool_size=<None>
 
-# Maximum db connection retries during startup. (setting -1
-# implies an infinite retry count) (integer value)
+# Maximum number of database connection retries during startup. Set to -1 to
+# specify an infinite retry count. (integer value)
 # Deprecated group;name - DEFAULT;sql_max_retries
 # Deprecated group;name - [DATABASE]/sql_max_retries
-#max_retries=-1
+#max_retries=10
 
-# Interval between retries of opening a sql connection
-# (integer value)
+# Interval between retries of opening a SQL connection. (integer value)
 # Deprecated group;name - DEFAULT;sql_retry_interval
 # Deprecated group;name - [DATABASE]/reconnect_interval
 #retry_interval=10
 
-# If set, use this value for max_overflow with sqlalchemy
-# (integer value)
+# If set, use this value for max_overflow with SQLAlchemy. (integer value)
 # Deprecated group;name - DEFAULT;sql_max_overflow
 # Deprecated group;name - [DATABASE]/sqlalchemy_max_overflow
 #max_overflow=<None>
 
-# Verbosity of SQL debugging information. 0=None,
-# 100=Everything (integer value)
+# Verbosity of SQL debugging information: 0=None, 100=Everything. (integer
+# value)
 # Deprecated group;name - DEFAULT;sql_connection_debug
 #connection_debug=0
 
-# Add python stack traces to SQL as comment strings (boolean
-# value)
+# Add Python stack traces to SQL as comment strings. (boolean value)
 # Deprecated group;name - DEFAULT;sql_connection_trace
 #connection_trace=false
 
-# If set, use this value for pool_timeout with sqlalchemy
-# (integer value)
+# If set, use this value for pool_timeout with SQLAlchemy. (integer value)
 # Deprecated group;name - [DATABASE]/sqlalchemy_pool_timeout
 #pool_timeout=<None>
 
-# Enable the experimental use of database reconnect on
-# connection lost (boolean value)
+# Enable the experimental use of database reconnect on connection lost.
+# (boolean value)
 #use_db_reconnect=false
 
-# seconds between db connection retries (integer value)
+# Seconds between retries of a database transaction. (integer value)
 #db_retry_interval=1
 
-# Whether to increase interval between db connection retries,
-# up to db_max_retry_interval (boolean value)
+# If True, increases the interval between retries of a database operation up to
+# db_max_retry_interval. (boolean value)
 #db_inc_retry_interval=true
 
-# max seconds between db connection retries, if
-# db_inc_retry_interval is enabled (integer value)
+# If db_inc_retry_interval is set, the maximum seconds between retries of a
+# database operation. (integer value)
 #db_max_retry_interval=10
 
-# maximum db connection retries before error is raised.
-# (setting -1 implies an infinite retry count) (integer value)
+# Maximum retries in case of connection error or deadlock error before error is
+# raised. Set to -1 to specify an infinite retry count. (integer value)
 #db_max_retries=20
+
+
+#
+# Options defined in nova.db.sqlalchemy.api
+#
+
+# The SQLAlchemy connection string to use to connect to the
+# slave database. (string value)
+#slave_connection=<None>
+
+# The SQL mode to be used for MySQL sessions. This option,
+# including the default, overrides any server-set SQL mode. To
+# use whatever SQL mode is set by the server configuration,
+# set this to no value. Example: mysql_sql_mode= (string
+# value)
+#mysql_sql_mode=TRADITIONAL
+
+
+[ephemeral_storage_encryption]
+
+#
+# Options defined in nova.compute.api
+#
+
+# Whether to encrypt ephemeral storage (boolean value)
+#enabled=false
+
+# The cipher and mode to be used to encrypt ephemeral storage.
+# Which ciphers are available ciphers depends on kernel
+# support. See /proc/crypto for the list of available options.
+# (string value)
+#cipher=aes-xts-plain64
+
+# The bit length of the encryption key to be used to encrypt
+# ephemeral storage (in XTS mode only half of the bits are
+# used for encryption key) (integer value)
+#key_size=512
+
+
+[glance]
+
+#
+# Options defined in nova.image.glance
+#
+
+# Default glance hostname or IP address (string value)
+#host=$my_ip
+host=10.20.0.82
+
+# Default glance port (integer value)
+#port=9292
+
+# Default protocol to use when connecting to glance. Set to
+# https for SSL. (string value)
+#protocol=http
+
+# A list of the glance api servers available to nova. Prefix
+# with https:// for ssl-based glance api servers.
+# ([hostname|ip]:port) (list value)
+#api_servers=<None>
+
+# Allow to perform insecure SSL (https) requests to glance
+# (boolean value)
+#api_insecure=false
+
+# Number of retries when uploading / downloading an image to /
+# from glance. (integer value)
+#num_retries=0
+
+# A list of url scheme that can be downloaded directly via the
+# direct_url.  Currently supported schemes: [file]. (list
+# value)
+#allowed_direct_url_schemes=
+
+
+[guestfs]
+
+#
+# Options defined in nova.virt.disk.vfs.guestfs
+#
+
+# Enable guestfs debug (boolean value)
+#debug=false
 
 
 [hyperv]
@@ -2641,6 +2454,12 @@ connection=mysql://nova:123456@controller/nova
 # (floating point value)
 #dynamic_memory_ratio=1.0
 
+# Number of seconds to wait for instance to shut down after
+# soft reboot request is made. We fall back to hard reboot if
+# instance does not shutdown within this window. (integer
+# value)
+#wait_soft_reboot_seconds=60
+
 
 #
 # Options defined in nova.virt.hyperv.volumeops
@@ -2674,6 +2493,48 @@ connection=mysql://nova:123456@controller/nova
 #filesystems=
 
 
+[ironic]
+
+#
+# Options defined in nova.virt.ironic.driver
+#
+
+# Version of Ironic API service endpoint. (integer value)
+#api_version=1
+
+# URL for Ironic API endpoint. (string value)
+#api_endpoint=<None>
+
+# Ironic keystone admin name (string value)
+#admin_username=<None>
+
+# Ironic keystone admin password. (string value)
+#admin_password=%SERVICE_PASSWORD%
+
+# Ironic keystone auth token. (string value)
+#admin_auth_token=<None>
+
+# Keystone public API endpoint. (string value)
+#admin_url=<None>
+
+# Log level override for ironicclient. Set this in order to
+# override the global "default_log_levels", "verbose", and
+# "debug" settings. DEPRECATED: use standard logging
+# configuration. (string value)
+#client_log_level=<None>
+
+# Ironic keystone tenant name. (string value)
+#admin_tenant_name=%SERVICE_TENANT_NAME%
+
+# How many retries when a request does conflict. (integer
+# value)
+#api_max_retries=60
+
+# How often to retry in seconds when a request does conflict
+# (integer value)
+#api_retry_interval=2
+
+
 [keymgr]
 
 #
@@ -2695,141 +2556,170 @@ connection=mysql://nova:123456@controller/nova
 
 
 [keystone_authtoken]
-auth_uri=http://controller:5000
-auth_host=192.168.122.80
-auth_protocal=http
-auth_port=35357
-admin_tenant_name=service
-admin_user=nova
-admin_password=123456
-
+auth_uri = http://10.20.0.82:5000
+auth_url = http://10.20.0.82:35357
+auth_plugin = password
+project_domain_id = default
+user_domain_id = default
+project_name = service
+username = nova
+password = 123456 
 #
-# Options defined in keystoneclient.middleware.auth_token
+# From keystonemiddleware.auth_token
 #
 
-# Prefix to prepend at the beginning of the path (string
-# value)
-#auth_admin_prefix=
-
-# Host providing the admin Identity API endpoint (string
-# value)
-#auth_host=127.0.0.1
-
-# Port of the admin Identity API endpoint (integer value)
-#auth_port=35357
-
-# Protocol of the admin Identity API endpoint(http or https)
-# (string value)
-#auth_protocol=http
-
-# Complete public Identity API endpoint (string value)
+# Complete public Identity API endpoint. (string value)
 #auth_uri=<None>
 
-# API version of the admin Identity API endpoint (string
-# value)
+# API version of the admin Identity API endpoint. (string value)
 #auth_version=v2.0
 
-# Do not handle authorization requests within the middleware,
-# but delegate the authorization decision to downstream WSGI
-# components (boolean value)
+# Do not handle authorization requests within the middleware, but delegate the
+# authorization decision to downstream WSGI components. (boolean value)
 #delay_auth_decision=false
 
-# Request timeout value for communicating with Identity API
-# server. (boolean value)
+# Request timeout value for communicating with Identity API server. (integer
+# value)
 #http_connect_timeout=<None>
 
-# How many times are we trying to reconnect when communicating
-# with Identity API Server. (integer value)
+# How many times are we trying to reconnect when communicating with Identity
+# API Server. (integer value)
 #http_request_max_retries=3
 
-# Allows to pass in the name of a fake http_handler callback
-# function used instead of httplib.HTTPConnection or
-# httplib.HTTPSConnection. Useful for unit testing where
-# network is not available. (string value)
-#http_handler=<None>
-
-# Single shared secret with the Keystone configuration used
-# for bootstrapping a Keystone installation, or otherwise
-# bypassing the normal authentication process. (string value)
-#admin_token=<None>
-
-# Keystone account username (string value)
-#admin_user=%SERVICE_USER%
-
-# Keystone account password (string value)
-#admin_password=%SERVICE_PASSWORD%
-
-# Keystone service account tenant name to validate user tokens
-# (string value)
-#admin_tenant_name=%SERVICE_TENANT_NAME%
-
-# Env key for the swift cache (string value)
+# Env key for the swift cache. (string value)
 #cache=<None>
 
-# Required if Keystone server requires client certificate
-# (string value)
+# Required if identity server requires client certificate (string value)
 #certfile=<None>
 
-# Required if Keystone server requires client certificate
-# (string value)
+# Required if identity server requires client certificate (string value)
 #keyfile=<None>
 
-# A PEM encoded Certificate Authority to use when verifying
-# HTTPs connections. Defaults to system CAs. (string value)
+# A PEM encoded Certificate Authority to use when verifying HTTPs connections.
+# Defaults to system CAs. (string value)
 #cafile=<None>
 
 # Verify HTTPS connections. (boolean value)
 #insecure=false
 
-# Directory used to cache files related to PKI tokens (string
-# value)
+# Directory used to cache files related to PKI tokens. (string value)
 #signing_dir=<None>
 
-# If defined, the memcache server(s) to use for caching (list
-# value)
+# Optionally specify a list of memcached server(s) to use for caching. If left
+# undefined, tokens will instead be cached in-process. (list value)
 # Deprecated group;name - DEFAULT;memcache_servers
 #memcached_servers=<None>
 
-# In order to prevent excessive requests and validations, the
-# middleware uses an in-memory cache for the tokens the
-# Keystone API returns. This is only valid if memcache_servers
-# is defined. Set to -1 to disable caching completely.
-# (integer value)
+# In order to prevent excessive effort spent validating tokens, the middleware
+# caches previously-seen tokens for a configurable duration (in seconds). Set
+# to -1 to disable caching completely. (integer value)
 #token_cache_time=300
 
-# Value only used for unit testing (integer value)
-#revocation_cache_time=1
+# Determines the frequency at which the list of revoked tokens is retrieved
+# from the Identity service (in seconds). A high number of revocation events
+# combined with a low cache duration may significantly reduce performance.
+# (integer value)
+#revocation_cache_time=10
 
-# (optional) if defined, indicate whether token data should be
-# authenticated or authenticated and encrypted. Acceptable
-# values are MAC or ENCRYPT.  If MAC, token data is
-# authenticated (with HMAC) in the cache. If ENCRYPT, token
-# data is encrypted and authenticated in the cache. If the
-# value is not one of these options or empty, auth_token will
-# raise an exception on initialization. (string value)
+# (Optional) If defined, indicate whether token data should be authenticated or
+# authenticated and encrypted. Acceptable values are MAC or ENCRYPT.  If MAC,
+# token data is authenticated (with HMAC) in the cache. If ENCRYPT, token data
+# is encrypted and authenticated in the cache. If the value is not one of these
+# options or empty, auth_token will raise an exception on initialization.
+# (string value)
 #memcache_security_strategy=<None>
 
-# (optional, mandatory if memcache_security_strategy is
-# defined) this string is used for key derivation. (string
-# value)
+# (Optional, mandatory if memcache_security_strategy is defined) This string is
+# used for key derivation. (string value)
 #memcache_secret_key=<None>
 
-# (optional) indicate whether to set the X-Service-Catalog
-# header. If False, middleware will not ask for service
-# catalog on token validation and will not set the X-Service-
-# Catalog header. (boolean value)
+# (Optional) Number of seconds memcached server is considered dead before it is
+# tried again. (integer value)
+#memcache_pool_dead_retry=300
+
+# (Optional) Maximum total number of open connections to every memcached
+# server. (integer value)
+#memcache_pool_maxsize=10
+
+# (Optional) Socket timeout in seconds for communicating with a memcache
+# server. (integer value)
+#memcache_pool_socket_timeout=3
+
+# (Optional) Number of seconds a connection to memcached is held unused in the
+# pool before it is closed. (integer value)
+#memcache_pool_unused_timeout=60
+
+# (Optional) Number of seconds that an operation will wait to get a memcache
+# client connection from the pool. (integer value)
+#memcache_pool_conn_get_timeout=10
+
+# (Optional) Use the advanced (eventlet safe) memcache client pool. The
+# advanced pool will only work under python 2.x. (boolean value)
+#memcache_use_advanced_pool=false
+
+# (Optional) Indicate whether to set the X-Service-Catalog header. If False,
+# middleware will not ask for service catalog on token validation and will not
+# set the X-Service-Catalog header. (boolean value)
 #include_service_catalog=true
 
-# Used to control the use and type of token binding. Can be
-# set to: "disabled" to not check token binding. "permissive"
-# (default) to validate binding information if the bind type
-# is of a form known to the server and ignore it if not.
-# "strict" like "permissive" but if the bind type is unknown
-# the token will be rejected. "required" any form of token
-# binding is needed to be allowed. Finally the name of a
-# binding method that must be present in tokens. (string
-# value)
+# Used to control the use and type of token binding. Can be set to: "disabled"
+# to not check token binding. "permissive" (default) to validate binding
+# information if the bind type is of a form known to the server and ignore it
+# if not. "strict" like "permissive" but if the bind type is unknown the token
+# will be rejected. "required" any form of token binding is needed to be
+# allowed. Finally the name of a binding method that must be present in tokens.
+# (string value)
 #enforce_token_bind=permissive
+
+# If true, the revocation list will be checked for cached tokens. This requires
+# that PKI tokens are configured on the identity server. (boolean value)
+#check_revocations_for_cached=false
+
+# Hash algorithms to use for hashing PKI tokens. This may be a single algorithm
+# or multiple. The algorithms are those supported by Python standard
+# hashlib.new(). The hashes will be tried in the order given, so put the
+# preferred one first for performance. The result of the first hash will be
+# stored in the cache. This will typically be set to multiple values only while
+# migrating from a less secure algorithm to a more secure one. Once all the old
+# tokens are expired this option should be set to a single value for better
+# performance. (list value)
+#hash_algorithms=md5
+
+# Prefix to prepend at the beginning of the path. Deprecated, use identity_uri.
+# (string value)
+#auth_admin_prefix =
+
+# Host providing the admin Identity API endpoint. Deprecated, use identity_uri.
+# (string value)
+#auth_host=127.0.0.1
+
+# Port of the admin Identity API endpoint. Deprecated, use identity_uri.
+# (integer value)
+#auth_port=35357
+
+# Protocol of the admin Identity API endpoint (http or https). Deprecated, use
+# identity_uri. (string value)
+#auth_protocol=http
+
+# Complete admin Identity API endpoint. This should specify the unversioned
+# root endpoint e.g. https://localhost:35357/ (string value)
+#identity_uri=<None>
+
+# This option is deprecated and may be removed in a future release. Single
+# shared secret with the Keystone configuration used for bootstrapping a
+# Keystone installation, or otherwise bypassing the normal authentication
+# process. This option should not be used, use `admin_user` and
+# `admin_password` instead. (string value)
+#admin_token=<None>
+
+# Service username. (string value)
+#admin_user=%SERVICE_USER%
+
+# Service user password. (string value)
+#admin_password=<None>
+
+# Service tenant name. (string value)
+#admin_tenant_name=admin
 
 
 [libvirt]
@@ -2838,7 +2728,8 @@ admin_password=123456
 # Options defined in nova.virt.libvirt.driver
 #
 
-# Rescue ami image (string value)
+# Rescue ami image. This will not be used if an image id is
+# provided by the user. (string value)
 #rescue_image_id=<None>
 
 # Rescue aki image (string value)
@@ -2848,28 +2739,24 @@ admin_password=123456
 #rescue_ramdisk_id=<None>
 
 # Libvirt domain type (valid options are: kvm, lxc, qemu, uml,
-# xen) (string value)
-# Deprecated group;name - DEFAULT;libvirt_type
+# xen and parallels) (string value)
 #virt_type=kvm
+virt_type=qemu
 
 # Override the default libvirt URI (which is dependent on
 # virt_type) (string value)
-# Deprecated group;name - DEFAULT;libvirt_uri
 #connection_uri=
 
 # Inject the admin password at boot time, without an agent.
 # (boolean value)
-# Deprecated group;name - DEFAULT;libvirt_inject_password
 #inject_password=false
 
 # Inject the ssh public key at boot time (boolean value)
-# Deprecated group;name - DEFAULT;libvirt_inject_key
 #inject_key=false
 
 # The partition to inject to : -2 => disable, -1 => inspect
 # (libguestfs only), 0 => not partitioned, >0 => partition
 # number (integer value)
-# Deprecated group;name - DEFAULT;libvirt_inject_partition
 #inject_partition=-2
 
 # Sync virtual and real mouse cursors in Windows VMs (boolean
@@ -2881,10 +2768,10 @@ admin_password=123456
 #live_migration_uri=qemu+tcp://%s/system
 
 # Migration flags to be set for live migration (string value)
-#live_migration_flag=VIR_MIGRATE_UNDEFINE_SOURCE, VIR_MIGRATE_PEER2PEER
+#live_migration_flag=VIR_MIGRATE_UNDEFINE_SOURCE, VIR_MIGRATE_PEER2PEER, VIR_MIGRATE_LIVE, VIR_MIGRATE_TUNNELLED
 
 # Migration flags to be set for block migration (string value)
-#block_migration_flag=VIR_MIGRATE_UNDEFINE_SOURCE, VIR_MIGRATE_PEER2PEER, VIR_MIGRATE_NON_SHARED_INC
+#block_migration_flag=VIR_MIGRATE_UNDEFINE_SOURCE, VIR_MIGRATE_PEER2PEER, VIR_MIGRATE_LIVE, VIR_MIGRATE_TUNNELLED, VIR_MIGRATE_NON_SHARED_INC
 
 # Maximum bandwidth to be used during migration, in Mbps
 # (integer value)
@@ -2894,27 +2781,15 @@ admin_password=123456
 # vdi). Defaults to same as source image (string value)
 #snapshot_image_format=<None>
 
-# DEPRECATED. The libvirt VIF driver to configure the
-# VIFs.This option is deprecated and will be removed in the
-# Juno release. (string value)
-# Deprecated group;name - DEFAULT;libvirt_vif_driver
-#vif_driver=nova.virt.libvirt.vif.LibvirtGenericVIFDriver
-
-# Libvirt handlers for remote volumes. (list value)
-# Deprecated group;name - DEFAULT;libvirt_volume_drivers
-#volume_drivers=iscsi=nova.virt.libvirt.volume.LibvirtISCSIVolumeDriver,iser=nova.virt.libvirt.volume.LibvirtISERVolumeDriver,local=nova.virt.libvirt.volume.LibvirtVolumeDriver,fake=nova.virt.libvirt.volume.LibvirtFakeVolumeDriver,rbd=nova.virt.libvirt.volume.LibvirtNetVolumeDriver,sheepdog=nova.virt.libvirt.volume.LibvirtNetVolumeDriver,nfs=nova.virt.libvirt.volume.LibvirtNFSVolumeDriver,aoe=nova.virt.libvirt.volume.LibvirtAOEVolumeDriver,glusterfs=nova.virt.libvirt.volume.LibvirtGlusterfsVolumeDriver,fibre_channel=nova.virt.libvirt.volume.LibvirtFibreChannelVolumeDriver,scality=nova.virt.libvirt.volume.LibvirtScalityVolumeDriver
-
 # Override the default disk prefix for the devices attached to
 # a server, which is dependent on virt_type. (valid options
 # are: sd, xvd, uvd, vd) (string value)
-# Deprecated group;name - DEFAULT;libvirt_disk_prefix
 #disk_prefix=<None>
 
 # Number of seconds to wait for instance to shut down after
 # soft reboot request is made. We fall back to hard reboot if
 # instance does not shutdown within this window. (integer
 # value)
-# Deprecated group;name - DEFAULT;libvirt_wait_soft_reboot_seconds
 #wait_soft_reboot_seconds=120
 
 # Set to "host-model" to clone the host CPU feature flags; to
@@ -2923,18 +2798,15 @@ admin_password=123456
 # CPU model. If virt_type="kvm|qemu", it will default to
 # "host-model", otherwise it will default to "none" (string
 # value)
-# Deprecated group;name - DEFAULT;libvirt_cpu_mode
 #cpu_mode=<None>
 
 # Set to a named libvirt CPU model (see names listed in
 # /usr/share/libvirt/cpu_map.xml). Only has effect if
 # cpu_mode="custom" and virt_type="kvm|qemu" (string value)
-# Deprecated group;name - DEFAULT;libvirt_cpu_model
 #cpu_model=<None>
 
 # Location where libvirt driver will store snapshots before
 # uploading them to image service (string value)
-# Deprecated group;name - DEFAULT;libvirt_snapshots_directory
 #snapshots_directory=$instances_path/snapshots
 
 # Location where the Xen hvmloader is kept (string value)
@@ -2949,6 +2821,33 @@ admin_password=123456
 # (string value)
 #rng_dev_path=<None>
 
+# For qemu or KVM guests, set this option to specify a default
+# machine type per host architecture. You can find a list of
+# supported machine types in your environment by checking the
+# output of the "virsh capabilities"command. The format of the
+# value for this config option is host-arch=machine-type. For
+# example: x86_64=machinetype1,armv7l=machinetype2 (list
+# value)
+#hw_machine_type=<None>
+
+# The data source used to the populate the host "serial" UUID
+# exposed to guest in the virtual BIOS. Permitted options are
+# "hardware", "os", "none" or "auto" (default). (string value)
+#sysinfo_serial=auto
+
+# A number of seconds to memory usage statistics period. Zero
+# or negative value mean to disable memory usage statistics.
+# (integer value)
+#mem_stats_period_seconds=10
+
+# List of uid targets and ranges.Syntax is guest-uid:host-
+# uid:countMaximum of 5 allowed. (list value)
+#uid_maps=
+
+# List of guid targets and ranges.Syntax is guest-gid:host-
+# gid:countMaximum of 5 allowed. (list value)
+#gid_maps=
+
 
 #
 # Options defined in nova.virt.libvirt.imagebackend
@@ -2957,35 +2856,27 @@ admin_password=123456
 # VM Images format. Acceptable values are: raw, qcow2, lvm,
 # rbd, default. If default is specified, then use_cow_images
 # flag is used instead of this one. (string value)
-# Deprecated group;name - DEFAULT;libvirt_images_type
 #images_type=default
 
 # LVM Volume Group that is used for VM images, when you
 # specify images_type=lvm. (string value)
-# Deprecated group;name - DEFAULT;libvirt_images_volume_group
 #images_volume_group=<None>
 
 # Create sparse logical volumes (with virtualsize) if this
 # flag is set to True. (boolean value)
-# Deprecated group;name - DEFAULT;libvirt_sparse_logical_volumes
 #sparse_logical_volumes=false
-
-# Method used to wipe old volumes (valid options are: none,
-# zero, shred) (string value)
-#volume_clear=zero
-
-# Size in MiB to wipe at start of old volumes. 0 => all
-# (integer value)
-#volume_clear_size=0
 
 # The RADOS pool in which rbd volumes are stored (string
 # value)
-# Deprecated group;name - DEFAULT;libvirt_images_rbd_pool
 #images_rbd_pool=rbd
 
 # Path to the ceph configuration file to use (string value)
-# Deprecated group;name - DEFAULT;libvirt_images_rbd_ceph_conf
 #images_rbd_ceph_conf=
+
+# Discard option for nova managed disks (valid options are:
+# ignore, unmap). Need Libvirt(1.0.6) Qemu1.5 (raw format)
+# Qemu1.6(qcow2 format) (string value)
+#hw_disk_discard=<None>
 
 
 #
@@ -3014,12 +2905,24 @@ admin_password=123456
 
 
 #
+# Options defined in nova.virt.libvirt.lvm
+#
+
+# Method used to wipe old volumes (valid options are: none,
+# zero, shred) (string value)
+#volume_clear=zero
+
+# Size in MiB to wipe at start of old volumes. 0 => all
+# (integer value)
+#volume_clear_size=0
+
+
+#
 # Options defined in nova.virt.libvirt.utils
 #
 
 # Compress snapshot images when possible. This currently
 # applies exclusively to qcow2 images (boolean value)
-# Deprecated group;name - DEFAULT;libvirt_snapshot_compression
 #snapshot_compression=false
 
 
@@ -3029,7 +2932,6 @@ admin_password=123456
 
 # Use virtio for bridge interfaces with KVM/QEMU (boolean
 # value)
-# Deprecated group;name - DEFAULT;libvirt_use_virtio_for_bridges
 #use_virtio_for_bridges=true
 
 
@@ -3057,9 +2959,18 @@ admin_password=123456
 # node (string value)
 #nfs_mount_point_base=$state_path/mnt
 
-# Mount options passedf to the NFS client. See section of the
+# Mount options passed to the NFS client. See section of the
 # nfs man page for details (string value)
 #nfs_mount_options=<None>
+
+# Directory where the SMBFS shares are mounted on the compute
+# node (string value)
+#smbfs_mount_point_base=$state_path/mnt
+
+# Mount options passed to the SMBFS client. See mount.cifs man
+# page for details. Note that the libvirt-qemu uid and gid
+# must be specified. (string value)
+#smbfs_mount_options=
 
 # Number of times to rediscover AoE target to find volume
 # (integer value)
@@ -3070,11 +2981,9 @@ admin_password=123456
 #glusterfs_mount_point_base=$state_path/mnt
 
 # Use multipath connection of the iSCSI volume (boolean value)
-# Deprecated group;name - DEFAULT;libvirt_iscsi_use_multipath
 #iscsi_use_multipath=false
 
 # Use multipath connection of the iSER volume (boolean value)
-# Deprecated group;name - DEFAULT;libvirt_iser_use_multipath
 #iser_use_multipath=false
 
 # Path or URL to Scality SOFS configuration file (string
@@ -3088,16 +2997,20 @@ admin_password=123456
 # Currently supported protocols: [gluster] (list value)
 #qemu_allowed_storage_drivers=
 
+# Directory where the Quobyte volume is mounted on the compute
+# node (string value)
+#quobyte_mount_point_base=$state_path/mnt
 
-[matchmaker_ring]
+# Path to a Quobyte Client configuration file. (string value)
+#quobyte_client_cfg=<None>
 
-#
-# Options defined in oslo.messaging
-#
-
-# Matchmaker ring file (JSON). (string value)
-# Deprecated group;name - DEFAULT;matchmaker_ringfile
-#ringfile=/etc/oslo/matchmaker_ring.json
+# The iSCSI transport iface to use to connect to target in
+# case offload support is desired. Supported transports are
+# be2iscsi, bnx2i, cxgb3i, cxgb4i, qla4xxx and ocs. Default
+# format is transport_name.hwaddress and can be generated
+# manually or via iscsiadm -m iface (string value)
+# Deprecated group;name - DEFAULT;iscsi_transport
+#iscsi_iface=<None>
 
 
 [metrics]
@@ -3133,6 +3046,93 @@ admin_password=123456
 #weight_of_unavailable=-10000.0
 
 
+[neutron]
+url = http://10.20.0.85:9696
+auth_strategy = keystone
+admin_auth_url = http://10.20.0.82:35357/v2.0
+admin_tenant_name = service
+admin_username = neutron
+admin_password = 123456 
+
+#
+# Options defined in nova.api.metadata.handler
+#
+
+# Set flag to indicate Neutron will proxy metadata requests
+# and resolve instance ids. (boolean value)
+#service_metadata_proxy=false
+
+# Shared secret to validate proxies Neutron metadata requests
+# (string value)
+#metadata_proxy_shared_secret=
+
+
+#
+# Options defined in nova.network.neutronv2.api
+#
+
+# URL for connecting to neutron (string value)
+#url=http://127.0.0.1:9696
+
+# User id for connecting to neutron in admin context.
+# DEPRECATED: specify an auth_plugin and appropriate
+# credentials instead. (string value)
+#admin_user_id=<None>
+
+# Username for connecting to neutron in admin context
+# DEPRECATED: specify an auth_plugin and appropriate
+# credentials instead. (string value)
+#admin_username=<None>
+
+# Password for connecting to neutron in admin context
+# DEPRECATED: specify an auth_plugin and appropriate
+# credentials instead. (string value)
+#admin_password=<None>
+
+# Tenant id for connecting to neutron in admin context
+# DEPRECATED: specify an auth_plugin and appropriate
+# credentials instead. (string value)
+#admin_tenant_id=<None>
+
+# Tenant name for connecting to neutron in admin context. This
+# option will be ignored if neutron_admin_tenant_id is set.
+# Note that with Keystone V3 tenant names are only unique
+# within a domain. DEPRECATED: specify an auth_plugin and
+# appropriate credentials instead. (string value)
+#admin_tenant_name=<None>
+
+# Region name for connecting to neutron in admin context
+# (string value)
+#region_name=<None>
+
+# Authorization URL for connecting to neutron in admin
+# context. DEPRECATED: specify an auth_plugin and appropriate
+# credentials instead. (string value)
+#admin_auth_url=http://localhost:5000/v2.0
+
+# Authorization strategy for connecting to neutron in admin
+# context. DEPRECATED: specify an auth_plugin and appropriate
+# credentials instead. If an auth_plugin is specified strategy
+# will be ignored. (string value)
+#auth_strategy=keystone
+
+# Name of Integration Bridge used by Open vSwitch (string
+# value)
+#ovs_bridge=br-int
+
+# Number of seconds before querying neutron for extensions
+# (integer value)
+#extension_sync_interval=600
+
+# DEPRECATED: Allow an instance to have multiple vNICs
+# attached to the same Neutron network. This option is
+# deprecated in the 2015.1 release and will be removed in the
+# 2015.2 release where the default behavior will be to always
+# allow multiple ports from the same network to be attached to
+# an instance. (boolean value)
+#allow_duplicate_networks=false
+
+
 [osapi_v3]
 
 #
@@ -3166,7 +3166,56 @@ admin_password=123456
 #enabled=false
 
 
+[serial_console]
+
+#
+# Options defined in nova.cmd.serialproxy
+#
+
+# Host on which to listen for incoming requests (string value)
+#serialproxy_host=0.0.0.0
+
+# Port on which to listen for incoming requests (integer
+# value)
+#serialproxy_port=6083
+
+
+#
+# Options defined in nova.console.serial
+#
+
+# Enable serial console related features (boolean value)
+#enabled=false
+
+# Range of TCP ports to use for serial ports on compute hosts
+# (string value)
+#port_range=10000:20000
+
+# Location of serial console proxy. (string value)
+#base_url=ws://127.0.0.1:6083/
+
+# IP address on which instance serial console should listen
+# (string value)
+#listen=127.0.0.1
+
+# The address to which proxy clients (like nova-serialproxy)
+# should connect (string value)
+#proxyclient_address=127.0.0.1
+
+
 [spice]
+
+#
+# Options defined in nova.cmd.spicehtml5proxy
+#
+
+# Host on which to listen for incoming requests (string value)
+#html5proxy_host=0.0.0.0
+
+# Port on which to listen for incoming requests (integer
+# value)
+#html5proxy_port=6082
+
 
 #
 # Options defined in nova.spice
@@ -3237,6 +3286,10 @@ admin_password=123456
 
 # Attestation status cache valid period length (integer value)
 #attestation_auth_timeout=60
+
+# Disable SSL cert verification for Attestation service
+# (boolean value)
+#attestation_insecure_ssl=false
 
 
 [upgrade_levels]
@@ -3339,20 +3392,34 @@ admin_password=123456
 # Options defined in nova.virt.vmwareapi.driver
 #
 
-# Hostname or IP address for connection to VMware ESX/VC host.
+# The PBM status. (boolean value)
+#pbm_enabled=false
+
+# PBM service WSDL file location URL. e.g.
+# file:///opt/SDK/spbm/wsdl/pbmService.wsdl Not setting this
+# will disable storage policy based placement of instances.
+# (string value)
+#pbm_wsdl_location=<None>
+
+# The PBM default policy. If pbm_wsdl_location is set and
+# there is no defined storage policy for the specific request
+# then this policy will be used. (string value)
+#pbm_default_policy=<None>
+
+# Hostname or IP address for connection to VMware VC host.
 # (string value)
 #host_ip=<None>
 
-# Username for connection to VMware ESX/VC host. (string
-# value)
+# Port for connection to VMware VC host. (integer value)
+#host_port=443
+
+# Username for connection to VMware VC host. (string value)
 #host_username=<None>
 
-# Password for connection to VMware ESX/VC host. (string
-# value)
+# Password for connection to VMware VC host. (string value)
 #host_password=<None>
 
-# Name of a VMware Cluster ComputeResource. Used only if
-# compute_driver is vmwareapi.VMwareVCDriver. (multi valued)
+# Name of a VMware Cluster ComputeResource. (multi valued)
 #cluster_name=<None>
 
 # Regex to match the name of a datastore. (string value)
@@ -3375,6 +3442,11 @@ admin_password=123456
 # Whether to use linked clone (boolean value)
 #use_linked_clone=true
 
+# Optional VIM Service WSDL Location e.g
+# http://<server>/vimService.wsdl. Optional over-ride to
+# default location for bug work-arounds (string value)
+#wsdl_location=<None>
+
 
 #
 # Options defined in nova.virt.vmwareapi.vif
@@ -3384,15 +3456,8 @@ admin_password=123456
 # value)
 #vlan_interface=vmnic0
 
-
-#
-# Options defined in nova.virt.vmwareapi.vim
-#
-
-# Optional VIM Service WSDL Location e.g
-# http://<server>/vimService.wsdl. Optional over-ride to
-# default location for bug work-arounds (string value)
-#wsdl_location=<None>
+# Name of Integration Bridge (string value)
+#integration_bridge=br-int
 
 
 #
@@ -3413,8 +3478,36 @@ admin_password=123456
 # Options defined in nova.virt.vmwareapi.vmops
 #
 
-# Name of Integration Bridge (string value)
-#integration_bridge=br-int
+# The prefix for Where cached images are stored. This is NOT
+# the full path - just a folder prefix. This should only be
+# used when a datastore cache should be shared between compute
+# nodes. Note: this should only be used when the compute nodes
+# have a shared file system. (string value)
+#cache_prefix=<None>
+
+
+[workarounds]
+
+#
+# Options defined in nova.utils
+#
+
+# This option allows a fallback to sudo for performance
+# reasons. For example see
+# https://bugs.launchpad.net/nova/+bug/1415106 (boolean value)
+#disable_rootwrap=false
+
+# When using libvirt 1.2.2 fails live snapshots intermittently
+# under load.  This config option provides mechanism to
+# disable livesnapshot while this is resolved.  See
+# https://bugs.launchpad.net/nova/+bug/1334398 (boolean value)
+#disable_libvirt_livesnapshot=true
+
+# Whether to destroy instances on startup when we suspect they
+# have previously been evacuated. This can result in data loss
+# if undesired. See https://launchpad.net/bugs/1419785
+# (boolean value)
+#destroy_after_evacuate=true
 
 
 [xenserver]
@@ -3424,17 +3517,14 @@ admin_password=123456
 #
 
 # Number of seconds to wait for agent reply (integer value)
-# Deprecated group;name - DEFAULT;agent_timeout
 #agent_timeout=30
 
 # Number of seconds to wait for agent to be fully operational
 # (integer value)
-# Deprecated group;name - DEFAULT;agent_version_timeout
 #agent_version_timeout=300
 
 # Number of seconds to wait for agent reply to resetnetwork
 # request (integer value)
-# Deprecated group;name - DEFAULT;agent_resetnetwork_timeout
 #agent_resetnetwork_timeout=60
 
 # Specifies the path in which the XenAPI guest agent should be
@@ -3442,12 +3532,10 @@ admin_password=123456
 # not injected into the image. Used if
 # compute_driver=xenapi.XenAPIDriver and flat_injected=True
 # (string value)
-# Deprecated group;name - DEFAULT;xenapi_agent_path
 #agent_path=usr/sbin/xe-update-networking
 
 # Disables the use of the XenAPI agent in any image regardless
 # of what image properties are present. (boolean value)
-# Deprecated group;name - DEFAULT;xenapi_disable_agent
 #disable_agent=false
 
 # Determines if the XenAPI agent should be used when the image
@@ -3456,7 +3544,6 @@ admin_password=123456
 # "xenapi_use_agent" that has the value "True" or "False".
 # Note that waiting for the agent when it is not present will
 # significantly increase server boot times. (boolean value)
-# Deprecated group;name - DEFAULT;xenapi_use_agent_default
 #use_agent_default=false
 
 
@@ -3465,12 +3552,10 @@ admin_password=123456
 #
 
 # Timeout in seconds for XenAPI login. (integer value)
-# Deprecated group;name - DEFAULT;xenapi_login_timeout
 #login_timeout=10
 
 # Maximum number of concurrent XenAPI connections. Used only
 # if compute_driver=xenapi.XenAPIDriver (integer value)
-# Deprecated group;name - DEFAULT;xenapi_connection_concurrent
 #connection_concurrent=5
 
 
@@ -3482,60 +3567,48 @@ admin_password=123456
 # special value of unix://local can be used to connect to the
 # local unix socket.  Required if
 # compute_driver=xenapi.XenAPIDriver (string value)
-# Deprecated group;name - DEFAULT;xenapi_connection_url
 #connection_url=<None>
 
 # Username for connection to XenServer/Xen Cloud Platform.
 # Used only if compute_driver=xenapi.XenAPIDriver (string
 # value)
-# Deprecated group;name - DEFAULT;xenapi_connection_username
 #connection_username=root
 
 # Password for connection to XenServer/Xen Cloud Platform.
 # Used only if compute_driver=xenapi.XenAPIDriver (string
 # value)
-# Deprecated group;name - DEFAULT;xenapi_connection_password
 #connection_password=<None>
 
 # The interval used for polling of coalescing vhds. Used only
 # if compute_driver=xenapi.XenAPIDriver (floating point value)
-# Deprecated group;name - DEFAULT;xenapi_vhd_coalesce_poll_interval
 #vhd_coalesce_poll_interval=5.0
 
 # Ensure compute service is running on host XenAPI connects
 # to. (boolean value)
-# Deprecated group;name - DEFAULT;xenapi_check_host
 #check_host=true
 
 # Max number of times to poll for VHD to coalesce. Used only
 # if compute_driver=xenapi.XenAPIDriver (integer value)
-# Deprecated group;name - DEFAULT;xenapi_vhd_coalesce_max_attempts
 #vhd_coalesce_max_attempts=20
 
 # Base path to the storage repository (string value)
-# Deprecated group;name - DEFAULT;xenapi_sr_base_path
 #sr_base_path=/var/run/sr-mount
 
 # The iSCSI Target Host (string value)
-# Deprecated group;name - DEFAULT;target_host
 #target_host=<None>
 
 # The iSCSI Target Port, default is port 3260 (string value)
-# Deprecated group;name - DEFAULT;target_port
 #target_port=3260
 
 # IQN Prefix (string value)
-# Deprecated group;name - DEFAULT;iqn_prefix
 #iqn_prefix=iqn.2010-10.org.openstack
 
 # Used to enable the remapping of VBD dev (Works around an
 # issue in Ubuntu Maverick) (boolean value)
-# Deprecated group;name - DEFAULT;xenapi_remap_vbd_dev
 #remap_vbd_dev=false
 
 # Specify prefix to remap VBD dev to (ex. /dev/xvdb ->
 # /dev/sdb) (string value)
-# Deprecated group;name - DEFAULT;xenapi_remap_vbd_dev_prefix
 #remap_vbd_dev_prefix=sd
 
 
@@ -3544,40 +3617,32 @@ admin_password=123456
 #
 
 # Base URL for torrent files. (string value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_base_url
 #torrent_base_url=<None>
 
 # Probability that peer will become a seeder. (1.0 = 100%)
 # (floating point value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_seed_chance
 #torrent_seed_chance=1.0
 
 # Number of seconds after downloading an image via BitTorrent
 # that it should be seeded for other peers. (integer value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_seed_duration
 #torrent_seed_duration=3600
 
 # Cached torrent files not accessed within this number of
 # seconds can be reaped (integer value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_max_last_accessed
 #torrent_max_last_accessed=86400
 
 # Beginning of port range to listen on (integer value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_listen_port_start
 #torrent_listen_port_start=6881
 
 # End of port range to listen on (integer value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_listen_port_end
 #torrent_listen_port_end=6891
 
 # Number of seconds a download can remain at the same progress
 # percentage w/o being considered a stall (integer value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_download_stall_cutoff
 #torrent_download_stall_cutoff=600
 
 # Maximum number of seeder processes to run concurrently
 # within a given dom0. (-1 = no limit) (integer value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_max_seeder_processes_per_host
 #torrent_max_seeder_processes_per_host=1
 
 
@@ -3586,7 +3651,6 @@ admin_password=123456
 #
 
 # To use for hosts with different CPUs (boolean value)
-# Deprecated group;name - DEFAULT;use_join_force
 #use_join_force=true
 
 
@@ -3596,7 +3660,6 @@ admin_password=123456
 
 # Name of Integration Bridge used by Open vSwitch (string
 # value)
-# Deprecated group;name - DEFAULT;xenapi_ovs_integration_bridge
 #ovs_integration_bridge=xapi1
 
 
@@ -3608,27 +3671,22 @@ admin_password=123456
 # `some` will only cache images that have the image_property
 # `cache_in_nova=True`, and `none` turns off caching entirely
 # (string value)
-# Deprecated group;name - DEFAULT;cache_images
 #cache_images=all
 
 # Compression level for images, e.g., 9 for gzip -9. Range is
 # 1-9, 9 being most compressed but most CPU intensive on dom0.
 # (integer value)
-# Deprecated group;name - DEFAULT;xenapi_image_compression_level
 #image_compression_level=<None>
 
 # Default OS type (string value)
-# Deprecated group;name - DEFAULT;default_os_type
 #default_os_type=linux
 
 # Time to wait for a block device to be created (integer
 # value)
-# Deprecated group;name - DEFAULT;block_device_creation_timeout
 #block_device_creation_timeout=10
 
 # Maximum size in bytes of kernel or ramdisk images (integer
 # value)
-# Deprecated group;name - DEFAULT;max_kernel_ramdisk_size
 #max_kernel_ramdisk_size=16777216
 
 # Filter for finding the SR to be used to install guest
@@ -3639,36 +3697,30 @@ admin_password=123456
 # config:my_favorite_sr=true. On the other hand, to fall back
 # on the Default SR, as displayed by XenCenter, set this flag
 # to: default-sr:true (string value)
-# Deprecated group;name - DEFAULT;sr_matching_filter
 #sr_matching_filter=default-sr:true
 
 # Whether to use sparse_copy for copying data on a resize down
 # (False will use standard dd). This speeds up resizes down
 # considerably since large runs of zeros won't have to be
 # rsynced (boolean value)
-# Deprecated group;name - DEFAULT;xenapi_sparse_copy
 #sparse_copy=true
 
-# Maximum number of retries to unplug VBD (integer value)
-# Deprecated group;name - DEFAULT;xenapi_num_vbd_unplug_retries
+# Maximum number of retries to unplug VBD. if <=0, should try
+# once and no retry (integer value)
 #num_vbd_unplug_retries=10
 
 # Whether or not to download images via Bit Torrent
 # (all|some|none). (string value)
-# Deprecated group;name - DEFAULT;xenapi_torrent_images
 #torrent_images=none
 
 # Name of network to use for booting iPXE ISOs (string value)
-# Deprecated group;name - DEFAULT;xenapi_ipxe_network_name
 #ipxe_network_name=<None>
 
 # URL to the iPXE boot menu (string value)
-# Deprecated group;name - DEFAULT;xenapi_ipxe_boot_menu_url
 #ipxe_boot_menu_url=<None>
 
 # Name and optionally path of the tool used for ISO image
 # creation (string value)
-# Deprecated group;name - DEFAULT;xenapi_ipxe_mkisofs_cmd
 #ipxe_mkisofs_cmd=mkisofs
 
 
@@ -3678,17 +3730,14 @@ admin_password=123456
 
 # Number of seconds to wait for instance to go to running
 # state (integer value)
-# Deprecated group;name - DEFAULT;xenapi_running_timeout
 #running_timeout=60
 
 # The XenAPI VIF driver using XenServer Network APIs. (string
 # value)
-# Deprecated group;name - DEFAULT;xenapi_vif_driver
 #vif_driver=nova.virt.xenapi.vif.XenAPIBridgeDriver
 
 # Dom0 plugin driver used to handle image uploads. (string
 # value)
-# Deprecated group;name - DEFAULT;xenapi_image_upload_handler
 #image_upload_handler=nova.virt.xenapi.image.glance.GlanceStore
 
 
@@ -3724,3 +3773,271 @@ admin_password=123456
 #sg_retry_interval=5
 
 
+[matchmaker_redis]
+
+#
+# From oslo.messaging
+#
+
+# Host to locate redis. (string value)
+#host=127.0.0.1
+
+# Use this port to connect to redis host. (integer value)
+#port=6379
+
+# Password for Redis server (optional). (string value)
+#password=<None>
+
+
+[matchmaker_ring]
+
+#
+# From oslo.messaging
+#
+
+# Matchmaker ring file (JSON). (string value)
+# Deprecated group;name - DEFAULT;matchmaker_ringfile
+#ringfile=/etc/oslo/matchmaker_ring.json
+
+
+[oslo_concurrency]
+
+#
+# From oslo.concurrency
+#
+
+# Enables or disables inter-process locks. (boolean value)
+# Deprecated group;name - DEFAULT;disable_process_locking
+#disable_process_locking=false
+
+# Directory to use for lock files.  For security, the specified directory
+# should only be writable by the user running the processes that need locking.
+# Defaults to environment variable OSLO_LOCK_PATH. If external locks are used,
+# a lock path must be set. (string value)
+# Deprecated group;name - DEFAULT;lock_path
+#lock_path=/var/lib/nova/tmp
+lock_path=/var/lib/nova/tmp
+
+
+[oslo_messaging_amqp]
+
+#
+# From oslo.messaging
+#
+
+# address prefix used when sending to a specific server (string value)
+# Deprecated group;name - [amqp1]/server_request_prefix
+#server_request_prefix=exclusive
+
+# address prefix used when broadcasting to all servers (string value)
+# Deprecated group;name - [amqp1]/broadcast_prefix
+#broadcast_prefix=broadcast
+
+# address prefix when sending to any server in group (string value)
+# Deprecated group;name - [amqp1]/group_request_prefix
+#group_request_prefix=unicast
+
+# Name for the AMQP container (string value)
+# Deprecated group;name - [amqp1]/container_name
+#container_name=<None>
+
+# Timeout for inactive connections (in seconds) (integer value)
+# Deprecated group;name - [amqp1]/idle_timeout
+#idle_timeout=0
+
+# Debug: dump AMQP frames to stdout (boolean value)
+# Deprecated group;name - [amqp1]/trace
+#trace=false
+
+# CA certificate PEM file for verifing server certificate (string value)
+# Deprecated group;name - [amqp1]/ssl_ca_file
+#ssl_ca_file =
+
+# Identifying certificate PEM file to present to clients (string value)
+# Deprecated group;name - [amqp1]/ssl_cert_file
+#ssl_cert_file =
+
+# Private key PEM file used to sign cert_file certificate (string value)
+# Deprecated group;name - [amqp1]/ssl_key_file
+#ssl_key_file =
+
+# Password for decrypting ssl_key_file (if encrypted) (string value)
+# Deprecated group;name - [amqp1]/ssl_key_password
+#ssl_key_password=<None>
+
+# Accept clients using either SSL or plain TCP (boolean value)
+# Deprecated group;name - [amqp1]/allow_insecure_clients
+#allow_insecure_clients=false
+
+
+[oslo_messaging_qpid]
+
+#
+# From oslo.messaging
+#
+
+# Use durable queues in AMQP. (boolean value)
+# Deprecated group;name - DEFAULT;rabbit_durable_queues
+#amqp_durable_queues=false
+
+# Auto-delete queues in AMQP. (boolean value)
+# Deprecated group;name - DEFAULT;amqp_auto_delete
+#amqp_auto_delete=false
+
+# Size of RPC connection pool. (integer value)
+# Deprecated group;name - DEFAULT;rpc_conn_pool_size
+#rpc_conn_pool_size=30
+
+# Qpid broker hostname. (string value)
+# Deprecated group;name - DEFAULT;qpid_hostname
+#qpid_hostname=localhost
+
+# Qpid broker port. (integer value)
+# Deprecated group;name - DEFAULT;qpid_port
+#qpid_port=5672
+
+# Qpid HA cluster host:port pairs. (list value)
+# Deprecated group;name - DEFAULT;qpid_hosts
+#qpid_hosts=$qpid_hostname:$qpid_port
+
+# Username for Qpid connection. (string value)
+# Deprecated group;name - DEFAULT;qpid_username
+#qpid_username =
+
+# Password for Qpid connection. (string value)
+# Deprecated group;name - DEFAULT;qpid_password
+#qpid_password =
+
+# Space separated list of SASL mechanisms to use for auth. (string value)
+# Deprecated group;name - DEFAULT;qpid_sasl_mechanisms
+#qpid_sasl_mechanisms =
+
+# Seconds between connection keepalive heartbeats. (integer value)
+# Deprecated group;name - DEFAULT;qpid_heartbeat
+#qpid_heartbeat=60
+
+# Transport to use, either 'tcp' or 'ssl'. (string value)
+# Deprecated group;name - DEFAULT;qpid_protocol
+#qpid_protocol=tcp
+
+# Whether to disable the Nagle algorithm. (boolean value)
+# Deprecated group;name - DEFAULT;qpid_tcp_nodelay
+#qpid_tcp_nodelay=true
+
+# The number of prefetched messages held by receiver. (integer value)
+# Deprecated group;name - DEFAULT;qpid_receiver_capacity
+#qpid_receiver_capacity=1
+
+# The qpid topology version to use.  Version 1 is what was originally used by
+# impl_qpid.  Version 2 includes some backwards-incompatible changes that allow
+# broker federation to work.  Users should update to version 2 when they are
+# able to take everything down, as it requires a clean break. (integer value)
+# Deprecated group;name - DEFAULT;qpid_topology_version
+#qpid_topology_version=1
+
+
+[oslo_messaging_rabbit]
+
+#
+# From oslo.messaging
+#
+
+# Use durable queues in AMQP. (boolean value)
+# Deprecated group;name - DEFAULT;rabbit_durable_queues
+#amqp_durable_queues=false
+
+# Auto-delete queues in AMQP. (boolean value)
+# Deprecated group;name - DEFAULT;amqp_auto_delete
+#amqp_auto_delete=false
+
+# Size of RPC connection pool. (integer value)
+# Deprecated group;name - DEFAULT;rpc_conn_pool_size
+#rpc_conn_pool_size=30
+
+# SSL version to use (valid only if SSL enabled). Valid values are TLSv1 and
+# SSLv23. SSLv2, SSLv3, TLSv1_1, and TLSv1_2 may be available on some
+# distributions. (string value)
+# Deprecated group;name - DEFAULT;kombu_ssl_version
+#kombu_ssl_version =
+
+# SSL key file (valid only if SSL enabled). (string value)
+# Deprecated group;name - DEFAULT;kombu_ssl_keyfile
+#kombu_ssl_keyfile =
+
+# SSL cert file (valid only if SSL enabled). (string value)
+# Deprecated group;name - DEFAULT;kombu_ssl_certfile
+#kombu_ssl_certfile =
+
+# SSL certification authority file (valid only if SSL enabled). (string value)
+# Deprecated group;name - DEFAULT;kombu_ssl_ca_certs
+#kombu_ssl_ca_certs =
+
+# How long to wait before reconnecting in response to an AMQP consumer cancel
+# notification. (floating point value)
+# Deprecated group;name - DEFAULT;kombu_reconnect_delay
+#kombu_reconnect_delay=1.0
+
+# The RabbitMQ broker address where a single node is used. (string value)
+# Deprecated group;name - DEFAULT;rabbit_host
+#rabbit_host=localhost
+rabbit_host=10.20.0.82
+
+# The RabbitMQ broker port where a single node is used. (integer value)
+# Deprecated group;name - DEFAULT;rabbit_port
+#rabbit_port=5672
+
+# RabbitMQ HA cluster host:port pairs. (list value)
+# Deprecated group;name - DEFAULT;rabbit_hosts
+#rabbit_hosts=$rabbit_host:$rabbit_port
+
+# Connect over SSL for RabbitMQ. (boolean value)
+# Deprecated group;name - DEFAULT;rabbit_use_ssl
+#rabbit_use_ssl=false
+
+# The RabbitMQ userid. (string value)
+# Deprecated group;name - DEFAULT;rabbit_userid
+#rabbit_userid=guest
+rabbit_userid=openstack
+
+# The RabbitMQ password. (string value)
+# Deprecated group;name - DEFAULT;rabbit_password
+#rabbit_password=guest
+rabbit_password=123456
+
+# The RabbitMQ login method. (string value)
+# Deprecated group;name - DEFAULT;rabbit_login_method
+#rabbit_login_method=AMQPLAIN
+
+# The RabbitMQ virtual host. (string value)
+# Deprecated group;name - DEFAULT;rabbit_virtual_host
+#rabbit_virtual_host=/
+
+# How frequently to retry connecting with RabbitMQ. (integer value)
+#rabbit_retry_interval=1
+
+# How long to backoff for between retries when connecting to RabbitMQ. (integer
+# value)
+# Deprecated group;name - DEFAULT;rabbit_retry_backoff
+#rabbit_retry_backoff=2
+
+# Maximum number of RabbitMQ connection retries. Default is 0 (infinite retry
+# count). (integer value)
+# Deprecated group;name - DEFAULT;rabbit_max_retries
+#rabbit_max_retries=0
+
+# Use HA queues in RabbitMQ (x-ha-policy: all). If you change this option, you
+# must wipe the RabbitMQ database. (boolean value)
+# Deprecated group;name - DEFAULT;rabbit_ha_queues
+#rabbit_ha_queues=false
+
+# Number of seconds after which the Rabbit broker is considered down if
+# heartbeat's keep-alive fails (0 disable the heartbeat). (integer value)
+#heartbeat_timeout_threshold=60
+
+# How often times during the heartbeat_timeout_threshold we check the
+# heartbeat. (integer value)
+#heartbeat_rate=2
+
+# Deprecated, use rpc_backend=kombu+memory or rpc_backend=fake (boolean value)
+# Deprecated group;name - DEFAULT;fake_rabbit
+#fake_rabbit=false

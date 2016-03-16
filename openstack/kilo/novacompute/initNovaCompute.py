@@ -37,7 +37,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.novacompute.novacompute import NovaCompute
+from openstack.kilo.novacompute.novacompute import NovaCompute
     
 if __name__ == '__main__':
     print 'hello openstack-icehouse:nova-compute============'

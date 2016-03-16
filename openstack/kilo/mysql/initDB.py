@@ -1509,7 +1509,6 @@ if __name__ == '__main__':
     #Produce params
     paramsProducerPath = os.path.join(PROJ_HOME_DIR, 'common', 'yaml', 'ParamsProducer.py')
     
-    #Refactor
 #     ShellCmdExecutor.execCmd('python %s' % paramsProducerPath)
         
     output, exitcode = ShellCmdExecutor.execCmd('cat /opt/mysql_ip_list')
@@ -1585,21 +1584,21 @@ if __name__ == '__main__':
             print 'add default role with specific id########'
             
         ########
-            Keystone.install()
-            ########
-            Keystone.configConfFile()
-             
-            Keystone.importKeystoneDBSchema()
-            #######
-            Keystone.supportPKIToken()
-                     
-            Keystone.start()
-            
-            ####NEW
-            Keystone.configureEnvVar()
-            Keystone.sourceAdminOpenRC()####NEW
-            Keystone.initKeystone()
-            Keystone.sourceAdminOpenRC()
+#             Keystone.install()
+#             ########
+#             Keystone.configConfFile()
+#              
+#             Keystone.importKeystoneDBSchema()
+#             #######
+#             Keystone.supportPKIToken()
+#                      
+#             Keystone.start()
+#             
+#             ####NEW
+#             Keystone.configureEnvVar()
+#             Keystone.sourceAdminOpenRC()####NEW
+#             Keystone.initKeystone()
+#             Keystone.sourceAdminOpenRC()
         
         #glance
         if YAMLUtil.hasRoleInNodes('glance') :
@@ -1655,18 +1654,15 @@ if __name__ == '__main__':
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
 #             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
 #             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            exit()
-            
-            ##nova
-            Nova.install()
-            ShellCmdExecutor.execCmd('chmod 777 /etc/nova')
-            Nova.configConfFile()
-            
-            Keystone.sourceAdminOpenRC()
-            Nova.initNova()
+#             Nova.install()
+#             ShellCmdExecutor.execCmd('chmod 777 /etc/nova')
+#             Nova.configConfFile()
+#             
+#             Keystone.sourceAdminOpenRC()
+#             Nova.initNova()
         
         #neutron
-        if True : #YAMLUtil.hasRoleInNodes('neutron-server') :
+        if YAMLUtil.hasRoleInNodes('neutron-server') :
             createDBCmd = 'CREATE DATABASE neutron'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1686,14 +1682,11 @@ if __name__ == '__main__':
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
 #             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
 #             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
-            #Refactor
-            exit()
             
-            Keystone.sourceAdminOpenRC()
-            Neutron.initNeutron()
-        
+#             Keystone.sourceAdminOpenRC()
+#             Neutron.initNeutron()
         #cinder
-        if True :#YAMLUtil.hasRoleInNodes('cinder-api') :
+        if YAMLUtil.hasRoleInNodes('cinder-api') :
             createDBCmd = 'CREATE DATABASE cinder'
             MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
@@ -1714,27 +1707,24 @@ if __name__ == '__main__':
 #             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
 #             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             
-            #Refactor
-            exit()
-            
-            ####Special handling
-            if os.path.isfile('/etc/cinder') :
-                ShellCmdExecutor.execCmd("rm -rf /etc/cinder")
-                pass
-            
-            ShellCmdExecutor.execCmd("yum remove openstack-cinder -y")
+#             ####Special handling
+#             if os.path.isfile('/etc/cinder') :
+#                 ShellCmdExecutor.execCmd("rm -rf /etc/cinder")
+#                 pass
+#             
+#             ShellCmdExecutor.execCmd("yum remove openstack-cinder -y")
             ##########
             
-            Cinder.install()
-            Cinder.configConfFile()
-            
-            Keystone.sourceAdminOpenRC()
-            Cinder.initCinder()
+#             Cinder.install()
+#             Cinder.configConfFile()
+#             
+#             Keystone.sourceAdminOpenRC()
+#             Cinder.initCinder()
             pass
         
         #ceilometer
         if YAMLUtil.hasRoleInNodes('ceilometer') :
-            Ceilometer.initCeilometer()
+#             Ceilometer.initCeilometer()
             pass
             
         
@@ -1760,31 +1750,30 @@ if __name__ == '__main__':
 #             MySQL.execMySQLCmd(user, initPasswd, grantToHostname)
 #             MySQL.execMySQLCmd(user, initPasswd, flushCmd)
             
-            Heat.install()
-            heatConfDir = '/etc/heat'
-            if os.path.exists(heatConfDir) :
-                ShellCmdExecutor.execCmd('chmod 777 %s' % heatConfDir)
-                pass
-            Heat.configConfFile()
-            
-            Keystone.sourceAdminOpenRC()
-            Heat.initHeat()
-          
-        ShellCmdExecutor.execCmd('service haproxy restart')
+#             Heat.install()
+#             heatConfDir = '/etc/heat'
+#             if os.path.exists(heatConfDir) :
+#                 ShellCmdExecutor.execCmd('chmod 777 %s' % heatConfDir)
+#                 pass
+#             Heat.configConfFile()
+#             
+#             Keystone.sourceAdminOpenRC()
+#             Heat.initHeat()
+#           
+#         ShellCmdExecutor.execCmd('service haproxy restart')
         
         #destroy
-        killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'
-        killGlanceCmd   = 'ps aux |grep python | grep glance | awk \'{print "kill -9 " $2}\' | bash'
-        killNovaCmd   = 'ps aux |grep python | grep nova | awk \'{print "kill -9 " $2}\' | bash'
-        killNeutronCmd   = 'ps aux |grep python | grep neutron | awk \'{print "kill -9 " $2}\' | bash'
-         
-        ShellCmdExecutor.execCmd(killKeystoneCmd)
-        ShellCmdExecutor.execCmd(killGlanceCmd)
-        ShellCmdExecutor.execCmd(killNovaCmd)
-        ShellCmdExecutor.execCmd(killNeutronCmd)
+#         killKeystoneCmd = 'ps aux |grep python | grep keystone | awk \'{print "kill -9 " $2}\' | bash'
+#         killGlanceCmd   = 'ps aux |grep python | grep glance | awk \'{print "kill -9 " $2}\' | bash'
+#         killNovaCmd   = 'ps aux |grep python | grep nova | awk \'{print "kill -9 " $2}\' | bash'
+#         killNeutronCmd   = 'ps aux |grep python | grep neutron | awk \'{print "kill -9 " $2}\' | bash'
+#          
+#         ShellCmdExecutor.execCmd(killKeystoneCmd)
+#         ShellCmdExecutor.execCmd(killGlanceCmd)
+#         ShellCmdExecutor.execCmd(killNovaCmd)
+#         ShellCmdExecutor.execCmd(killNeutronCmd)
         
         #mark: db is initted
-        
         os.system('touch %s' % INSTALL_TAG_FILE)
         print 'hello openstack is initted#######'
         pass

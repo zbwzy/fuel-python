@@ -41,6 +41,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from openstack.common.serverSequence import ServerSequence
+from openstack.kilo.ssh.SSH import SSH
 
 class Prerequisites(object):
     '''
@@ -391,20 +392,39 @@ if __name__ == '__main__':
         
         Keystone.startHttp()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
-        AdminOpenrc.prepareAdminOpenrc()
-        
         if Keystone.getServerIndex() == 0 :
             from openstack.kilo.keystone.initKeystone import InitKeystone
             InitKeystone.init()
             
-            #send to first glance
-            from openstack.kilo.ssh.SSH import SSH
             tag_file_name = 'keystone0_launched'
-            glance_ips = JSONUtility.getValue('glance_ips')
-            glance_ip_list = glance_ips.split(',')
-            SSH.sendTagTo(glance_ip_list[0], tag_file_name) 
+            from common.yaml.YAMLUtil import YAMLUtil
+            #send to first glance
+            if YAMLUtil.hasRoleInNodes('glance'):
+                glance_ips = JSONUtility.getValue('glance_ips')
+                glance_ip_list = glance_ips.split(',')
+                SSH.sendTagTo(glance_ip_list[0], tag_file_name)
+            
+            #send to first neutron-server
+            if YAMLUtil.hasRoleInNodes('neutron-server'):
+                neutron_ips = JSONUtility.getValue('neutron_ips')
+                neutron_ip_list = neutron_ips.split(',')
+                SSH.sendTagTo(neutron_ip_list[0], tag_file_name)
+            
+            #send to first nova-api
+            if YAMLUtil.hasRoleInNodes('nova-api'):
+                nova_ips = JSONUtility.getValue('nova_ips')
+                nova_ip_list = nova_ips.split(',')
+                SSH.sendTagTo(nova_ip_list[0], tag_file_name)
+                
+            #send to first cinder
+            if YAMLUtil.hasRoleInNodes('cinder'):
+                cinder_ips = JSONUtility.getValue('cinder_ips')
+                cinder_ip_list = cinder_ips.split(',')
+                SSH.sendTagTo(cinder_ip_list[0], tag_file_name)
+                
             pass
+        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        AdminOpenrc.prepareAdminOpenrc()
         #mark: keystone is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:keystone#######'

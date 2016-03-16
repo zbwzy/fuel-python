@@ -1,8 +1,0 @@
-/etc/nova/nova.conf
-/etc/openstack-dashboard/local_settings	
-/etc/glance/glance-registry.conf
-/etc/glance/glance-api.conf
-/etc/neutron/neutron.conf
-/etc/neutron/plugins/ml2/ml2_conf.ini
-/etc/neutron/fwaas_driver.ini
-/etc/neutron/lbaas_agent.ini

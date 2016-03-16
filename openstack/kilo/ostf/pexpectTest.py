@@ -51,6 +51,34 @@ if __name__ == '__main__':
     a = [1,2]
     b = a[1:]
     print b
+    
+    print 'get codes================='
+    arr = [
+           'keystone_glance_password',
+           'neutron_dbpass',
+           'keystone_cinder_password',
+           'nova_dbpass',
+           'keystone_nova_password',
+           'ceilometer_dbpass',
+           'heat_dbpass',
+           'bclinux_repo_url',
+           'glance_dbpass',
+           'keystone_dbpass',
+           'keystone_ceilometer_password',
+           'cluster_id',
+           'fuel_master_ip'
+           ]
+    
+    string1 = '''<VAR> = YAMLUtil.getValue('global', '<VAR>')
+    paramsMap['<VAR>'] = <VAR>
+    '''
+    content = ''
+    
+    for e in arr :
+        content += string1.replace('<VAR>', e)
+        pass
+    
+    print 'content=\n%s\n--' % content
 
     exit()
     #TEST:array####

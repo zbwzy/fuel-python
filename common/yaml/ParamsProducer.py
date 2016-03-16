@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = False
+debug = True
 if debug == True :
     #MODIFY HERE WHEN DO LOCAL DEV
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -84,6 +84,62 @@ if __name__ == '__main__':
     
     print 'produce all params in /opt/openstack_conf/openstack_params.json'
     paramsMap = {}
+    #global variables
+    print 'global==========================='
+    admin_token = YAMLUtil.getValue('global', 'admin_token')
+    paramsMap['admin_token'] = admin_token
+    
+    cinder_dbpass = YAMLUtil.getValue('global', 'cinder_dbpass')
+    paramsMap['cinder_dbpass'] = cinder_dbpass
+    
+    keystone_heat_password = YAMLUtil.getValue('global', 'keystone_heat_password')
+    paramsMap['keystone_heat_password'] = keystone_heat_password
+    
+    keystone_neutron_password = YAMLUtil.getValue('global', 'keystone_neutron_password')
+    paramsMap['keystone_neutron_password'] = keystone_neutron_password
+    
+    keystone_admin_password = YAMLUtil.getValue('global', 'keystone_admin_password')
+    paramsMap['keystone_admin_password'] = keystone_admin_password
+    
+    keystone_glance_password = YAMLUtil.getValue('global', 'keystone_glance_password')
+    paramsMap['keystone_glance_password'] = keystone_glance_password
+    
+    neutron_dbpass = YAMLUtil.getValue('global', 'neutron_dbpass')
+    paramsMap['neutron_dbpass'] = neutron_dbpass
+    
+    keystone_cinder_password = YAMLUtil.getValue('global', 'keystone_cinder_password')
+    paramsMap['keystone_cinder_password'] = keystone_cinder_password
+    
+    nova_dbpass = YAMLUtil.getValue('global', 'nova_dbpass')
+    paramsMap['nova_dbpass'] = nova_dbpass
+    
+    keystone_nova_password = YAMLUtil.getValue('global', 'keystone_nova_password')
+    paramsMap['keystone_nova_password'] = keystone_nova_password
+    
+    ceilometer_dbpass = YAMLUtil.getValue('global', 'ceilometer_dbpass')
+    paramsMap['ceilometer_dbpass'] = ceilometer_dbpass
+    
+    heat_dbpass = YAMLUtil.getValue('global', 'heat_dbpass')
+    paramsMap['heat_dbpass'] = heat_dbpass
+    
+    bclinux_repo_url = YAMLUtil.getValue('global', 'bclinux_repo_url')
+    paramsMap['bclinux_repo_url'] = bclinux_repo_url
+    
+    glance_dbpass = YAMLUtil.getValue('global', 'glance_dbpass')
+    paramsMap['glance_dbpass'] = glance_dbpass
+    
+    keystone_dbpass = YAMLUtil.getValue('global', 'keystone_dbpass')
+    paramsMap['keystone_dbpass'] = keystone_dbpass
+    
+    keystone_ceilometer_password = YAMLUtil.getValue('global', 'keystone_ceilometer_password')
+    paramsMap['keystone_ceilometer_password'] = keystone_ceilometer_password
+    
+    cluster_id = YAMLUtil.getValue('global', 'cluster_id')
+    paramsMap['cluster_id'] = cluster_id
+    
+    fuel_master_ip = YAMLUtil.getValue('global', 'fuel_master_ip')
+    paramsMap['fuel_master_ip'] = fuel_master_ip
+    
     print 'mysql============================'
     #Judge whether current host is mysql role
     role = 'mysql'
@@ -525,6 +581,42 @@ if __name__ == '__main__':
         
         if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), ceilometer_ips_list) :
             FileUtil.writeContent(is_role_file_path, 'true')
+        pass
+    
+    print 'get global var==========================================='
+    role = 'global'
+    neutron_dbpass = YAMLUtil.getValue(role, 'neutron_dbpass')
+    nova_dbpass = YAMLUtil.getValue(role, 'nova_dbpass')
+    
+    paramsMap['neutron_dbpass'] = YAMLUtil.getValue(role, 'neutron_dbpass')
+    paramsMap['nova_dbpass'] =  YAMLUtil.getValue(role, 'nova_dbpass')
+        
+    #HA: only 2,master-backup mutually
+    print 'haproxy-keepalived=================='
+    role = 'haproxy-keepalived'
+    if YAMLUtil.hasRoleInNodes(role):
+        ha_vip1 = YAMLUtil.getValue(role, 'haproxy_vip1')
+        ha_vip2 = YAMLUtil.getValue(role, 'haproxy_vip2')
+        ha_vip1_interface = YAMLUtil.getValue(role, 'haproxy_vipinterface1')
+        ha_vip2_interface = YAMLUtil.getValue(role, 'haproxy_vipinterface2')
+        
+        paramsMap['ha_vip1'] = ha_vip1
+        paramsMap['ha_vip2'] = ha_vip2
+        paramsMap['ha_vip1_interface'] = ha_vip1_interface
+        paramsMap['ha_vip2_interface'] = ha_vip2_interface
+        
+        #dispatch vip
+        paramsMap['mysql_vip'] = ha_vip1
+        paramsMap['rabbit_vip'] = ha_vip1
+        paramsMap['keystone_vip'] = ha_vip1
+        paramsMap['glance_vip'] = ha_vip1
+        paramsMap['neutron_vip'] = ha_vip1
+        paramsMap['nova_vip'] = ha_vip1
+        paramsMap['dashboard_vip'] = ha_vip1
+        paramsMap['cinder_vip'] = ha_vip1
+        paramsMap['heat_vip'] = ha_vip1
+        paramsMap['mongodb_vip'] = ha_vip2
+        paramsMap['ceilometer_vip'] = ha_vip2
         pass
     
     openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()

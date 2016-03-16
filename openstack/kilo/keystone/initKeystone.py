@@ -166,6 +166,58 @@ class InitKeystone(object):
         FileUtil.replaceFileContent(initNovaScriptPath, '<NOVA_VIP>', nova_vip)
         ShellCmdExecutor.execCmd('bash %s' % initNovaScriptPath)
         pass
+    
+    @staticmethod
+    def initNeutron():
+        ha_vip1 = JSONUtility.getValue('ha_vip1')
+        ha_vip2 = JSONUtility.getValue('ha_vip2')
+        
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = ha_vip1
+        keystone_neutron_password = JSONUtility.getValue('keystone_neutron_password')
+        neutron_vip = ha_vip1
+        
+        initNeutronScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'initNeutron.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initNeutronScriptTemplatePath, openstackScriptDirPath))
+        
+        initNeutronScriptPath = os.path.join(openstackScriptDirPath, 'initNeutron.sh')
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<NEUTRON_VIP>', neutron_vip)
+        ShellCmdExecutor.execCmd('bash %s' % initNeutronScriptPath)
+        pass
+    
+    @staticmethod
+    def initCinder():
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
+        cinder_vip = JSONUtility.getValue('ha_vip1')
+        
+        initCinderScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'initCinder.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initCinderScriptTemplatePath, openstackScriptDirPath))
+        
+        initNeutronScriptPath = os.path.join(openstackScriptDirPath, 'initCinder.sh')
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_CINDER_PASSWORD>', keystone_cinder_password)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<CINDER_VIP>', cinder_vip)
+        ShellCmdExecutor.execCmd('bash %s' % initNeutronScriptPath)
 
 
 if __name__ == '__main__':

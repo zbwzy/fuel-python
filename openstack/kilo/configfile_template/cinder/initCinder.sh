@@ -17,10 +17,20 @@ export OS_ENDPOINT_TYPE='internalURL'
 export OS_VOLUME_API_VERSION=2
 
 #
-echo 'init glance in keystone===='
-keystone user-create --name=glance --pass=<KEYSTONE_GLANCE_PASSWORD>
-openstack role add --project service --user glance admin
-openstack service create --name glance --description "OpenStack Image service" image
-openstack endpoint create --publicurl http://<GLANCE_VIP>:9292 --internalurl http://<GLANCE_VIP>:9292 --adminurl http://<GLANCE_VIP>:9292 --region RegionOne image
+echo 'init cinder in keystone===='
+keystone user-create --name=glance --pass=<KEYSTONE_CINDER_PASSWORD>
 
-echo 'done to init glance in keystone####'
+openstack role add --project service --user cinder admin
+
+openstack service create --name cinder --description "OpenStack Block Storage" volume
+
+openstack service create --name cinderv2 --description "OpenStack Block Storage" volumev2
+
+openstack endpoint create \
+--publicurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
+--internalurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
+--adminurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
+--region RegionOne \
+volume
+
+echo 'done to init cinder in keystone####'

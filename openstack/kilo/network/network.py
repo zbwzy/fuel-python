@@ -99,16 +99,10 @@ class Network(object):
     @staticmethod
     def install():
         print 'Network.install start===='
-        Prerequisites.install()
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron \
-        openstack-neutron-ml2 openstack-neutron-openvswitch \
-        python-neutronclient which -y"
-        
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch -y"
         ShellCmdExecutor.execCmd(yumCmd)
-        
-        Network.configConfFile()
-        
+#         Network.configConfFile()
         print 'Network.install done####'
         pass
     
@@ -447,7 +441,7 @@ device_driver = neutron.services.loadbalancer.drivers.haproxy.namespace_driver.H
     
 
 if __name__ == '__main__':
-    print 'openstack-icehouse:network start============'
+    print 'openstack-kilo:network============'
     INSTALL_TAG_FILE = '/opt/network_installed'
     
     if os.path.exists(INSTALL_TAG_FILE) :
@@ -457,7 +451,7 @@ if __name__ == '__main__':
     else :
         Network.install()
         Network.configConfFile()
-        
-    print 'openstack-icehouse:network done#######'
+        pass
+    print 'openstack-kilo:network done#######'
     pass
 

@@ -193,7 +193,7 @@ class Glance(object):
         importCmd = 'su -s /bin/sh -c "glance-manage db_sync" glance'
         output, exitcode = ShellCmdExecutor.execCmd(importCmd)
         print 'output=%s--' % output
-        print 'done to importGlaceDBSchema======='
+        print 'done to importGlaceDBSchema#######'
         pass
     
     @staticmethod
