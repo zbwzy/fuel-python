@@ -1,8 +1,0 @@
-k1 = v1
-k2 = v2
-
-[mysql_connection]
-#connection=mysql://keystone:12345678@<CONTROLLER_IP>/keystone
-
-k3 = v3
-k4 = v4
