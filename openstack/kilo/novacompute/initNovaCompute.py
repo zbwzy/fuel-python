@@ -37,14 +37,14 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.novacompute.novacompute import NovaCompute
+from openstack.kilo.novacompute.novacompute import NovaCompute
     
 if __name__ == '__main__':
     print 'hello openstack-icehouse:nova-compute============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/initNovaCompute'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_novacompute'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'nova-api initted####'
         print 'exit===='

@@ -1,6 +1,6 @@
 echo 'start to add external bridge==========='
 #############
-/etc/init.d/openvswitch restart
+systemctl restart openvswitch.service
 
 sleep 2
 

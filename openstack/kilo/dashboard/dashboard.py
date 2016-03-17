@@ -21,7 +21,7 @@ import time
 reload(sys)
 sys.setdefaultencoding('utf8')
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -136,6 +136,10 @@ class Dashboard(object):
     
     @staticmethod
     def configConfFile():
+        '''
+        LOCAL_MANAGEMENT_IP
+        KEYSTONE_VIP
+        '''
         localSettingsFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'dashboard', 'local_settings')
         dashboardConfFileDir = '/etc/openstack-dashboard/'
         
@@ -153,9 +157,10 @@ class Dashboard(object):
         ShellCmdExecutor.execCmd('cp -r /tmp/local_settings %s' % dashboardConfFileDir)
         ShellCmdExecutor.execCmd('rm -rf /tmp/local_settings')
         
-        vip1 = JSONUtility.getValue("haproxy_vip1")
-        keystone_vip = vip1
+        keystone_vip = JSONUtility.getValue("keystone_vip")
         print "keystone_vip=%s" % keystone_vip
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
         
         dashboard_ips_string = JSONUtility.getValue("dashboard_ips")
         dashboard_ip_list = dashboard_ips_string.split(',')
@@ -169,7 +174,7 @@ class Dashboard(object):
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
         FileUtil.replaceFileContent(Dashboard.DASHBOARD_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(Dashboard.DASHBOARD_CONF_FILE_PATH, '<MEMCACHED_LIST>', memcached_service_string)
+        FileUtil.replaceFileContent(Dashboard.DASHBOARD_CONF_FILE_PATH, '<LOCAL_MANAGEMENT_IP>', localIP)
         ShellCmdExecutor.execCmd('sudo chmod 644 %s' % Dashboard.DASHBOARD_CONF_FILE_PATH)
         
         #Assign rights: can be accessed
@@ -197,7 +202,7 @@ class Dashboard(object):
             ShellCmdExecutor.execCmd('mkdir -p /etc/httpd/conf.d')
             pass
         
-        ShellCmdExecutor.execCmd("cp -r %s /etc/httpd/conf.d/" % dashboardConfFileTemplatePath)
+#         ShellCmdExecutor.execCmd("cp -r %s /etc/httpd/conf.d/" % dashboardConfFileTemplatePath)
         pass
     
     @staticmethod
@@ -221,19 +226,18 @@ if __name__ == '__main__':
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/dashboard_installed'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/dashboard_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'dashboard installed####'
         print 'exit===='
-        exit()
         pass
-    
-    Dashboard.install()
-    Dashboard.configure()
-    
-#     Dashboard.start()
-# 
-    os.system('touch %s' % INSTALL_TAG_FILE)
+    else :
+        Dashboard.install()
+        Dashboard.configure()
+        
+    #     Dashboard.start()
+    # 
+        os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:dashboard installed#######'
     pass
 

@@ -1,4 +1,8 @@
 {   
+    "ha_vip1":"10.20.0.66",
+    "ha_vip2":"10.20.0.99",
+    "neutron_ips": "10.20.0.80,10.20.0.89",
+    "ceilometer_ips": "192.168.11.131,192.168.11.132",
     "mysql_ips": "10.20.0.84,10.20.0.85,10.20.0.86", 
     "mysql_vip": "192.168.11.131",
     "mysql_vip_interface": "eth0",
@@ -31,7 +35,7 @@
     "cinder_mysql_user" : "cinder",
     "cinder_vip" : "192.168.11.101",
     "cinder_vip_interface" : "eth3",
-    "cinder_ips" : "192.168.11.131,192.168.11.132",
+    "cinder_ips" : "192.168.11.139,192.168.11.132",
     "cinder_mysql_password": "123456",
     "dashboard_vip": "192.168.11.100",
     "dashboard_vip_interface": "eth0",

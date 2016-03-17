@@ -110,8 +110,11 @@ class CinderStorage(object):
     
     @staticmethod
     def install():
+        #KEYSTONE_ADMIN_PASSWORD
         print 'Cinder-storage.install start===='
+        #
         keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         print 'start to install prerequisites============='
         script_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 
                                                       'cinder-storage', 
@@ -122,13 +125,8 @@ class CinderStorage(object):
         FileUtil.replaceFileContent('/opt/cinder_storage_service.sh', '<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd('bash /opt/cinder_storage_service.sh')
         
-        print 'install prerequisites done####'
         
-        yumCmd = 'yum install lvm2 -y'
-        ShellCmdExecutor.execCmd(yumCmd)
-        
-        ShellCmdExecutor.execCmd("/etc/init.d/lvm2-lvmetad start")
-        ShellCmdExecutor.execCmd("chkconfig lvm2-lvmetad on")
+        ShellCmdExecutor.execCmd("systemctl restart lvm2-lvmetad.service")
         
         #Default create volume
         #Create the LVM physical volume /dev/sdb1:
@@ -138,7 +136,7 @@ class CinderStorage(object):
 #         createCmd = 'vgcreate cinder-volumes /dev/sdb1'
 #         ShellCmdExecutor.execCmd(createCmd)
        
-        yumCmd = 'yum install openstack-cinder python-oslo-db MySQL-python -y'
+        yumCmd = 'yum install openstack-cinder targetcli python-oslo-db python-oslo-log MySQL-python -y'
         ShellCmdExecutor.execCmd(yumCmd)
         
         print 'Cinder-storage.install done####'
@@ -156,39 +154,40 @@ class CinderStorage(object):
     
     @staticmethod
     def start(): 
-        ShellCmdExecutor.execCmd("service openstack-cinder-volume start")
-        ShellCmdExecutor.execCmd("chkconfig openstack-cinder-volume on")
+        ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-volume.service') 
+        ShellCmdExecutor.execCmd('systemctl enable target.service')
+        ShellCmdExecutor.execCmd('systemctl start openstack-cinder-volume.service')
+        ShellCmdExecutor.execCmd('systemctl start target.service')
         pass
     
     @staticmethod
     def configConfFile():
+        '''
+        LOCAL_MANAGEMENT_IP
+        GLANCE_VIP
+        CINDER_DBPASS
+        MYSQL_VIP
+        KEYSTONE_VIP
+        KEYSTONE_CINDER_PASSWORD
+        RABBIT_PASSWORD
+        RABBIT_HOSTS
+        '''
         mysql_vip = JSONUtility.getValue("mysql_vip")
-        mysql_password = JSONUtility.getValue("mysql_password")
+        cinder_dbpass = JSONUtility.getValue("cinder_dbpass")
         
-        rabbit_host = JSONUtility.getValue("rabbit_host")
 #         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         glance_vip = JSONUtility.getValue("glance_vip")
-        cinder_mysql_password = JSONUtility.getValue("cinder_mysql_password")
+        keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
         output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
         localIP = output.strip()
-        
-        print 'mysql_vip=%s' % mysql_vip
-        print 'mysql_password=%s' % mysql_password
-        print 'rabbit_host=%s' % rabbit_host
-        print 'rabbit_hosts=%s' % rabbit_hosts
-        print 'rabbit_userid=%s' % rabbit_userid
-        print 'rabbit_password=%s' % rabbit_password
-        print 'keystone_vip=%s' % keystone_vip
-        print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder-storage', 'cinder.conf')
@@ -216,21 +215,17 @@ class CinderStorage(object):
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinder_conf_file_path)
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_PASSWORD>', mysql_password)
-        
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_MYSQL_PASSWORD>', cinder_mysql_password)
-        
-#         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_DBPASS>', cinder_dbpass)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_CINDER_PASSWORD>', keystone_cinder_password)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
-        
         FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<GLANCE_VIP>', glance_vip)
-        
-        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
+        ShellCmdExecutor.execCmd("chown -R cinder:cinder /etc/cinder/")
+        
         
         #If add filter, if necessary, modify /etc/lvm/lvm.conf
         '''
@@ -240,7 +235,7 @@ class CinderStorage(object):
 
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:cinder-storage============'
+    print 'hello openstack-kilo:cinder-storage============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
@@ -250,13 +245,13 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-        Prerequisites.prepare()
+#         Prerequisites.prepare()
         CinderStorage.install()
         CinderStorage.configConfFile()
     #     CinderStorage.start()
         
         #mark: cinder is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:cinder-storage#######'
+    print 'hello openstack-kilo:cinder-storage#######'
     pass
 

@@ -31,20 +31,14 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 
 sys.path.append(PROJ_HOME_DIR)
 
-
-from common.shell.ShellCmdExecutor import ShellCmdExecutor
-from common.json.JSONUtil import JSONUtility
-from common.properties.PropertiesUtil import PropertiesUtility
-from common.file.FileUtil import FileUtil
-
 from openstack.icehouse.network.network import Network
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:network============'
+    print 'hello openstack-kilo:network============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/initNetwork'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_network'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'network initted####'
         print 'exit===='
@@ -53,6 +47,6 @@ if __name__ == '__main__':
         Network.finalizeInstallation()
         #mark: network is initted
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello nova-api initted#######'
+    print 'hello network initted#######'
     pass
 

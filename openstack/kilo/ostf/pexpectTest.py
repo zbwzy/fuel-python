@@ -46,6 +46,75 @@ if __name__ == '__main__':
     #when execute script,exec: python <this file absolute path>
     ###############################
     foo('hello', 'beijing')
+    #TEST:array===
+    b = []
+    a = [1,2]
+    b = a[1:]
+    print b
+    
+    print 'get codes================='
+    arr = [
+           'keystone_glance_password',
+           'neutron_dbpass',
+           'keystone_cinder_password',
+           'nova_dbpass',
+           'keystone_nova_password',
+           'ceilometer_dbpass',
+           'heat_dbpass',
+           'bclinux_repo_url',
+           'glance_dbpass',
+           'keystone_dbpass',
+           'keystone_ceilometer_password',
+           'cluster_id',
+           'fuel_master_ip'
+           ]
+    
+    string1 = '''<VAR> = YAMLUtil.getValue('global', '<VAR>')
+    paramsMap['<VAR>'] = <VAR>
+    '''
+    content = ''
+    
+    for e in arr :
+        content += string1.replace('<VAR>', e)
+        pass
+    
+    print 'content=\n%s\n--' % content
+
+    exit()
+    #TEST:array####
+    
+    #TEST:wait unitl file exists==
+    file_path = '/tmp/tt.txt'
+    timeout = 20
+    time_count = 0
+    print 'test timeout==='
+    while True:
+        flag = os.path.exists(file_path)
+        if flag == True :
+            print 'wait time: %s second(s).' % time_count
+            print 'do something......'
+            break
+        else :
+            step = 1
+#             print 'wait %s second(s)......' % step
+            time_count += step
+            time.sleep(1)
+            pass
+        
+        if time_count == timeout :
+            print 'Do nothing!timeout=%s.' % timeout
+            break
+        pass
+    exit()
+    #TEST:wait unitl file exists####
+    ###########
+    
+#     a = ['10.20.0.91','10.20.0.92','10.20.0.93']
+#     a.pop(0)
+#     print a
+#     exit()
+
+
     #exit()
     #Test data
     ShellCmdExecutor.execCmd('touch /tmp/tt.txt')

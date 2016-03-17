@@ -99,16 +99,10 @@ class Network(object):
     @staticmethod
     def install():
         print 'Network.install start===='
-        Prerequisites.install()
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron \
-        openstack-neutron-ml2 openstack-neutron-openvswitch \
-        python-neutronclient which -y"
-        
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch -y"
         ShellCmdExecutor.execCmd(yumCmd)
-        
-        Network.configConfFile()
-        
+#         Network.configConfFile()
         print 'Network.install done####'
         pass
     
@@ -164,28 +158,27 @@ class Network(object):
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
         nova_vip = JSONUtility.getValue("nova_vip")
+        keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         #REFACTOR LATER
-        neutron_admin_password = '123456'
-        
-        metadata_secret = JSONUtility.getValue("metadata_secret")
+        metadata_secret = '123456'#JSONUtility.getValue("metadata_secret")
         
         FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<NOVA_VIP>', nova_vip)
-        FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<NEUTRON_PASS>', neutron_admin_password)
+        FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
         FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<METADATA_SECRET>', metadata_secret)
         pass
     
     @staticmethod
     def configOVS():
-        output, exitcode = ShellCmdExecutor.execCmd('service openvswitch restart')
-        print 'start openvswitch, output=%s' % output
+        output, exitcode = ShellCmdExecutor.execCmd('systemctl enable openvswitch.service')
+        output, exitcode = ShellCmdExecutor.execCmd('systemctl start openvswitch.service')
         time.sleep(3)
         #Add the external bridge:
         ShellCmdExecutor.execCmd('ovs-vsctl add-br br-ex')
         time.sleep(2)
         #Add a port to the external bridge that connects to the physical external network interface:
         #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
-        #REFACTOR LATER
+        #REFACTOR LATER:on physical, the below is bond1 or bond2
         physical_external_network_interface = 'eth2'
 #         addExternalBridgeCmd = 'ovs-vsctl add-port br-ex %s' % physical_external_network_interface
         addExternalBridgeTemplateScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'addExternalBridge.sh')
@@ -205,8 +198,8 @@ class Network(object):
     @staticmethod
     def finalizeInstallation():
         ShellCmdExecutor.execCmd('ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini')
-        ShellCmdExecutor.execCmd('sed -i \'s,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g\' /etc/init.d/neutron-openvswitch-agent')
-        ShellCmdExecutor.execCmd('cp /etc/init.d/neutron-openvswitch-agent /etc/init.d/neutron-openvswitch-agent.orig')
+        ShellCmdExecutor.execCmd('cp /usr/lib/systemd/system/neutron-openvswitch-agent.service /usr/lib/systemd/system/neutron-openvswitch-agent.service.orig')
+        ShellCmdExecutor.execCmd('sed -i \'s,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g\' /usr/lib/systemd/system/neutron-openvswitch-agent.service')
         
         ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron')
         Network.startNeutron()
@@ -214,15 +207,16 @@ class Network(object):
     
     @staticmethod
     def startNeutron():
-        ShellCmdExecutor.execCmd("service neutron-openvswitch-agent start")
-        ShellCmdExecutor.execCmd("service neutron-l3-agent start")
-        ShellCmdExecutor.execCmd("service neutron-dhcp-agent start")
-        ShellCmdExecutor.execCmd("service neutron-metadata-agent start")
+        ShellCmdExecutor.execCmd("systemctl enable neutron-openvswitch-agent.service")
+        ShellCmdExecutor.execCmd("systemctl enable neutron-l3-agent.service")
+        ShellCmdExecutor.execCmd("systemctl enable neutron-dhcp-agent.service")
+        ShellCmdExecutor.execCmd("systemctl enable neutron-metadata-agent.service")
+        ShellCmdExecutor.execCmd("systemctl enable neutron-ovs-cleanup.service")
         
-        ShellCmdExecutor.execCmd("chkconfig neutron-openvswitch-agent on")
-        ShellCmdExecutor.execCmd("chkconfig neutron-l3-agent on")
-        ShellCmdExecutor.execCmd("chkconfig neutron-dhcp-agent on")
-        ShellCmdExecutor.execCmd("chkconfig neutron-metadata-agent on")
+        ShellCmdExecutor.execCmd("systemctl start neutron-openvswitch-agent.service")
+        ShellCmdExecutor.execCmd("systemctl start neutron-l3-agent.service")
+        ShellCmdExecutor.execCmd("systemctl start neutron-dhcp-agent.service")
+        ShellCmdExecutor.execCmd("systemctl start neutron-metadata-agent.service")
         pass
     
     @staticmethod
@@ -289,7 +283,13 @@ admin_user=neutron
 admin_password=123456
 nova_metadata_ip=192.168.XX.XX    # controller node ip
 metadata_proxy_shared_secret=123456    #The same with nova.conf
-
+        '''
+        
+        '''
+        <RABBIT_HOSTS>
+        <RABBIT_PASSWORD>
+        <KEYSTONE_VIP>
+        <KEYSTONE_NEUTRON_PASSWORD>
         '''
         #configure /etc/neutron/neutron.conf
         if os.path.exists(Network.NEUTRON_CONF_FILE_PATH) :
@@ -303,20 +303,19 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
 #         rabbit_host = JSONUtility.getValue("rabbit_host")
 #         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
         
         keystone_vip = JSONUtility.getValue("keystone_vip")
-        #REFACTOR LATER
-        neutron_admin_password = '123456'
+        keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         
 #         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_USERID>', rabbit_userid)
+#         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_PASSWORD>', rabbit_password)
         
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<NEUTRON_PASS>', neutron_admin_password)
+        FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
         #configure agent
         Network.configML2()
         Network.configL3Agent()
@@ -447,8 +446,8 @@ device_driver = neutron.services.loadbalancer.drivers.haproxy.namespace_driver.H
     
 
 if __name__ == '__main__':
-    print 'openstack-icehouse:network start============'
-    INSTALL_TAG_FILE = '/opt/network_installed'
+    print 'openstack-kilo:network============'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/network_installed'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'network installed####'
@@ -457,7 +456,7 @@ if __name__ == '__main__':
     else :
         Network.install()
         Network.configConfFile()
-        
-    print 'openstack-icehouse:network done#######'
+        pass
+    print 'openstack-kilo:network done#######'
     pass
 

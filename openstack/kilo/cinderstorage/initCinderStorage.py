@@ -31,31 +31,24 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 
 sys.path.append(PROJ_HOME_DIR)
 
-
-from common.shell.ShellCmdExecutor import ShellCmdExecutor
-from common.json.JSONUtil import JSONUtility
-from common.properties.PropertiesUtil import PropertiesUtility
-from common.file.FileUtil import FileUtil
-from openstack.icehouse.cinderstorage.cinderstorage import CinderStorage
+from openstack.kilo.cinderstorage.cinderstorage import CinderStorage
 
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:cinder-storage============'
+    print 'hello openstack-kilo:cinder-storage============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/initCinderStorage'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_cinderstorage'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'cinder-storage installed####'
         print 'exit===='
-        exit()
         pass
-    
-    CinderStorage.start()
-    CinderStorage.restart()
-    
-    #mark: cinder is installed
-    os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:cinder-storage#######'
+    else :
+        CinderStorage.start()
+        #mark: cinder is installed
+        os.system('touch %s' % INSTALL_TAG_FILE)
+        pass
+    print 'hello openstack-kilo:cinder-storage#######'
     pass
 
