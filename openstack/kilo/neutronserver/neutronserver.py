@@ -117,13 +117,13 @@ class NeutronServer(object):
     
     @staticmethod
     def start():
-        ShellCmdExecutor.execCmd('service neutron-server start')
-        ShellCmdExecutor.execCmd('chkconfig neutron-server on')
+        ShellCmdExecutor.execCmd('systemctl enable neutron-server.service')
+        ShellCmdExecutor.execCmd('systemctl start neutron-server.service')
         pass
     
     @staticmethod
     def restart():
-        ShellCmdExecutor.execCmd('service neutron-server restart')
+        ShellCmdExecutor.execCmd('systemctl restart neutron-server.service')
         pass
     
     @staticmethod
@@ -222,9 +222,16 @@ class NeutronServer(object):
         neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini')
         ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_server_ml2_template_file_path, NEUTRON_ML2_CONF_DIR))
         pass
-    pass
-
     
+    @staticmethod
+    def getServerIndex():
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        local_management_ip = output.strip()
+        neutron_ips = JSONUtility.getValue('neutron_ips')
+        neutron_server_ip_list = neutron_ips.split(',')
+        index = ServerSequence.getIndex(neutron_server_ip_list, local_management_ip)
+        return index
+
 
 if __name__ == '__main__':
     print 'openstack-kilo:neutron-server start============'
@@ -241,73 +248,73 @@ if __name__ == '__main__':
         NeutronServer.configConfFile()
         
         #import neutron server db schema
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        neutron_ips = JSONUtility.getValue("neutron_ips")
-        neutron_ip_list = neutron_ips.split(',')
-        
-        first_neutron_launched_mark_file = '/opt/openstack_conf/tag/neutronserver0_launched'
-        
-        TIMEOUT = 1800 #0.5 hour for test
-        if ServerSequence.getIndex(neutron_ip_list, localIP) == 0:
-            firstKeystoneLaunchedTag = '/opt/openstack_conf/tag/keystone0_launched'
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                #all mysql are launched.
-                flag = os.path.exists(firstKeystoneLaunchedTag)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    NeutronServer.importNeutronDBSchema()
-                    
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            
-            if len(neutron_ip_list) > 1 :
-                for neutron_ip in neutron_ip_list[1:] :
-                    SSH.sendTagTo(neutron_ip, first_neutron_launched_mark_file)
-                    pass
-                pass
-            
-            NeutronServer.start()
-            pass
-        else :
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                #first neutron server is launched
-                flag = os.path.exists(first_neutron_launched_mark_file)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    NeutronServer.start()
-                    
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            
-            NeutronServer.start()
-            pass
+#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+#         localIP = output.strip()
+#         neutron_ips = JSONUtility.getValue("neutron_ips")
+#         neutron_ip_list = neutron_ips.split(',')
+#         
+#         first_neutron_launched_mark_file = '/opt/openstack_conf/tag/neutronserver0_launched'
+#         
+#         TIMEOUT = 1800 #0.5 hour for test
+#         if ServerSequence.getIndex(neutron_ip_list, localIP) == 0:
+#             firstKeystoneLaunchedTag = '/opt/openstack_conf/tag/keystone0_launched'
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 #all mysql are launched.
+#                 flag = os.path.exists(firstKeystoneLaunchedTag)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     NeutronServer.importNeutronDBSchema()
+#                     
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             
+#             if len(neutron_ip_list) > 1 :
+#                 for neutron_ip in neutron_ip_list[1:] :
+#                     SSH.sendTagTo(neutron_ip, first_neutron_launched_mark_file)
+#                     pass
+#                 pass
+#             
+#             NeutronServer.start()
+#             pass
+#         else :
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 #first neutron server is launched
+#                 flag = os.path.exists(first_neutron_launched_mark_file)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     NeutronServer.start()
+#                     
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             
+#             NeutronServer.start()
+#             pass
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()

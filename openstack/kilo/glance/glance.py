@@ -224,71 +224,71 @@ if __name__ == '__main__':
         Glance.install()
         Glance.configConfFile()
         
-        first_glance_launched_mark_file = '/opt/openstack_conf/tag/glance0_launched'
-        #when first keystone is launched, to import glance db schema
-        if Glance.getServerIndex() == 0 :
-            #######
-            TIMEOUT = 1800 #0.5 hour for test
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                file_path = '/opt/openstack_conf/tag/keystone0_launched'
-                flag = os.path.exists(file_path)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    #when keystone0 is launched, then import glance db schema
-                    Glance.importGlaceDBSchema()
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            
-            Glance.start()
-            
-            #To send to the rest glance
-            glance_ips = JSONUtility.getValue('glance_ips')
-            glance_ip_list = glance_ips.split(',')
-            
-            if len(glance_ip_list) > 1 :
-                for glance_ip in glance_ip_list[1:] :
-                    SSH.sendTagTo(glance_ip, first_glance_launched_mark_file)
-                    pass
-                pass
-            
-            ###########
-            pass
-        else :
-            TIMEOUT = 1800 #0.5 hour for test
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                flag = os.path.exists(first_glance_launched_mark_file)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    Glance.start()
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            pass
+#         first_glance_launched_mark_file = '/opt/openstack_conf/tag/glance0_launched'
+#         #when first keystone is launched, to import glance db schema
+#         if Glance.getServerIndex() == 0 :
+#             #######
+#             TIMEOUT = 1800 #0.5 hour for test
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 file_path = '/opt/openstack_conf/tag/keystone0_launched'
+#                 flag = os.path.exists(file_path)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     #when keystone0 is launched, then import glance db schema
+#                     Glance.importGlaceDBSchema()
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             
+#             Glance.start()
+#             
+#             #To send to the rest glance
+#             glance_ips = JSONUtility.getValue('glance_ips')
+#             glance_ip_list = glance_ips.split(',')
+#             
+#             if len(glance_ip_list) > 1 :
+#                 for glance_ip in glance_ip_list[1:] :
+#                     SSH.sendTagTo(glance_ip, first_glance_launched_mark_file)
+#                     pass
+#                 pass
+#             
+#             ###########
+#             pass
+#         else :
+#             TIMEOUT = 1800 #0.5 hour for test
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 flag = os.path.exists(first_glance_launched_mark_file)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     Glance.start()
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             pass
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()

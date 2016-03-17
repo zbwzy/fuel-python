@@ -41,8 +41,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.glance.glance import Glance
-from openstack.icehouse.glance.glance import GlanceHA
+from openstack.kilo.glance.glance import Glance
 
     
 if __name__ == '__main__':
@@ -51,7 +50,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     
-    INSTALL_TAG_FILE = '/opt/initGlance'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/init_glance'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'glance installed####'
@@ -60,23 +59,12 @@ if __name__ == '__main__':
     else :
         
         print 'start to install======='
-        #Glance DB Schema
-        if GlanceHA.isMasterNode() :
-            dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'glance_dbschema_init.sh')
-            ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
-            ShellCmdExecutor.execCmd('bash /opt/glance_dbschema_init.sh')
+        if Glance.getServerIndex() == 0 :
+            #Glance DB Schema
+            Glance.importGlaceDBSchema()
             pass
-        #
-        Glance.sourceAdminOpenRC()
         
         Glance.start()
-        #add HA
-        GlanceHA.install()
-        GlanceHA.configure()
-        GlanceHA.start()
-        
-        Glance.restart()
-        GlanceHA.start
         
     #     os.system("service openstack-glance-api restart")
     #     os.system("service openstack-glance-registry restart")

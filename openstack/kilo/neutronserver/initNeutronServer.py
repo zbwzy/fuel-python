@@ -41,38 +41,27 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.neutronserver.neutronserver import NeutronServer
-from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
-
+from openstack.kilo.neutronserver.neutronserver import NeutronServer
 
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:keystone============'
+    print 'hello openstack-kilo:neutron-server============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/initNeutronServer'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_neutronserver'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'neutron-server initted####'
         print 'exit===='
     else :
+        if NeutronServer.getServerIndex() == 0 :
+            NeutronServer.importNeutronDBSchema()
+            pass
+        
         NeutronServer.start()
-        #add HA
-        NeutronServerHA.install()
-        NeutronServerHA.configure()
-        NeutronServerHA.start()
-        
-        ##########################
-        NeutronServer.restart()
-        NeutronServerHA.start()
-        
-    #     os.system("service openstack-keystone restart")
-    #     
-    #     os.system("service haproxy restart")
-        
-        #mark: keystone is installed
+        #mark: neutron-server is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:neutron-server initted#######'
     pass

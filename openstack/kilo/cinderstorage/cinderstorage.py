@@ -250,6 +250,8 @@ if __name__ == '__main__':
         CinderStorage.configConfFile()
     #     CinderStorage.start()
         
+        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        AdminOpenrc.prepareAdminOpenrc()
         #mark: cinder is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:cinder-storage#######'

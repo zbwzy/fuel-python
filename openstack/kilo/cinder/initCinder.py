@@ -32,16 +32,10 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 sys.path.append(PROJ_HOME_DIR)
 
 
-from common.shell.ShellCmdExecutor import ShellCmdExecutor
-from common.json.JSONUtil import JSONUtility
-from common.properties.PropertiesUtil import PropertiesUtility
-from common.file.FileUtil import FileUtil
-
-from openstack.icehouse.cinder.cinder import Cinder
-from openstack.icehouse.cinder.cinder import CinderHA
+from openstack.kilo.cinder.cinder import Cinder
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:cinder============'
+    print 'hello openstack-kilo:cinder============'
     print 'start time: %s' % time.ctime()
 #     dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_dbschema_init.sh')
 #     print 'dbSchema_init_script_path=%s' % dbSchema_init_script_path
@@ -56,7 +50,7 @@ if __name__ == '__main__':
         exit()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/initCinder'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_cinder'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'cinder initted####'
         print 'exit===='
@@ -66,22 +60,16 @@ if __name__ == '__main__':
     #     Cinder.configConfFile()
     
         #Cinder DB Schema
-        if CinderHA.isMasterNode() :
-            dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_dbschema_init.sh')
-            ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
-#             ShellCmdExecutor.execCmd('bash /opt/cinder_dbschema_init.sh')
+#         if CinderHA.isMasterNode() :
+#             dbSchema_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder_dbschema_init.sh')
+#             ShellCmdExecutor.execCmd('cp -r %s /opt/' % dbSchema_init_script_path)
+# #             ShellCmdExecutor.execCmd('bash /opt/cinder_dbschema_init.sh')
+#             pass
+        if Cinder.getServerIndex() == 0:
+            Cinder.importCinderDBSchema()
             pass
         
         Cinder.start()
-        
-        ## Cinder HA
-        CinderHA.install()
-        CinderHA.configure()
-        CinderHA.start()
-        #
-        
-        Cinder.restart()
-        CinderHA.start()
     #     os.system("service openstack-cinder-api start")
     #     os.system("service openstack-cinder-scheduler start")
     #     os.system("service haproxy restart")

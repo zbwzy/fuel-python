@@ -93,12 +93,17 @@ class Cinder(object):
         pass
     
     @staticmethod
-    def start():        
+    def start():
+        cinderRestartScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'restartCinder.sh')
+        os.system('cp -r %s /opt/openstack_conf/scripts' % cinderRestartScriptTemplatePath)   
+             
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-api.service')
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-scheduler.service')
         
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-api.service')
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-scheduler.service')
+        
+        
         pass
     
     @staticmethod
@@ -187,6 +192,15 @@ class Cinder(object):
         print 'output=%s--' % output
         print 'done to importCinderDBSchema######'
         pass
+    
+    @staticmethod
+    def getServerIndex():
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        local_management_ip = output.strip()
+        cinder_ips = JSONUtility.getValue('cinder_ips')
+        cinder_ip_list = cinder_ips.split(',')
+        index = ServerSequence.getIndex(cinder_ip_list, local_management_ip)
+        return index
     pass
 
     
@@ -213,72 +227,72 @@ if __name__ == '__main__':
         Cinder.configConfFile()
         
         #import cinder db schema
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        cinder_ips = JSONUtility.getValue("cinder_ips")
-        cinder_ip_list = cinder_ips.strip().split(',')
-        
-        first_cinder_launched_mark_file = '/opt/openstack_conf/tag/cinder0_launched'
-        
-        TIMEOUT = 1800 #0.5 hour for test
-        if ServerSequence.getIndex(cinder_ip_list, localIP) == 0:
-            firstKeystoneLaunchedTag = '/opt/openstack_conf/tag/keystone0_launched'
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                #all mysql are launched.
-                flag = os.path.exists(firstKeystoneLaunchedTag)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    Cinder.importCinderDBSchema()
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            
-            if len(cinder_ip_list) > 1 :
-                for cinder_ip in cinder_ip_list[1:] :
-                    SSH.sendTagTo(cinder_ip, first_cinder_launched_mark_file)
-                    pass
-                pass
-            
-            Cinder.start()
-            pass
-        else :
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                #first neutron server is launched
-                flag = os.path.exists(first_cinder_launched_mark_file)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    Cinder.start()
-                    
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            
-            Cinder.start()
-            pass
+#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+#         localIP = output.strip()
+#         cinder_ips = JSONUtility.getValue("cinder_ips")
+#         cinder_ip_list = cinder_ips.strip().split(',')
+#         
+#         first_cinder_launched_mark_file = '/opt/openstack_conf/tag/cinder0_launched'
+#         
+#         TIMEOUT = 1800 #0.5 hour for test
+#         if ServerSequence.getIndex(cinder_ip_list, localIP) == 0:
+#             firstKeystoneLaunchedTag = '/opt/openstack_conf/tag/keystone0_launched'
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 #all mysql are launched.
+#                 flag = os.path.exists(firstKeystoneLaunchedTag)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     Cinder.importCinderDBSchema()
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             
+#             if len(cinder_ip_list) > 1 :
+#                 for cinder_ip in cinder_ip_list[1:] :
+#                     SSH.sendTagTo(cinder_ip, first_cinder_launched_mark_file)
+#                     pass
+#                 pass
+#             
+#             Cinder.start()
+#             pass
+#         else :
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 #first neutron server is launched
+#                 flag = os.path.exists(first_cinder_launched_mark_file)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     Cinder.start()
+#                     
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             
+#             Cinder.start()
+#             pass
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()

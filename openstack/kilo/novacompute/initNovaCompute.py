@@ -40,19 +40,19 @@ from common.file.FileUtil import FileUtil
 from openstack.kilo.novacompute.novacompute import NovaCompute
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:nova-compute============'
+    print 'hello openstack-kilo:nova-compute============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_novacompute'
     if os.path.exists(INSTALL_TAG_FILE) :
-        print 'nova-api initted####'
+        print 'nova-compute initted####'
         print 'exit===='
         pass
     else :
-        NovaCompute.restart()
+        NovaCompute.start()
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello nova-compute initted#######'
+    print 'hello nova-compute kilo#######'
     pass
 

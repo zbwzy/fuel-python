@@ -642,6 +642,8 @@ if __name__ == '__main__':
     #     HeatHA.start()
         #
         #mark: heat is installed
+        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        AdminOpenrc.prepareAdminOpenrc()
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:heat#######'
     pass

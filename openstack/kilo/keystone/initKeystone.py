@@ -58,24 +58,30 @@ class InitKeystone(object):
     def init():
         InitKeystone.initKeystone()
         InitKeystone.initGlance()
+        InitKeystone.initNova()
+        InitKeystone.initNeutron()
+        InitKeystone.initCinder()
         pass
     
     @staticmethod
-    def initKeystone():
+    def initKeystone(): #init all component's user/password/project/endpoint in keystone
         admin_token = JSONUtility.getValue('admin_token')
-        keystone_vip = JSONUtility.getValue('ha_vip1')
+        keystone_vip = JSONUtility.getValue('keystone_vip')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        keystone_ip = output.strip()
         if Keystone.getServerIndex() == 0 :
-            output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-            keystone_ip = output.strip()
-            
             initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystone.sh')
-            
             if not os.path.exists('/opt/openstack_conf/scripts') :
                 os.system('mkdir -p /opt/openstack_conf/scripts')
                 pass
             
             ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % initKeystoneScriptPath)
+            
+            initKeystoneDestFilePath = '/opt/openstack_conf/scripts/initKeystone.sh'
+            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_IP>', keystone_ip)
             
             try:
                 import pexpect
@@ -111,8 +117,8 @@ class InitKeystone(object):
             except OSError:
                 print 'Catch exception %s when send tag.' % OSError.strerror
                 sys.exit(0)
+                pass
             pass
-        
         pass
     
     @staticmethod
@@ -218,6 +224,7 @@ class InitKeystone(object):
         FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_CINDER_PASSWORD>', keystone_cinder_password)
         FileUtil.replaceFileContent(initNeutronScriptPath, '<CINDER_VIP>', cinder_vip)
         ShellCmdExecutor.execCmd('bash %s' % initNeutronScriptPath)
+        pass
 
 
 if __name__ == '__main__':
@@ -229,12 +236,22 @@ if __name__ == '__main__':
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initKeystone'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_keystone'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'keystone initted####'
         print 'exit===='
     else :
+        from openstack.kilo.keystone.keystone import Keystone
+        if Keystone.getServerIndex() == 0 :
+            Keystone.importKeystoneDBSchema()
+            Keystone.start()
+            time.sleep(3)
+            InitKeystone.init()
+            pass
+        else :
+            Keystone.start()
+            pass
         
         #mark: keystone is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

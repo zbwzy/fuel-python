@@ -134,8 +134,8 @@ class Keystone(object):
             print 'DEBUG=True.On local dev env, do test===='
             pass
         else :
-            ShellCmdExecutor.execCmd('service openstack-keystone start')
-            ShellCmdExecutor.execCmd('chkconfig openstack-keystone on')
+            Keystone.startHttp()
+            pass
         print "start keystone done####"
         pass
     
@@ -361,68 +361,69 @@ if __name__ == '__main__':
         
         ####only when rdb cluster is prepared, then import keystone db schema.
         if Keystone.getServerIndex() == 0 :
-            TIMEOUT = 3600
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
-                mysql_ips = JSONUtility.getValue('mysql_ips')
-                mysql_ip_list = mysql_ips.split(',')
-                if  str(launchedMysqlServerNum) == str(len(mysql_ip_list)) :
-                    print 'wait time: %s second(s).' % time_count
-                    Keystone.importKeystoneDBSchema()
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
             pass
+#             TIMEOUT = 3600
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
+#                 mysql_ips = JSONUtility.getValue('mysql_ips')
+#                 mysql_ip_list = mysql_ips.split(',')
+#                 if  str(launchedMysqlServerNum) == str(len(mysql_ip_list)) :
+#                     print 'wait time: %s second(s).' % time_count
+#                     Keystone.importKeystoneDBSchema()
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             pass
         
         Keystone.httpConf()
         
         Keystone.installWSGI()
         
-        Keystone.startHttp()
+#         Keystone.startHttp()
         
-        if Keystone.getServerIndex() == 0 :
-            from openstack.kilo.keystone.initKeystone import InitKeystone
-            InitKeystone.init()
-            
-            tag_file_name = 'keystone0_launched'
-            from common.yaml.YAMLUtil import YAMLUtil
-            #send to first glance
-            if YAMLUtil.hasRoleInNodes('glance'):
-                glance_ips = JSONUtility.getValue('glance_ips')
-                glance_ip_list = glance_ips.split(',')
-                SSH.sendTagTo(glance_ip_list[0], tag_file_name)
-            
-            #send to first neutron-server
-            if YAMLUtil.hasRoleInNodes('neutron-server'):
-                neutron_ips = JSONUtility.getValue('neutron_ips')
-                neutron_ip_list = neutron_ips.split(',')
-                SSH.sendTagTo(neutron_ip_list[0], tag_file_name)
-            
-            #send to first nova-api
-            if YAMLUtil.hasRoleInNodes('nova-api'):
-                nova_ips = JSONUtility.getValue('nova_ips')
-                nova_ip_list = nova_ips.split(',')
-                SSH.sendTagTo(nova_ip_list[0], tag_file_name)
-                
-            #send to first cinder
-            if YAMLUtil.hasRoleInNodes('cinder'):
-                cinder_ips = JSONUtility.getValue('cinder_ips')
-                cinder_ip_list = cinder_ips.split(',')
-                SSH.sendTagTo(cinder_ip_list[0], tag_file_name)
-                
-            pass
+#         if Keystone.getServerIndex() == 0 :
+#             from openstack.kilo.keystone.initKeystone import InitKeystone
+#             InitKeystone.init()
+#             
+#             tag_file_name = 'keystone0_launched'
+#             from common.yaml.YAMLUtil import YAMLUtil
+#             #send to first glance
+#             if YAMLUtil.hasRoleInNodes('glance'):
+#                 glance_ips = JSONUtility.getValue('glance_ips')
+#                 glance_ip_list = glance_ips.split(',')
+#                 SSH.sendTagTo(glance_ip_list[0], tag_file_name)
+#             
+#             #send to first neutron-server
+#             if YAMLUtil.hasRoleInNodes('neutron-server'):
+#                 neutron_ips = JSONUtility.getValue('neutron_ips')
+#                 neutron_ip_list = neutron_ips.split(',')
+#                 SSH.sendTagTo(neutron_ip_list[0], tag_file_name)
+#             
+#             #send to first nova-api
+#             if YAMLUtil.hasRoleInNodes('nova-api'):
+#                 nova_ips = JSONUtility.getValue('nova_ips')
+#                 nova_ip_list = nova_ips.split(',')
+#                 SSH.sendTagTo(nova_ip_list[0], tag_file_name)
+#                 
+#             #send to first cinder
+#             if YAMLUtil.hasRoleInNodes('cinder'):
+#                 cinder_ips = JSONUtility.getValue('cinder_ips')
+#                 cinder_ip_list = cinder_ips.split(',')
+#                 SSH.sendTagTo(cinder_ip_list[0], tag_file_name)
+#                 
+#             pass
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         #mark: keystone is installed

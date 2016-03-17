@@ -37,12 +37,7 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 
 sys.path.append(PROJ_HOME_DIR)
 
-
-from common.shell.ShellCmdExecutor import ShellCmdExecutor
-from common.json.JSONUtil import JSONUtility
-from common.properties.PropertiesUtil import PropertiesUtility
-from common.file.FileUtil import FileUtil
-from openstack.icehouse.dashboard.dashboard import Dashboard
+from openstack.kilo.dashboard.dashboard import Dashboard
     
 if __name__ == '__main__':
     
@@ -52,7 +47,7 @@ if __name__ == '__main__':
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/initDashboard'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/init_dashboard'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'dashboard installed####'
         print 'exit===='

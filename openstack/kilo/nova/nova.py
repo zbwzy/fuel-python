@@ -221,6 +221,9 @@ vif_plugging_timeout=0
         nova_api_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'nova.conf')
         print 'nova_api_conf_template_file_path=%s' % nova_api_conf_template_file_path
         
+        nova_controller_restart_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'startNova.conf')
+        ShellCmdExecutor.execCmd("cp -r %s /opt/openstack_conf/scripts/" % nova_controller_restart_file_path)
+        
         novaConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'NOVA_CONF_DIR')
         print 'novaConfDir=%s' % novaConfDir #/etc/nova
         
@@ -284,6 +287,15 @@ vif_plugging_timeout=0
         ShellCmdExecutor.execCmd(importCmd)
         pass
     
+    @staticmethod
+    def getServerIndex():
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        local_management_ip = output.strip()
+        nova_ips = JSONUtility.getValue('nova_ips')
+        nova_ip_list = nova_ips.split(',')
+        index = ServerSequence.getIndex(nova_ip_list, local_management_ip)
+        return index
+    
 if __name__ == '__main__':
     
     print 'hello openstack-kilo:nova-controller============'
@@ -305,71 +317,71 @@ if __name__ == '__main__':
         
         ###########
         #import nova db schema
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        nova_ips = JSONUtility.getValue("nova_ips")
-        nova_ip_list = nova_ips.strip().split(',')
-        
-        first_nova_launched_mark_file = '/opt/openstack_conf/tag/nova0_launched'
-        
-        TIMEOUT = 1800 #0.5 hour for test
-        if ServerSequence.getIndex(nova_ip_list, localIP) == 0:
-            firstKeystoneLaunchedTag = '/opt/openstack_conf/tag/keystone0_launched'
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                #all mysql are launched.
-                flag = os.path.exists(firstKeystoneLaunchedTag)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    Nova.importNovaDBSchema()
-                    
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            
-            if len(nova_ip_list) > 1 :
-                for nova_ip in nova_ip_list[1:] :
-                    SSH.sendTagTo(nova_ip, first_nova_launched_mark_file)
-                    pass
-                pass
-            
-            Nova.start()
-            pass
-        else :
-            timeout = TIMEOUT
-            time_count = 0
-            print 'test timeout==='
-            while True:
-                #first nova controller is launched
-                flag = os.path.exists(first_nova_launched_mark_file)
-                if flag == True :
-                    print 'wait time: %s second(s).' % time_count
-                    Nova.start()
-                    
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
-            pass
+#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+#         localIP = output.strip()
+#         nova_ips = JSONUtility.getValue("nova_ips")
+#         nova_ip_list = nova_ips.strip().split(',')
+#         
+#         first_nova_launched_mark_file = '/opt/openstack_conf/tag/nova0_launched'
+#         
+#         TIMEOUT = 1800 #0.5 hour for test
+#         if ServerSequence.getIndex(nova_ip_list, localIP) == 0:
+#             firstKeystoneLaunchedTag = '/opt/openstack_conf/tag/keystone0_launched'
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 #all mysql are launched.
+#                 flag = os.path.exists(firstKeystoneLaunchedTag)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     Nova.importNovaDBSchema()
+#                     
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             
+#             if len(nova_ip_list) > 1 :
+#                 for nova_ip in nova_ip_list[1:] :
+#                     SSH.sendTagTo(nova_ip, first_nova_launched_mark_file)
+#                     pass
+#                 pass
+#             
+#             Nova.start()
+#             pass
+#         else :
+#             timeout = TIMEOUT
+#             time_count = 0
+#             print 'test timeout==='
+#             while True:
+#                 #first nova controller is launched
+#                 flag = os.path.exists(first_nova_launched_mark_file)
+#                 if flag == True :
+#                     print 'wait time: %s second(s).' % time_count
+#                     Nova.start()
+#                     
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                 
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
+#             pass
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()

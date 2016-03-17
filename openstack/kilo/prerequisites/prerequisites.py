@@ -49,13 +49,23 @@ class Prerequisites(object):
         
         #########################
         
-        ###bind bclinux repo url
+        ###set bclinux repo url
         
         ########################
         
         ShellCmdExecutor.execCmd('yum clean all && yum makecache')
         
+        #install tar
         ShellCmdExecutor.execCmd('yum install tar -y')
+        
+        #install pexpect
+        ShellCmdExecutor.execCmd('cd /etc/puppet/fuel-python/externals/pexpect-3.3; python setup.py install')
+        
+        ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
+        
+        ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/install')
+        
+        ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/scripts')
         
         #memcache
         from openstack.kilo.memcached.memcached import Memcached
@@ -66,6 +76,7 @@ class Prerequisites(object):
         print 'do ssh mutual trust====='
         SSH.sshMutualTrust()
         print 'do ssh mutual trust#####'
+        
         #iptables
         IPTables.apply()
         

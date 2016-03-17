@@ -236,7 +236,10 @@ if __name__ == '__main__':
         Dashboard.configure()
         
     #     Dashboard.start()
-    # 
+    #    
+        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        AdminOpenrc.prepareAdminOpenrc()
+        
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:dashboard installed#######'
     pass
