@@ -95,15 +95,13 @@ class Cinder(object):
     @staticmethod
     def start():
         cinderRestartScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'restartCinder.sh')
-        os.system('cp -r %s /opt/openstack_conf/scripts' % cinderRestartScriptTemplatePath)   
-             
+        os.system('cp -r %s /opt/openstack_conf/scripts' % cinderRestartScriptTemplatePath)
+        
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-api.service')
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-scheduler.service')
         
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-api.service')
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-scheduler.service')
-        
-        
         pass
     
     @staticmethod

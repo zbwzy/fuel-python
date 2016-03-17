@@ -109,7 +109,6 @@ class RabbitMQ(object):
         ShellCmdExecutor.execCmd('mv /var/lib/rabbitmq/erlang.cookie %s' % erlang_cookie_dest_file_path)
         ShellCmdExecutor.execCmd('chown -R rabbitmq:rabbitmq /var/lib/rabbitmq/')
         ShellCmdExecutor.execCmd('chmod 400 %s' % erlang_cookie_dest_file_path)
-        
         pass
     
     @staticmethod

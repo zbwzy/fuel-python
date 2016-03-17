@@ -122,6 +122,36 @@ class BCRDB(object):
             ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
             pass
         
+        start_cmd = ''
+        start_cmd_template = '/opt/bcrdb/support-files/mysql.server {action}'
+        if index == 0 :
+            start_cmd = start_cmd_template.format(action='bootstrap')
+            pass
+        else :
+            start_cmd = start_cmd_template.format(action='start')
+            pass
+        
+        ShellCmdExecutor.execCmd(start_cmd)
+        pass
+    
+    @staticmethod
+    def start1():
+        from openstack.common.serverSequence import ServerSequence
+        mysql_ips = JSONUtility.getValue("mysql_ips")
+        print 'mysql_ips=%s---' % mysql_ips
+        mysql_ip_list = mysql_ips.strip().split(',')
+        print 'mysql_ip_list=%s--' % mysql_ip_list
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        local_management_ip = output.strip()
+        
+        index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
+        print 'mysql index=%s--' % str(index)
+        #Judge master
+        if not os.path.exists('/opt/openstack_conf/tag/') :
+            ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
+            pass
+        
         from openstack.kilo.ssh.SSH import SSH
         if index == 0 :
             print 'start to launch mysql master==============='
@@ -196,7 +226,7 @@ if __name__ == '__main__':
     else :
         BCRDB.install()
         BCRDB.config()
-        BCRDB.start()
+#         BCRDB.start()
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:rdb installed#######'
     pass
