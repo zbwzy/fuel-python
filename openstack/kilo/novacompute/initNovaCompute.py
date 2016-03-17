@@ -44,7 +44,7 @@ if __name__ == '__main__':
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/initNovaCompute'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_novacompute'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'nova-api initted####'
         print 'exit===='

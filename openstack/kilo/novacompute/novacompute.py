@@ -111,6 +111,8 @@ class NovaCompute(object):
     @staticmethod
     def install():
         print 'Nova-compute.install start===='
+        ShellCmdExecutor.execCmd('yum install sysfsutils qemu* libvirt* -y')
+        
         yumCmd = 'yum install openstack-nova-compute sysfsutils -y'
         ShellCmdExecutor.execCmd(yumCmd)
 #         NovaCompute.configConfFile()
@@ -157,6 +159,21 @@ vif_plugging_timeout=0
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-compute.service")
         ShellCmdExecutor.execCmd("systemctl start libvirtd.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-compute.service")
+        pass
+    
+    @staticmethod
+    def reconfigLibvirtd():
+        ###libvirtd :  /etc/libvirt/libvirtd.conf
+        ### /etc/sysconfig/libvirtd
+        libvirtdConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'libvirtd', 'libvirtd.conf')
+        libvirtdFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'libvirtd', 'libvirtd.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/libvirt/' % libvirtdConfFileTemplatePath)
+        ShellCmdExecutor.execCmd('cp -r %s /etc/sysconfig/' % libvirtdFileTemplatePath)
+        
+        ShellCmdExecutor.execCmd('chown -R root:root /etc/libvirt/libvirtd.conf')
+        ShellCmdExecutor.execCmd('chown -R root:root /etc/sysconfig/libvirtd')
+        
+        ShellCmdExecutor.execCmd('/bin/systemctl restart libvirtd.service')
         pass
     
     @staticmethod
@@ -220,6 +237,9 @@ admin_password=123456
         RABBIT_PASSWORD
         RABBIT_HOSTS
         '''
+        ####
+        NovaCompute.reconfigLibvirtd()
+        ####
         mysql_vip = JSONUtility.getValue("mysql_vip")
         
 #         rabbit_host = JSONUtility.getValue("rabbit_host")

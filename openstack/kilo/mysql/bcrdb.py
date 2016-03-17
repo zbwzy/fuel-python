@@ -88,7 +88,7 @@ class BCRDB(object):
             pass
         
         print 'mysql_ip_list1=%s--' % mysql_ip_list1
-        mysql_ip_list_string = ','.join(mysql_ip_list1)
+        mysql_ip_list_string = ','.join(mysql_ip_list1) #The rest mysql except itself
         print 'mysql_ip_list_string=%s--' % mysql_ip_list_string
         
         FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<MYSQL_IP_LIST>', mysql_ip_list_string)
