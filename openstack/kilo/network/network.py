@@ -178,6 +178,7 @@ class Network(object):
         time.sleep(2)
         #Add a port to the external bridge that connects to the physical external network interface:
         #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
+        
         #REFACTOR LATER:on physical, the below is bond1 or bond2
         physical_external_network_interface = 'eth2'
 #         addExternalBridgeCmd = 'ovs-vsctl add-port br-ex %s' % physical_external_network_interface
@@ -193,6 +194,11 @@ class Network(object):
 #                                     localIP)
         
         ShellCmdExecutor.execCmd('bash /opt/addExternalBridge.sh')
+        pass
+    
+    @staticmethod
+    def start():
+        Network.startNeutron()
         pass
     
     @staticmethod

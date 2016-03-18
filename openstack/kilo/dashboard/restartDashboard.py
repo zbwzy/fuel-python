@@ -36,27 +36,27 @@ OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPEN
 
 sys.path.append(PROJ_HOME_DIR)
 
-from openstack.icehouse.dashboard.dashboard import Dashboard
+from openstack.kilo.dashboard.dashboard import Dashboard
     
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:dashboard============'
+    print 'hello openstack-kilo:dashboard============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
     ###############################
-    RESTART_TAG_FILE = '/opt/restartDashboard'
+    RESTART_TAG_FILE = '/opt/openstack_conf/tag/install/restart_dashboard'
     if os.path.exists(RESTART_TAG_FILE) :
         print 'dashboard restarted####'
         print 'exit===='
         pass
     else :
-        Dashboard.configureDashboardRights()
+#         Dashboard.configureDashboardRights()
         Dashboard.restart()
     #     ShellCmdExecutor.execCmd('service haproxy restart')
         #mark: dashboard is installed
         os.system('touch %s' % RESTART_TAG_FILE)
-    print 'hello openstack-icehouse:dashboard restarted#######'
+    print 'hello openstack-kilo:dashboard restarted#######'
     pass
 

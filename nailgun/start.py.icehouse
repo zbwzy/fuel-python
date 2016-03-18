@@ -20,7 +20,7 @@ else :
 
 
 class Params(object):
-    OPENSTACK_ROLES = ['mysql', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 'heat', 
+    OPENSTACK_ROLES = ['rabbitmq', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 'heat', 
                        'horizon', 'nova-api', 'nova-compute', 'ceilometer', 'neutron-server', 'neutron-agent']
     
     CLUSTER_IP_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/{cluster_id}/ip_map_role.json'
@@ -145,68 +145,56 @@ def getActiveRoleIPMap(cluster_id):
 
 def getInitCmdByRole(role):
     ######DEBUG
-    version_tag = 'kilo'
     initCmd = 'hostname'
     
     if role == 'rabbitmq' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/rabbitmq/initRabbitmq.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/rabbitmq/initRabbitmq.py'
         pass
     
     if role == 'keystone' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/keystone/initKeystone.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/keystone/initKeystone.py'
         pass
     
     if role == 'glance' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/glance/initGlance.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/glance/initGlance.py'
         pass
     
     if role == 'cinder-api' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/cinder/initCinder.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/cinder/initCinder.py'
         pass
     
     if role == 'cinder-storage' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/cinderstorage/initCinderStorage.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/cinderstorage/initCinderStorage.py'
         pass
     
     if role == 'horizon' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/dashboard/initDashboard.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/dashboard/initDashboard.py'
         pass
     
     if role == 'heat' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/heat/initHeat.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/heat/initHeat.py'
         pass
     
     if role == 'ceilometer' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/ceilometer/initCeilometer.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ceilometer/initCeilometer.py'
         pass
     
     if role == 'nova-api' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/nova/initNova.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/nova/initNova.py'
         pass
     
     if role == 'nova-compute' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/novacompute/initNovaCompute.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/novacompute/initNovaCompute.py'
         pass
     
     if role == 'neutron-server' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/neutronserver/initNeutronServer.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/neutronserver/initNeutronServer.py'
         pass
     
     if role == 'neutron-agent' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/network/initNetwork.py'\
-        .format(version_tag='kilo')
+        initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network/initNetwork.py'
         pass
+    
     
     return initCmd
     
@@ -251,111 +239,139 @@ if __name__ == '__main__':
         activeRoles = activeRoleIPMap.keys()
         print 'activeRoles=%s' % activeRoles
         #######DO EXECUTION
-#         cluster_ip_list = []
-        ##Do mysql execution
-        mysql_ip_list = activeRoleIPMap['mysql']
-        
-#         cluster_ip_list.extend(mysql_ip_list)
-        for ip in mysql_ip_list :
-            startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
-            .format(version_tag='kilo')
-            execRemoteCmd(ip, startCmd, timeout=600)
-            pass
-        
-        print 'start to init db======'
-        initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
-        .format(version_tag='kilo')
-        execRemoteCmd(mysql_ip_list[0], initDBCmd, timeout=600)
-        print 'init db done####'
-        
-        ####################
         #cluster's all IPs
-        for role in Params.OPENSTACK_ROLES[1:] :
+        cluster_ip_list = []
+        for role in Params.OPENSTACK_ROLES :
             if role in activeRoles :
                 ip_list = activeRoleIPMap[role]
                 ####list merge: get cluster' all IPs
-#                 cluster_ip_list.extend(ip_list)
+                cluster_ip_list.extend(ip_list)
                 ####################################
                 initCmd = getInitCmdByRole(role)
                 
-                for ip in ip_list :
-                    execRemoteCmd(ip, initCmd, timeout=600)
+                if role == 'neutron-server' :
+                    #re-configure nova-api, then restart nova
+                    nova_ip_list = activeRoleIPMap['nova-api']
+                    reconfigureNovaCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/nova/configureNovaAfterNeutron.py'
+                    
+                    for nova_ip in nova_ip_list :
+                        execRemoteCmd(nova_ip, reconfigureNovaCmd, timeout=600)
+                        pass
+                    #start neutron-server, then configure neutron api cluster HA
+                    for ip in ip_list :
+                        execRemoteCmd(ip, initCmd, timeout=600)
+                        pass
                     pass
-                 
+                
+                elif role == 'neutron-agent' :
+                    #re-configure nova-api, then restart nova-api
+                    nova_ip_list = activeRoleIPMap['nova-api']
+                    reconfigureNovaCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/nova/configureNovaAfterMetadata.py'
+                    
+                    #re-configure nova-api
+                    for nova_ip in nova_ip_list :
+                        execRemoteCmd(nova_ip, reconfigureNovaCmd, timeout=600)
+                        pass
+                    
+                    for ip in ip_list :
+                        execRemoteCmd(ip, initCmd, timeout=600)
+                        pass
+                    #re-configure nova-compute
+                    nova_compute_ip_list = activeRoleIPMap['nova-compute']
+                    reconfigureNovaComputeCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/novacompute/configureNovaComputeAfterNeutron.py'
+                    for nova_compute_ip in nova_compute_ip_list :
+                        execRemoteCmd(nova_compute_ip, reconfigureNovaComputeCmd, timeout=600)
+                        pass
+                    pass
+                
+                else :
+                    for ip in ip_list :
+                        execRemoteCmd(ip, initCmd, timeout=600)
+                        pass
+                    pass
+                
                 time.sleep(1)
                 pass
             pass
-         
+        
         #remove duplicated ip
-#         cluster_ip_list = list(set(cluster_ip_list))
+        cluster_ip_list = list(set(cluster_ip_list))
         #restart horizon
         if 'horizon' in activeRoles:
             horizon_ip_list = activeRoleIPMap['horizon']
-            restartCmd = 'python /etc/puppet/fuel-python/openstack/kilo/dashboard/restartDashboard.py'
+            restartCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/dashboard/restartDashboard.py'
             
             for horizon_ip in horizon_ip_list :
                 execRemoteCmd(horizon_ip, restartCmd, timeout=600)
                 pass
             pass
         
-#         if 'glance' in activeRoles:
-#             glance_ip_list = activeRoleIPMap['glance']
-#             importImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/glance/importImage.py'
-#             for glance_ip in glance_ip_list :
-#                 execRemoteCmd(glance_ip, importImageCmd, timeout=600)
-#                 time.sleep(10)
-#                 pass
-#             pass
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            importImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/glance/importImage.py'
+            for glance_ip in glance_ip_list :
+                execRemoteCmd(glance_ip, importImageCmd, timeout=600)
+                time.sleep(10)
+                pass
+            pass
         
-#         vxlanConfigCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network_mode/vxlanconfig.py'
-#         if 'neutron-server' in activeRoles:
-#             neutron_ip_list = activeRoleIPMap['neutron-server']
-#             
-#             #init network for OSTF
-#             initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
-#             
-#             #if necessary, configure vxlan
-#             for neutron_ip in neutron_ip_list:
-#                 execRemoteCmd(neutron_ip, initCmd, timeout=600)
-#                 execRemoteCmd(neutron_ip, vxlanConfigCmd, timeout=600)
-#                 pass
-#             pass
+        vxlanConfigCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network_mode/vxlanconfig.py'
+        if 'neutron-server' in activeRoles:
+            neutron_ip_list = activeRoleIPMap['neutron-server']
+            
+            #init network for OSTF
+            initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
+            
+            #if necessary, configure vxlan
+            for neutron_ip in neutron_ip_list:
+                execRemoteCmd(neutron_ip, initCmd, timeout=600)
+                execRemoteCmd(neutron_ip, vxlanConfigCmd, timeout=600)
+                pass
+            pass
         
-#         if 'nova-compute' in activeRoles:
-#             nova_compute_ip_list = activeRoleIPMap['nova-compute']
-#             
-#             for nova_compute_ip in nova_compute_ip_list:
-#                 execRemoteCmd(nova_compute_ip, vxlanConfigCmd, timeout=600)
-#                 pass
-#             pass
-#         
-#         if 'neutron-agent' in activeRoles:
-#             neutron_agent_ip_list = activeRoleIPMap['neutron-agent']
-#             
-#             for neutron_agent_ip in neutron_agent_ip_list:
-#                 execRemoteCmd(neutron_agent_ip, vxlanConfigCmd, timeout=600)
-#                 pass
-#             pass
+        if 'nova-compute' in activeRoles:
+            nova_compute_ip_list = activeRoleIPMap['nova-compute']
+            
+            for nova_compute_ip in nova_compute_ip_list:
+                execRemoteCmd(nova_compute_ip, vxlanConfigCmd, timeout=600)
+                pass
+            pass
+        
+        if 'neutron-agent' in activeRoles:
+            neutron_agent_ip_list = activeRoleIPMap['neutron-agent']
+            
+            for neutron_agent_ip in neutron_agent_ip_list:
+                execRemoteCmd(neutron_agent_ip, vxlanConfigCmd, timeout=600)
+                pass
+            pass
+        
+        #############VIP handling: delete non-master role vip
+        print 'cluster_ip_list=%s--' % cluster_ip_list
+        vip_handling_cmd = 'python /etc/puppet/fuel-python/common/vip/VIPHandler.py'
+        for ip in cluster_ip_list :
+            execRemoteCmd(ip, vip_handling_cmd, timeout=600)
+            pass
+        ####################################################
         
         #sync glance image
-#         if 'glance' in activeRoles:
-#             glance_ip_list = activeRoleIPMap['glance']
-#             #########image sync
-#             syncImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
-#             for ip in glance_ip_list:
-#                 execRemoteCmd(ip, syncImageCmd, timeout=600)
-#                 pass
-#             pass
-#         
-#         #assign glance image privilege
-#         if 'glance' in activeRoles:
-#             glance_ip_list = activeRoleIPMap['glance']
-#             assignPrivilegeCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTFPrivilege.py'
-#             for ip in glance_ip_list:
-#                 execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
-#                 execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
-#                 pass
-#             pass
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            #########image sync
+            syncImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
+            for ip in glance_ip_list:
+                execRemoteCmd(ip, syncImageCmd, timeout=600)
+                pass
+            pass
+        
+        #assign glance image privilege
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            assignPrivilegeCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTFPrivilege.py'
+            for ip in glance_ip_list:
+                execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
+                execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
+                pass
+            pass
                     
         os.system('touch %s' % TAG)
         pass

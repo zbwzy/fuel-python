@@ -31,7 +31,7 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 
 sys.path.append(PROJ_HOME_DIR)
 
-from openstack.icehouse.network.network import Network
+from openstack.kilo.network.network import Network
     
 if __name__ == '__main__':
     print 'hello openstack-kilo:network============'

@@ -207,13 +207,13 @@ class Dashboard(object):
     
     @staticmethod
     def configureDashboardRights():
-        if os.path.exists("/var/lib/openstack-dashboard") :
-            ShellCmdExecutor.execCmd("chmod 777 /var/lib/openstack-dashboard")
-            pass
-        
-        if os.path.exists("/usr/share/openstack-dashboard/openstack_dashboard/local") :
-            ShellCmdExecutor.execCmd("chmod 777 /usr/share/openstack-dashboard/openstack_dashboard/local")
-            pass
+#         if os.path.exists("/var/lib/openstack-dashboard") :
+#             ShellCmdExecutor.execCmd("chmod 777 /var/lib/openstack-dashboard")
+#             pass
+#         
+#         if os.path.exists("/usr/share/openstack-dashboard/openstack_dashboard/local") :
+#             ShellCmdExecutor.execCmd("chmod 777 /usr/share/openstack-dashboard/openstack_dashboard/local")
+#             pass
         pass
     pass
 

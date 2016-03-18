@@ -10,180 +10,144 @@ stage {'zero': } ->
 stage {'first': } 
 
 class {'initParam': stage => 'zero'}
-class {'begin_deploye': stage=> 'first'}
+class {'deploy_openstack': stage=> 'first'}
 
 
 class initParam{
 
+	exec {"fuel_python_dir":
+	     path => "/usr/bin:/bin",
+	     command => "cp -r /etc/puppet/modules/fuel-python /etc/puppet",
+	}
+
+	exec {"openstack_config":
+	path => "/usr/bin:/bin",
+	command => "mkdir -p /etc/puppet/openstack_conf",
+	before  => Exec["prerequisites"],
+	require => Exec["fuel_python_dir"],
+	creates => "/tmp/test1"
+	}
 
 
-exec {"fuel_python_dir":
-     path => "/usr/bin:/bin",
-     command => "cp -r /etc/puppet/modules/fuel-python /etc/puppet",
-}
-
-exec {"openstack_config":
-path => "/usr/bin:/bin",
-command => "mkdir -p /etc/puppet/openstack_conf",
-before  => Exec["openstack_yaml"],
-require => Exec["fuel_python_dir"],
-creates => "/tmp/test1"
-}
-
-
-
-exec {"openstack_yaml":
-     path => "/usr/bin:/bin",
-     command => "python /etc/puppet/fuel-python/common/yaml/ParamsProducer.py"
-}
-
-
-
+	exec {"prerequisites":
+	     path => "/usr/bin:/bin",
+	     command => "python /etc/puppet/fuel-python/openstack/kilo/prerequisites/prerequisites.py"
+	}
 
 }
 
-class begin_deploye {
+class deploy_openstack {
 
-
-
-notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
+  notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
 
   case $role {
       'mysql' : {
-		
-	if file('/opt/is_keystone_role') == 'false'
-	{
-	  class { 'mysql_galera':
-        installDir => $installDir,
-       root_passwd => "123456",
-        mysql_vip => $mysql_vip,
-        master_ip => $master_ip,
-        nodes_ip => $nodes_ip
+      exec{"mysql_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/mysql/bcrdb.py",
+       timeout => 3600,
+       require => Exec['prerequisites']
+             }
        }
-	}
-      }
+		
 
       'keystone' : {
-	if file('/opt/is_mysql_role') =='true'
-		{
-       exec{"keystone_install":
+	 exec{"keystone_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/keystone/keystone.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/keystone/keystone.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
-	}
-		}
-	else
-	{
-
-	Exec<| title == 'initDB' |> -> Exec['keystone_install2']
-        class { 'mysql_galera':
-        installDir => $installDir,
-       root_passwd => "123456",
-        mysql_vip => $mysql_vip,
-        master_ip => $master_ip,
-        nodes_ip => $nodes_ip,
-	before => Exec['keystone_install2'],
-        require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
+          }
        }
-	
-	 exec{"keystone_install2":
-       path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/keystone/keystone.py",
-       timeout => 3600,
-        }
-
-
-	}
-      }
+   
 
       'glance' : {
        exec{"glance_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/glance/glance.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/glance/glance.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
- 	     }
-	}
+       require => Exec['prerequisites']
+ 	          }
+	   }
 
       'cinder-api' : {
         exec{"cinder_api_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/cinder/cinder.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/cinder/cinder.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
               }
         }
        
        'cinder-storage' : {
         exec{"cinder_storage_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/cinderstorage/cinderstorage.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/cinderstorage/cinderstorage.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
                }
         }
 
       'heat' : {
         exec{"heat_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/heat/heat.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/heat/heat.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
                }
         }
        
        'mongodb' : {
        exec{"mongodb_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/mongodb/mongodb.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/mongodb/mongodb.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
              }
         }
 
       'ceilometer' : {
        exec{"ceilometer_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/ceilometer/ceilometer.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/ceilometer/ceilometer.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
              }
         }
        
       'nova-api' : {
        exec{"nova_api_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/nova/nova.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/nova/nova.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
              }
         }
        
       'nova-compute' : {
        exec{"nova_compute_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/novacompute/novacompute.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/novacompute/novacompute.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
              }
         }
         
        'neutron-server' : {
        exec{"neutron_server_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/neutronserver/neutronserver.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/neutronserver/neutronserver.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
              }
         }
 
        'neutron-agent' : {
        exec{"neutron_agent_install":
        path => "/usr/bin:/bin",
-       command => "python /etc/puppet/fuel-python/openstack/icehouse/network/network.py",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/network/network.py",
        timeout => 3600,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
              }
         }
 
@@ -196,7 +160,7 @@ notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
         guest_passwd => "123456",
         rabbitmq_vip => $rabbitmq_vip,
         master_ip => $master_ip,
-       require => Exec['openstack_yaml']
+       require => Exec['prerequisites']
             }
 	}
 
@@ -204,20 +168,17 @@ notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
 	{
            exec{"horizon_install":
            path => "/usr/bin:/bin",
-           command => "python /etc/puppet/fuel-python/openstack/icehouse/dashboard/dashboard.py",
+           command => "python /etc/puppet/fuel-python/openstack/kilo/dashboard/dashboard.py",
            timeout => 3600,
-           require => Exec['openstack_yaml']
+           require => Exec['prerequisites']
            }
 
 	}
 
       default  : {
      #   fail("Unsupported osfamily: ${osfamily} for os ${operatingsystem}")
-	notify {"other $role...................................":}
-      }
-
-
-
+	    notify {"other $role...................................":}
+       }
+    }
 }
-      }
 
