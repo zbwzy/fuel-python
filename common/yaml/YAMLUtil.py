@@ -257,3 +257,6 @@ if __name__ == "__main__":
     print YAMLUtil.getRoleIPList('mysql')
     print 'has role========================='
     print YAMLUtil.hasRole('cinder')
+    pass
+
+

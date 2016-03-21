@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN DO LOCAL DEV
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -42,9 +42,9 @@ class ParamsProducer(object):
     '''
     classdocs
     '''
-    OPENSTACK_ROLES = ['mysql', 'rabbitmq', 'mongodb', 'keystone', 'glance', 'nova-api', 'nova-compute',
-                       'ceilometer', 'neutron-server', 'neutron', 'horizon', 'cinder-api', 'cinder-storage', 
-                       'heat', 'haproxy-keepalived'
+    OPENSTACK_ROLES = ['haproxy-keepalived', 'mysql', 'rabbitmq', 'mongodb', 'keystone', 'glance', 'nova-api', 
+                       'nova-compute','ceilometer', 'neutron-server', 'neutron', 'horizon', 'cinder-api', 
+                       'cinder-storage', 'heat'
                        ]
     
     def __init__(self):
@@ -608,9 +608,12 @@ class ParamsProducer(object):
             paramsMap['ha_vip1_interface'] = ha_vip1_interface
             paramsMap['ha_vip2_interface'] = ha_vip2_interface
             
+            print 'hhhhhhhhhhhhhhhh==========haha='
             ha_ips_list = YAMLUtil.getRoleIPList(role)
             ha_ips = ','.join(ha_ips_list)
             paramsMap['ha_ips'] = ha_ips
+            print 'ha_ips=%s' % ha_ips
+            print 'hhhhhhhhhhhhhh#####'
             
             #dispatch vip
             paramsMap['mysql_vip'] = ha_vip1
@@ -642,6 +645,7 @@ class ParamsProducer(object):
             ShellCmdExecutor.execCmd("mkdir %s" % openstackConfBaseDir)
             pass
         openstackParamsFilePath = os.path.join(openstackConfBaseDir, 'openstack_params.json')
+        print 'openstackParamsFilePath=%s--' % openstackParamsFilePath
         FileUtil.writeContent(openstackParamsFilePath, jsonParams)
         
         print 'produce role list done#######'

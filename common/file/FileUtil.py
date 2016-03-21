@@ -30,7 +30,17 @@ class FileUtil(object):
     @staticmethod
     def writeContent(file_path, content):
         dir_path = os.path.dirname(file_path)
-        os.system("mkdir -p %s" % dir_path)
+        if not os.path.exists(dir_path) :
+            os.system("mkdir -p %s" % dir_path)
+            pass
+        
+        if os.path.exists(file_path) :
+            os.system('rm -rf %s' % file_path)
+            pass
+        else :
+            os.system('touch %s' % file_path)
+            pass
+        
         config_file = file(file_path, 'w')
         config_file.write(content)
         config_file.close()
