@@ -39,7 +39,7 @@ class SSH(object):
     
     @staticmethod
     def sshMutualTrust():
-        fuel_ip = JSONUtility.getValue('fuel_ip')
+        fuel_master_ip = JSONUtility.getValue('fuel_master_ip')
         ShellCmdExecutor.execCmd('cp -r /root/.ssh/authorized_keys /root/.ssh/id_rsa.pub')
 #         ShellCmdExecutor.execCmd('mkdir /root/.ssh/')
         
@@ -51,7 +51,7 @@ class SSH(object):
         #scp key from fuel master:
         #Why do like this way? 
         #Because this way will not affect the action : on fuel master, ssh to any node without password.
-        scp_cmd = 'scp root@{fuel_ip}:/root/.ssh/id_rsa /root/.ssh/'.format(fuel_ip=fuel_ip)
+        scp_cmd = 'scp root@{fuel_master_ip}:/root/.ssh/id_rsa /root/.ssh/'.format(fuel_master_ip=fuel_master_ip)
         try:
             import pexpect
     
@@ -61,7 +61,7 @@ class SSH(object):
             child.expect('Are you sure you want to continue connecting.*')
             child.sendline('yes')
             
-            expect_pass_string = "root@{fuel_ip}'s password:".format(fuel_ip=fuel_ip)
+            expect_pass_string = "root@{fuel_master_ip}'s password:".format(fuel_master_ip=fuel_master_ip)
             fuel_root_password = "r00tme"
             child.expect(expect_pass_string)
             child.sendline(fuel_root_password)

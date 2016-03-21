@@ -41,6 +41,15 @@ class deploy_openstack {
   notify {">>>>>>>>>>>>>【$keystone_role】------------------------------":}
 
   case $role {
+      'haproxy-keepalived' : {
+      exec{"ha_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/ha/HAProxyKeepalived.py",
+       timeout => 3600,
+       require => Exec['prerequisites']
+             }
+       }
+       
       'mysql' : {
       exec{"mysql_install":
        path => "/usr/bin:/bin",

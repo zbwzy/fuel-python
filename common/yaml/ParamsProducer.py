@@ -86,6 +86,9 @@ class ParamsProducer(object):
         paramsMap = {}
         #global variables
         print 'global==========================='
+        fuel_master_ip = YAMLUtil.getValue('global', 'fuel_master_ip')
+        paramsMap['fuel_master_ip'] = fuel_master_ip
+        
         admin_token = YAMLUtil.getValue('global', 'admin_token')
         paramsMap['admin_token'] = admin_token
         

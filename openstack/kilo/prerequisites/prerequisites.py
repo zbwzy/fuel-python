@@ -72,20 +72,26 @@ class Prerequisites(object):
         Memcached.install()
         Memcached.start()
         
+        #######produce params
+        print 'produce openstack params========'
+        ParamsProducer.produce()
+        print 'done to produce openstack params####'
+        
         #ssh root user mutual trust
+        #depend on openstack_params.json is produced
         print 'do ssh mutual trust====='
         SSH.sshMutualTrust()
         print 'do ssh mutual trust#####'
         
         #iptables
         IPTables.apply()
-        
+         
         #keep log on disk
         print 'do keep log on disk======='
         ShellCmdExecutor.execCmd('mkdir -p /var/log/journal')
         ShellCmdExecutor.execCmd('systemctl restart systemd-journald')
         print 'do keep log on disk####'
-        
+         
         #sysctl
         print 'do sysctl============='
         sysctlConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'sysctl', 'sysctl.conf')
@@ -93,12 +99,11 @@ class Prerequisites(object):
         ShellCmdExecutor.execCmd('sysctl -p')
         print 'do sysctl####'
         
-        #######produce params
-        print 'produce openstack params========'
-        ParamsProducer.produce()
-        print 'done to produce openstack params####'
         pass
     pass
 
 if __name__ == '__main__':
+    print 'openstack kilo:to do prerequisites============'
+    Prerequisites.install()
+    print 'openstack kilo: done prerequisites######'
     pass
