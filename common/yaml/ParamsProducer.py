@@ -608,6 +608,10 @@ class ParamsProducer(object):
             paramsMap['ha_vip1_interface'] = ha_vip1_interface
             paramsMap['ha_vip2_interface'] = ha_vip2_interface
             
+            ha_ips_list = YAMLUtil.getRoleIPList(role)
+            ha_ips = ','.join(ha_ips_list)
+            paramsMap['ha_ips'] = ha_ips
+            
             #dispatch vip
             paramsMap['mysql_vip'] = ha_vip1
             paramsMap['rabbit_vip'] = ha_vip1

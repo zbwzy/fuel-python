@@ -41,6 +41,10 @@ class SSH(object):
     def sshMutualTrust():
         fuel_master_ip = JSONUtility.getValue('fuel_master_ip')
         ShellCmdExecutor.execCmd('cp -r /root/.ssh/authorized_keys /root/.ssh/id_rsa.pub')
+        
+        if os.path.exists('/root/.ssh/known_hosts') :
+            os.system('rm -rf /root/.ssh/known_hosts')
+            pass
 #         ShellCmdExecutor.execCmd('mkdir /root/.ssh/')
         
 #         root_ssh_dir_path = '/root/.ssh'

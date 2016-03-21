@@ -44,6 +44,10 @@ class IPTables(object):
     def apply():
         iptable4ComputeTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'iptables', 'iptables.compute')
         iptable4ControllerTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'iptables', 'iptables.controller')
+        
+        #stop firewalld
+        ShellCmdExecutor.execCmd('systemctl stop firewalld.service')
+        
         if Role.isNovaComputeRole() :
             ShellCmdExecutor.execCmd('rm -rf /etc/sysconfig/iptables')
             ShellCmdExecutor.execCmd('cp -r %s /etc/sysconfig' % iptable4ComputeTemplatePath)

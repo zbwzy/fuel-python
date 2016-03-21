@@ -36,5 +36,6 @@
 -A INPUT -p tcp -m tcp --dport 15672 -m comment --comment "rabbitmq monitor" -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 25672 -m comment --comment "rabbitmq monitor" -j ACCEPT
 -A OUTPUT -o virbr0 -p udp -m udp --dport 68 -j ACCEPT
--A INPUT -p tcp -m tcp --dport 11211 -j ACCEPT -m comment --comment "memcache"
+#-A INPUT -p tcp -m tcp --dport 11211 -j ACCEPT -m comment --comment "memcache"
+-A INPUT -p tcp -m tcp --dport 11211 -m comment --comment "memcache" -j ACCEPT
 COMMIT

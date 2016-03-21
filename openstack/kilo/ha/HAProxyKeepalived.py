@@ -58,7 +58,7 @@ class HA(object):
         keepalived_conf_2_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.2')
         
         keepalived_conf_dest_path = '/etc/keepalived/keepalived.conf'
-        haproxy_keepalived_ips = JSONUtility.getValue('haproxy_keepalived_ips')
+        haproxy_keepalived_ips = JSONUtility.getValue('ha_ips')
         haproxy_keepalived_ip_list = haproxy_keepalived_ips.split(',')
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
