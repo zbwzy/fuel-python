@@ -1,4 +1,8 @@
 #!/bin/sh
+
+export OS_TOKEN=<ADMIN_TOKEN>
+export OS_URL=http://<KEYSTONE_VIP>:35357/v2.0
+
 export LC_ALL=C
 export OS_NO_CACHE='true'
 export OS_TENANT_NAME='admin'
@@ -18,7 +22,7 @@ export OS_VOLUME_API_VERSION=2
 
 #
 echo 'init nova in keystone===='
-keystone user-create --name=nova --pass=<KEYSTONE_NOVA_PASSWORD>
+openstack user create --password-prompt nova
 openstack role add --project service --user nova admin
 openstack service create --name nova --description "OpenStack Compute" compute
 openstack endpoint create \

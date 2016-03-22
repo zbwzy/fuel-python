@@ -173,7 +173,7 @@ vif_plugging_timeout=0
         ShellCmdExecutor.execCmd('chown -R root:root /etc/libvirt/libvirtd.conf')
         ShellCmdExecutor.execCmd('chown -R root:root /etc/sysconfig/libvirtd')
         
-        ShellCmdExecutor.execCmd('/bin/systemctl restart libvirtd.service')
+        ShellCmdExecutor.execCmd('systemctl restart libvirtd.service')
         pass
     
     @staticmethod

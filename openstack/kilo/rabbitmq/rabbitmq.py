@@ -126,6 +126,7 @@ class RabbitMQ(object):
         rabbit_password = JSONUtility.getValue('rabbit_password')
         FileUtil.replaceFileContent(init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
         FileUtil.replaceFileContent(init_script_path, '<RABBIT_PASS>', rabbit_password)
+        time.sleep(3)
         output,exitcode = ShellCmdExecutor.execCmd('bash %s' % init_script_path)
         pass
     pass

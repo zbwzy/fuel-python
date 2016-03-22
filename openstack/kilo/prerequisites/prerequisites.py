@@ -85,7 +85,8 @@ class Prerequisites(object):
         
         #iptables
         IPTables.apply()
-         
+        ShellCmdExecutor.execCmd('systemctl restart iptables.service')
+        
         #keep log on disk
         print 'do keep log on disk======='
         ShellCmdExecutor.execCmd('mkdir -p /var/log/journal')

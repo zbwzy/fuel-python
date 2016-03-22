@@ -59,7 +59,7 @@ class IPTables(object):
             ShellCmdExecutor.execCmd('mv /etc/sysconfig/iptables.controller /etc/sysconfig/iptables')
             pass
         
-        ShellCmdExecutor.execCmd('/bin/systemctl restart iptables.service')
+        ShellCmdExecutor.execCmd('systemctl restart iptables.service')
         pass
     pass
 

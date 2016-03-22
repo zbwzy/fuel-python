@@ -130,6 +130,10 @@ class Keystone(object):
     @staticmethod
     def start():
         print "start keystone========="
+        #assign rights
+        ShellCmdExecutor.execCmd('chown -R keystone:keystone /etc/keystone')
+        ShellCmdExecutor.execCmd('chown -R keystone:keystone /var/www/cgi-bin/keystone')
+        ShellCmdExecutor.execCmd('chmod 755 /var/www/cgi-bin/keystone/*')
         if debug == True :
             print 'DEBUG=True.On local dev env, do test===='
             pass
@@ -303,6 +307,7 @@ class Keystone(object):
         FileUtil.replaceFileContent(keystone_conf_file_path, '<MEMCACHED_LIST>', memcached_service_string)
         
         ShellCmdExecutor.execCmd("chmod 644 %s" % keystone_conf_file_path)
+        
         print "configure keystone conf file done####"
         pass
     

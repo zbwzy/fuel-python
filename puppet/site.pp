@@ -58,6 +58,15 @@ class deploy_openstack {
        require => Exec['prerequisites']
              }
        }
+       
+       'rabbitmq' : {
+      exec{"rabbitmq_install":
+       path => "/usr/bin:/bin",
+       command => "python /etc/puppet/fuel-python/openstack/kilo/rabbitmq/rabbitmq.py",
+       timeout => 3600,
+       require => Exec['prerequisites']
+             }
+       }
 		
 
       'keystone' : {
@@ -159,19 +168,6 @@ class deploy_openstack {
        require => Exec['prerequisites']
              }
         }
-
-
-      'rabbitmq' :
-	{
-      $rabbitmq_vip = $fuel_settings['rabbitmq']
-      class { 'rabbitmq_clu':
-        installDir => $installDir,
-        guest_passwd => "123456",
-        rabbitmq_vip => $rabbitmq_vip,
-        master_ip => $master_ip,
-       require => Exec['prerequisites']
-            }
-	}
 
 	'horizon':
 	{

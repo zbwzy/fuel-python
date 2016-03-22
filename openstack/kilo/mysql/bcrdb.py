@@ -93,10 +93,9 @@ class BCRDB(object):
         
         FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<MYSQL_IP_LIST>', mysql_ip_list_string)
         
-        #add user bcrdb
-        ShellCmdExecutor.execCmd('useradd bcrdb')
-        #assign rights
-        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /opt/bcrdb')
+        mysql_dir_rights_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'mysql_dir_rights.sh')
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % mysql_dir_rights_script_path)
+        ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/mysql_dir_rights.sh')
         
         #cp mysql to /usr/bin
         ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % EXECUTE_MYSQL_PATH)
@@ -107,6 +106,9 @@ class BCRDB(object):
     @staticmethod
     def start():
         from openstack.common.serverSequence import ServerSequence
+        ShellCmdExecutor.execCmd('useradd bcrdb')
+        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /opt/bcrdb')
+        
         mysql_ips = JSONUtility.getValue("mysql_ips")
         print 'mysql_ips=%s---' % mysql_ips
         mysql_ip_list = mysql_ips.strip().split(',')

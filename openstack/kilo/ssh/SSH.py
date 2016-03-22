@@ -55,6 +55,10 @@ class SSH(object):
         #scp key from fuel master:
         #Why do like this way? 
         #Because this way will not affect the action : on fuel master, ssh to any node without password.
+        if os.path.exists('/root/.ssh/id_rsa') :
+            os.system('rm -rf /root/.ssh/id_rsa')
+            pass
+        
         scp_cmd = 'scp root@{fuel_master_ip}:/root/.ssh/id_rsa /root/.ssh/'.format(fuel_master_ip=fuel_master_ip)
         try:
             import pexpect
@@ -95,7 +99,7 @@ class SSH(object):
         ShellCmdExecutor.execCmd('chmod 400 /root/.ssh/id_rsa')
         ShellCmdExecutor.execCmd('chmod 400 /root/.ssh/id_rsa.pub')
         ShellCmdExecutor.execCmd('chown -R root:root /root/.ssh/')
-        ShellCmdExecutor.execCmd('/bin/systemctl restart sshd.service')
+        ShellCmdExecutor.execCmd('systemctl restart sshd.service')
         pass
     
     #Example: 

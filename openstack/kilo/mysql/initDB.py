@@ -167,11 +167,12 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
+                keystone_dbpass = JSONUtility.getValue('keystone_dbpass')
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=keystone_dbpass)
                 print 'grantCmd1=%s--' % grantCmd1
                 grantCmd2 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=keystone_dbpass)
                 print 'grantCmd2=%s--' % grantCmd2
                 
     #             grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
@@ -215,11 +216,12 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
+                glance_dbpass= JSONUtility.getValue('glance_dbpass')
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=glance_dbpass)
                 
                 grantCmd2 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=glance_dbpass)
                 
     #             grantToHostname = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
     #             .format(hostname=hostname,init_passwd=initPasswd)
@@ -237,11 +239,12 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
+                nova_dbpass= JSONUtility.getValue('nova_dbpass')
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=nova_dbpass)
                 
                 grantCmd2 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=nova_dbpass)
                 
     #             grantToHostname = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
     #             .format(hostname=hostname,init_passwd=initPasswd)
@@ -265,11 +268,12 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
+                neutron_dbpass= JSONUtility.getValue('neutron_dbpass')
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=neutron_dbpass)
                 
                 grantCmd2 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=neutron_dbpass)
                 
     #             grantToHostname = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
     #             .format(hostname=hostname,init_passwd=initPasswd)
@@ -284,11 +288,12 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
+                cinder_dbpass= JSONUtility.getValue('cinder_dbpass')
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=cinder_dbpass)
                 
                 grantCmd2 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=cinder_dbpass)
                 
     #             grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'cinder\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
     #             .format(hostname=hostname,init_passwd=initPasswd)
@@ -317,11 +322,12 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
+                heat_dbpass= JSONUtility.getValue('heat_dbpass')
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=heat_dbpass)
                 
                 grantCmd2 = 'GRANT ALL PRIVILEGES ON heat.* TO \'heat\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
-                .format(init_passwd=initPasswd)
+                .format(init_passwd=heat_dbpass)
                 
     #             grantToHostname = 'GRANT ALL PRIVILEGES ON keystone.* TO \'heat\'@\'{hostname}\' IDENTIFIED BY \'{init_passwd}\''\
     #             .format(hostname=hostname,init_passwd=initPasswd)

@@ -66,15 +66,16 @@ class HA(object):
         serverIndex = ServerSequence.getIndex(haproxy_keepalived_ip_list, local_management_ip)
         if serverIndex == 0 :
             ShellCmdExecutor.execCmd('cp -r %s %s' % (keepalived_conf_1_template_path, keepalived_conf_dest_path))
-            FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP1>', ha_vip1)
-            FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP1_INTERFACE>', ha_vip1_interface)
             pass
         
         if serverIndex == 1 :
             ShellCmdExecutor.execCmd('cp -r %s %s' % (keepalived_conf_2_template_path, keepalived_conf_dest_path))
-            FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP2>', ha_vip2)
-            FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP1_INTERFACE>', ha_vip2_interface)
             pass
+        
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP1>', ha_vip1)
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP1_INTERFACE>', ha_vip1_interface)
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP2>', ha_vip2)
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP2_INTERFACE>', ha_vip2_interface)
         
         haproxy_check_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'haproxy_check.sh')
         ShellCmdExecutor.execCmd('cp -r %s /etc/keepalived/' % haproxy_check_script_path)

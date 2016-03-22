@@ -6,7 +6,7 @@ echo 'ulimit -n 102400' > /etc/default/rabbitmq-server
 #ps aux| grep rabbitmq | grep erlang| grep -v grep | awk '{print "kill -9 " $2}'  | bash
 
 sleep 2
-rabbitmq-server -detached
+/usr/sbin/rabbitmq-server -detached
 sleep 5
 #rabbitmqctl change_password guest 123456
 rabbitmqctl add_user <RABBIT_USER_ID> <RABBIT_PASS>
