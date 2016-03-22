@@ -22,7 +22,6 @@ export OS_VOLUME_API_VERSION=2
 
 #
 echo 'init nova in keystone===='
-openstack user create --password-prompt nova
 openstack role add --project service --user nova admin
 openstack service create --name nova --description "OpenStack Compute" compute
 openstack endpoint create \

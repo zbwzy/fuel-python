@@ -21,8 +21,7 @@ export OS_VOLUME_API_VERSION=2
 
 #
 echo 'init neutron in keystone===='
-openstack user create --password-prompt neutron
-#keystone user-create --name=neutron --pass=<KEYSTONE_NEUTRON_PASSWORD>
+
 openstack role add --project service --user neutron admin
 openstack service create --name neutron --description "OpenStack Networking" network
 openstack endpoint create --publicurl http://<NEUTRON_VIP>:9696 --adminurl http://<NEUTRON_VIP>:9696 --internalurl http://<NEUTRON_VIP>:9696 --region RegionOne network

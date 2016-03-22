@@ -56,10 +56,19 @@ class InitKeystone(object):
     
     @staticmethod
     def init():
+        InitKeystone.initKeystoneUser()
         InitKeystone.initKeystone()
+        
+        InitKeystone.initGlanceUser()
         InitKeystone.initGlance()
+        
+        InitKeystone.initNovaUser()
         InitKeystone.initNova()
+        
+        InitKeystone.initNeutronUser()
         InitKeystone.initNeutron()
+        
+        InitKeystone.initCinderUser()
         InitKeystone.initCinder()
         pass
     
@@ -105,6 +114,145 @@ Repeat User Password:
         
     
     @staticmethod
+    def initKeystoneUser(): #init all component's user/password/project/endpoint in keystone
+        admin_token = JSONUtility.getValue('admin_token')
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        keystone_ip = output.strip()
+        if Keystone.getServerIndex() == 0 :
+            initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystoneUser.sh')
+            if not os.path.exists('/opt/openstack_conf/scripts') :
+                os.system('mkdir -p /opt/openstack_conf/scripts')
+                pass
+            
+            ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % initKeystoneScriptPath)
+            
+            initKeystoneDestFilePath = '/opt/openstack_conf/scripts/initKeystoneUser.sh'
+            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_IP>', keystone_ip)
+            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            time.sleep(3)
+#             output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
+            print 'initKeystone.output=%s' % output
+            InitKeystone.initOpenstackComponentToKeystone(initKeystoneDestFilePath, keystone_admin_password)
+    
+    @staticmethod
+    def initGlanceUser():
+        #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_GLANCE_PASSWORD GLANCE_VIP
+        admin_token = JSONUtility.getValue('admin_token')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_glance_password = JSONUtility.getValue('keystone_glance_password')
+        glance_vip = JSONUtility.getValue('ha_vip1')
+        
+        initGlanceScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'initGlanceUser.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initGlanceScriptTemplatePath, openstackScriptDirPath))
+        
+        initGlanceScriptPath = os.path.join(openstackScriptDirPath, 'initGlanceUser.sh')
+        FileUtil.replaceFileContent(initGlanceScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initGlanceScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initGlanceScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initGlanceScriptPath, '<GLANCE_VIP>', glance_vip)
+#         output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initGlanceScriptPath)
+        InitKeystone.initOpenstackComponentToKeystone(initGlanceScriptPath, keystone_glance_password)
+        pass
+    
+    @staticmethod
+    def initNovaUser():
+        #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_NOVA_PASSWORD NOVA_VIP
+        admin_token = JSONUtility.getValue('admin_token')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_nova_password = JSONUtility.getValue('keystone_nova_password')
+        nova_vip = JSONUtility.getValue('ha_vip1')
+        
+        initNovaScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'initNovaUser.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initNovaScriptTemplatePath, openstackScriptDirPath))
+        
+        initNovaScriptPath = os.path.join(openstackScriptDirPath, 'initNovaUser.sh')
+        FileUtil.replaceFileContent(initNovaScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initNovaScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initNovaScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initNovaScriptPath, '<NOVA_VIP>', nova_vip)
+#         ShellCmdExecutor.execCmd('bash %s' % initNovaScriptPath)
+        InitKeystone.initOpenstackComponentToKeystone(initNovaScriptPath, keystone_nova_password)
+        pass
+    
+    @staticmethod
+    def initNeutronUser():
+        admin_token = JSONUtility.getValue('admin_token')
+        ha_vip1 = JSONUtility.getValue('ha_vip1')
+        ha_vip2 = JSONUtility.getValue('ha_vip2')
+        
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = ha_vip1
+        keystone_neutron_password = JSONUtility.getValue('keystone_neutron_password')
+        neutron_vip = ha_vip1
+        
+        initNeutronScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'initNeutronUser.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initNeutronScriptTemplatePath, openstackScriptDirPath))
+        
+        initNeutronScriptPath = os.path.join(openstackScriptDirPath, 'initNeutronUser.sh')
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initNeutronScriptPath, '<NEUTRON_VIP>', neutron_vip)
+#         output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initNeutronScriptPath)
+        InitKeystone.initOpenstackComponentToKeystone(initNeutronScriptPath, keystone_neutron_password)
+        pass
+    
+    @staticmethod
+    def initCinderUser():
+        admin_token = JSONUtility.getValue('admin_token')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
+        cinder_vip = JSONUtility.getValue('ha_vip1')
+        
+        initCinderScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'initCinderUser.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initCinderScriptTemplatePath, openstackScriptDirPath))
+        
+        initCinderScriptPath = os.path.join(openstackScriptDirPath, 'initCinderUser.sh')
+        FileUtil.replaceFileContent(initCinderScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initCinderScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initCinderScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initCinderScriptPath, '<CINDER_VIP>', cinder_vip)
+#         ShellCmdExecutor.execCmd('bash %s' % initCinderScriptPath)
+        InitKeystone.initOpenstackComponentToKeystone(initCinderScriptPath, keystone_cinder_password)
+        pass
+    
+    ######
+    @staticmethod
     def initKeystone(): #init all component's user/password/project/endpoint in keystone
         admin_token = JSONUtility.getValue('admin_token')
         keystone_vip = JSONUtility.getValue('keystone_vip')
@@ -125,9 +273,8 @@ Repeat User Password:
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_IP>', keystone_ip)
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
             time.sleep(3)
-#             output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
+            output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
             print 'initKeystone.output=%s' % output
-            InitKeystone.initOpenstackComponentToKeystone(initKeystoneDestFilePath, keystone_admin_password)
     
     @staticmethod
     def initGlance():
@@ -153,8 +300,8 @@ Repeat User Password:
         FileUtil.replaceFileContent(initGlanceScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent(initGlanceScriptPath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(initGlanceScriptPath, '<GLANCE_VIP>', glance_vip)
-#         output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initGlanceScriptPath)
-        InitKeystone.initOpenstackComponentToKeystone(initGlanceScriptPath, keystone_glance_password)
+        output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initGlanceScriptPath)
+        print 'output=%s' % output
         pass
     
     @staticmethod
@@ -181,8 +328,8 @@ Repeat User Password:
         FileUtil.replaceFileContent(initNovaScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent(initNovaScriptPath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(initNovaScriptPath, '<NOVA_VIP>', nova_vip)
-#         ShellCmdExecutor.execCmd('bash %s' % initNovaScriptPath)
-        InitKeystone.initOpenstackComponentToKeystone(initNovaScriptPath, keystone_nova_password)
+        output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initNovaScriptPath)
+        print 'output=%s' % output
         pass
     
     @staticmethod
@@ -211,8 +358,8 @@ Repeat User Password:
         FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(initNeutronScriptPath, '<NEUTRON_VIP>', neutron_vip)
-#         output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initNeutronScriptPath)
-        InitKeystone.initOpenstackComponentToKeystone(initNeutronScriptPath, keystone_neutron_password)
+        output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initNeutronScriptPath)
+        print 'output=%s' % output
         pass
     
     @staticmethod
@@ -238,8 +385,8 @@ Repeat User Password:
         FileUtil.replaceFileContent(initCinderScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent(initCinderScriptPath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(initCinderScriptPath, '<CINDER_VIP>', cinder_vip)
-#         ShellCmdExecutor.execCmd('bash %s' % initCinderScriptPath)
-        InitKeystone.initOpenstackComponentToKeystone(initCinderScriptPath, keystone_cinder_password)
+        output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initCinderScriptPath)
+        print 'output=%s' % output
         pass
 
 

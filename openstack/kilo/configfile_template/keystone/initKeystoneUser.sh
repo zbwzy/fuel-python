@@ -21,6 +21,8 @@ export OS_ENDPOINT_TYPE='internalURL'
 export OS_VOLUME_API_VERSION=2
 
 
+openstack user create --password-prompt admin
+
 openstack service create --name keystone --description "OpenStack Identity" identity
 openstack endpoint create --publicurl http://<KEYSTONE_VIP>:5000/v2.0 --internalurl http://<KEYSTONE_VIP>:5000/v2.0 --adminurl http://<KEYSTONE_VIP>:35357/v2.0 --region RegionOne identity
 

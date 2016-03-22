@@ -21,7 +21,6 @@ export OS_VOLUME_API_VERSION=2
 
 #
 echo 'init cinder in keystone===='
-openstack user create --password-prompt cinder
 
 openstack role add --project service --user cinder admin
 
