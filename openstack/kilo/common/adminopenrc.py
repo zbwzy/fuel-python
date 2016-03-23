@@ -54,8 +54,11 @@ class AdminOpenrc(object):
         adminOpenrcTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'admin-openrc.sh')
         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf' % adminOpenrcTemplateFilePath)
         
+        admin_token = JSONUtility.getValue('admin_token')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         keystone_vip = JSONUtility.getValue('keystone_vip')
+        
+        FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
         pass

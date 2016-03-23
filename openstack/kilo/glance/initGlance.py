@@ -50,7 +50,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     
-    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/init_glance'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_glance'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'glance installed####'

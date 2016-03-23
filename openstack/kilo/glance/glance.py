@@ -75,6 +75,8 @@ class Glance(object):
     @staticmethod
     def start():
         print "start glance========="
+        ShellCmdExecutor.execCmd('chown -R glance:glance /etc/glance/')
+        
         if debug == True :
             print 'DEBUG=True.On local dev env, do test===='
             pass

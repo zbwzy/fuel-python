@@ -272,7 +272,7 @@ Repeat User Password:
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<ADMIN_TOKEN>', admin_token)
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_IP>', keystone_ip)
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
-            time.sleep(3)
+            time.sleep(1)
             output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
             print 'initKeystone.output=%s' % output
     
@@ -395,7 +395,6 @@ if __name__ == '__main__':
     print 'hello openstack-kilo:keystone============'
     
     print 'start time: %s' % time.ctime()
-    InitKeystone.initGlance()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
     ###############################

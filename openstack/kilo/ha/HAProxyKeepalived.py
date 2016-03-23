@@ -97,6 +97,10 @@ class HA(object):
             HA.setMysqlHaproxyString()
             pass
         
+        if YAMLUtil.hasRoleInNodes('rabbitmq') :
+            HA.setRabbitHaproxyString()
+            pass
+        
         if YAMLUtil.hasRoleInNodes('keystone') :
             HA.setKeystoneHaproxyString()
             pass
@@ -526,6 +530,46 @@ listen ceilometer_api
         ceilometerServerBackendString = ceilometerServerBackendString.replace('<CEILOMETER_SERVER_LIST>', ceilometerServerListContent)
         print 'ceilometerServerBackendString=%s--' % ceilometerServerBackendString
         HA.appendBackendStringToHaproxyCfg(ceilometerServerBackendString)
+        pass
+    
+    @staticmethod
+    def setRabbitHaproxyString():
+        rabbitmqServerBackendString = '''
+listen rabbitmq
+  bind 0.0.0.0:5672
+  balance  roundrobin
+  mode  tcp
+  option  tcpka
+  timeout client  48h
+  timeout server  48h
+  <RABBITMQ_SERVER_LIST>
+        '''
+        rabbitmq_ips = JSONUtility.getValue("rabbitmq_ips")
+        rabbitmq_ip_list = rabbitmq_ips.strip().split(',')
+
+        serverRabbitmqBackupTemplate   = 'server rabbitmq<INDEX> <SERVER_IP>:5672  backup check inter 5000 rise 2 fall 3'
+
+        rabbitmqServerListContent = ''
+        masterServerString = 'server rabbitmq1 {server_ip}:5672   check inter 5000 rise 2 fall 3'.format(server_ip=rabbitmq_ip_list[0])
+        rabbitmqServerListContent += masterServerString
+        rabbitmqServerListContent += '\n'
+        rabbitmqServerListContent += '  '
+        
+        if len(rabbitmq_ip_list) > 1 :
+            index = 2
+            for ip in rabbitmq_ip_list[1:] :
+                rabbitmqServerListContent += serverRabbitmqBackupTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
+                rabbitmqServerListContent += '\n'
+                rabbitmqServerListContent += '  '
+                index += 1
+                pass
+
+        rabbitmqServerListContent = rabbitmqServerListContent.strip()
+        print 'rabbitmqServerListContent=%s--' % rabbitmqServerListContent
+
+        rabbitmqServerBackendString = rabbitmqServerBackendString.replace('<RABBITMQ_SERVER_LIST>', rabbitmqServerListContent)
+        print 'rabbitmqServerBackendString=%s--' % rabbitmqServerBackendString
+        HA.appendBackendStringToHaproxyCfg(rabbitmqServerBackendString)
         pass
     
     @staticmethod

@@ -1,4 +1,8 @@
 #!/bin/sh
+
+export OS_TOKEN=<ADMIN_TOKEN>
+export OS_URL=http://<KEYSTONE_VIP>:35357/v2.0
+
 export LC_ALL=C
 export OS_NO_CACHE='true'
 export OS_TENANT_NAME='admin'
