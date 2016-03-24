@@ -194,7 +194,11 @@ class HA(object):
     
     @staticmethod
     def setMysqlHaproxyString():
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        
         ha_vip1 = JSONUtility.getValue('ha_vip1')
+        ha_vip2 = JSONUtility.getValue('ha_vip2')
         mysqlBackendApiStringTemplate = '''
 listen rdb_mysql
   bind <HA_VIP1>:3306
@@ -210,10 +214,29 @@ listen rdb_mysql
   <RDB_MYSQL_SERVER_LIST>
         '''
         
-        mysqlBackendString = mysqlBackendApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
+        mysqlBackendApiStringTemplate2 = '''
+listen rdb_mysql
+  bind <HA_VIP2>:3306
+  balance  leastconn
+  mode  tcp
+  option  mysql-check user haproxy
+  option  tcpka
+  option  tcplog
+  option  clitcpka
+  option  srvtcpka
+  timeout client  28801s
+  timeout server  28801s
+  <RDB_MYSQL_SERVER_LIST>
+        '''
         
         mysql_ips = JSONUtility.getValue("mysql_ips")
         mysql_ip_list = mysql_ips.strip().split(',')
+        
+        if ServerSequence.getIndex(mysql_ip_list, localIP) == 0 :
+            mysqlBackendString = mysqlBackendApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
+            pass
+        else :
+            mysqlBackendString = mysqlBackendApiStringTemplate2.replace('<HA_VIP2>', ha_vip2)
         
         #mysql master
         serverMysqlBacendString1 = 'server mysql1 %s:3306 check inter 2000 rise 2 fall 3' % mysql_ip_list[0]
