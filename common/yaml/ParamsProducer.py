@@ -244,8 +244,8 @@ class ParamsProducer(object):
             key = 'keystone_mysql_user'
             keystone_mysql_user = YAMLUtil.getValue(role, key)
             
-            key = 'keystone_mysql_password'
-            keystone_mysql_password = YAMLUtil.getValue(role, key)
+            #key = 'keystone_mysql_password'
+            #keystone_mysql_password = YAMLUtil.getValue(role, key)
             
             keystone_ips_list = YAMLUtil.getRoleIPList(role)
             keystone_ips = ','.join(keystone_ips_list)
@@ -258,7 +258,7 @@ class ParamsProducer(object):
             paramsMap['keystone_vip'] = keystone_vip
             paramsMap['keystone_vip_interface'] = keystone_vip_interface
             paramsMap['keystone_mysql_user'] = keystone_mysql_user
-            paramsMap['keystone_mysql_password'] = keystone_mysql_password
+            #paramsMap['keystone_mysql_password'] = keystone_mysql_password
             paramsMap['keystone_ips'] = keystone_ips
             
             if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), keystone_ips_list) :
@@ -285,8 +285,8 @@ class ParamsProducer(object):
             key = 'glance_mysql_user'
             glance_mysql_user = YAMLUtil.getValue(role, key)
             
-            key = 'glance_mysql_password'
-            glance_mysql_password = YAMLUtil.getValue(role, key)
+            #key = 'glance_mysql_password'
+            #glance_mysql_password = YAMLUtil.getValue(role, key)
             
             glance_ips_list = YAMLUtil.getRoleIPList(role)
             glance_ips = ','.join(glance_ips_list)
@@ -294,12 +294,12 @@ class ParamsProducer(object):
             print 'glance_vip=%s--' % glance_vip
             print 'glance_vip_interface=%s--' % glance_vip_interface
             print 'glance_mysql_user=%s--' % glance_mysql_user
-            print 'glance_mysql_password=%s--' % glance_mysql_password 
+            #print 'glance_mysql_password=%s--' % glance_mysql_password 
             print 'glance_ips=%s--' % glance_ips
             paramsMap['glance_vip'] = glance_vip
             paramsMap['glance_vip_interface'] = glance_vip_interface
             paramsMap['glance_mysql_user'] = glance_mysql_user
-            paramsMap['glance_mysql_password'] = glance_mysql_password
+            #paramsMap['glance_mysql_password'] = glance_mysql_password
             paramsMap['glance_ips'] = glance_ips
             
             if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), glance_ips_list) :
@@ -322,8 +322,8 @@ class ParamsProducer(object):
             
             key = 'neutron_mysql_user'
             neutron_mysql_user = YAMLUtil.getValue(role, key)
-            key = 'neutron_mysql_password'
-            neutron_mysql_password = YAMLUtil.getValue(role, key)
+            #key = 'neutron_mysql_password'
+            #neutron_mysql_password = YAMLUtil.getValue(role, key)
             
             neutron_ip_list = YAMLUtil.getRoleIPList(role)
             neutron_ips = ','.join(neutron_ip_list)
@@ -333,13 +333,13 @@ class ParamsProducer(object):
             print 'neutron_network_mode=%s--' % neutron_network_mode
             
             print 'neutron_mysql_user=%s--' % neutron_mysql_user
-            print 'neutron_mysql_user_password=%s--' % neutron_mysql_password
+            #print 'neutron_mysql_user_password=%s--' % neutron_mysql_password
             
             print 'neutron_ips=%s--' % neutron_ips
             paramsMap['neutron_vip'] = neutron_vip
             paramsMap['neutron_vip_interface'] = neutron_vip_interface
             paramsMap['neutron_mysql_user'] = neutron_mysql_user
-            paramsMap['neutron_mysql_password'] = neutron_mysql_password
+            #paramsMap['neutron_mysql_password'] = neutron_mysql_password
             paramsMap['neutron_network_mode'] = neutron_network_mode
             paramsMap['neutron_ips'] = neutron_ips
             
@@ -361,8 +361,8 @@ class ParamsProducer(object):
             key = 'nova_mysql_user'
             nova_mysql_user = YAMLUtil.getValue(role, key)
             
-            key = 'nova_mysql_password'
-            nova_mysql_password = YAMLUtil.getValue(role, key)
+            #key = 'nova_mysql_password'
+            #nova_mysql_password = YAMLUtil.getValue(role, key)
             
             nova_ip_list = YAMLUtil.getRoleIPList(role)
             nova_ips = ','.join(nova_ip_list)
@@ -370,14 +370,14 @@ class ParamsProducer(object):
             print 'nova_vip=%s--' % nova_vip
             print 'nova_vip_interface=%s--' % nova_vip_interface
             print 'nova_mysql_user=%s--' % nova_mysql_user
-            print 'nova_mysql_password=%s--' % nova_mysql_password
+            #print 'nova_mysql_password=%s--' % nova_mysql_password
             
             print 'nova_ips=%s--' % nova_ips
             print YAMLUtil.hasRoleInNodes('nova-api')
             paramsMap['nova_vip'] = nova_vip
             paramsMap['nova_vip_interface'] = nova_vip_interface
             paramsMap['nova_mysql_user'] = nova_mysql_user
-            paramsMap['nova_mysql_password'] = nova_mysql_password
+            #paramsMap['nova_mysql_password'] = nova_mysql_password
             paramsMap['nova_ips'] = nova_ips
             
             if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), nova_ip_list) :
@@ -439,20 +439,20 @@ class ParamsProducer(object):
             key = 'cinder_mysql_user'
             cinder_mysql_user = YAMLUtil.getValue(role, key)
             
-            key = 'cinder_mysql_password'
-            cinder_mysql_password = YAMLUtil.getValue(role, key)
+            #key = 'cinder_mysql_password'
+            #cinder_mysql_password = YAMLUtil.getValue(role, key)
             
             cinder_ips_list = YAMLUtil.getRoleIPList(role)
             cinder_ips = ','.join(cinder_ips_list)
             print 'cinder_vip=%s-' % cinder_vip
             print 'cinder_vip_interface=%s--' % cinder_vip_interface
             print 'cinder_mysql_user=%s--' % cinder_mysql_user
-            print 'cinder_mysql_password=%s--' % cinder_mysql_password
+            #print 'cinder_mysql_password=%s--' % cinder_mysql_password
             print 'cinder_ips=%s--' % cinder_ips
             paramsMap['cinder_vip'] = cinder_vip
             paramsMap['cinder_vip_interface'] = cinder_vip_interface
             paramsMap['cinder_mysql_user'] = cinder_mysql_user
-            paramsMap['cinder_mysql_password'] = cinder_mysql_password
+            #paramsMap['cinder_mysql_password'] = cinder_mysql_password
             paramsMap['cinder_ips'] = cinder_ips
             
             if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), cinder_ips_list) :
@@ -490,14 +490,14 @@ class ParamsProducer(object):
             key = 'heat_mysql_user'
             heat_mysql_user = YAMLUtil.getValue(role, key)
             
-            key = 'heat_mysql_password'
-            heat_mysql_password = YAMLUtil.getValue(role, key)
+            #key = 'heat_mysql_password'
+            #heat_mysql_password = YAMLUtil.getValue(role, key)
             
             paramsMap['heat_ips'] = heat_ips
             paramsMap['heat_vip'] = heat_vip
             paramsMap['heat_vip_interface'] = heat_vip_interface
             paramsMap['heat_mysql_user'] = heat_mysql_user
-            paramsMap['heat_mysql_password'] = heat_mysql_password
+            #paramsMap['heat_mysql_password'] = heat_mysql_password
             
             if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), heat_ips_list) :
                 FileUtil.writeContent(is_role_file_path, 'true')
