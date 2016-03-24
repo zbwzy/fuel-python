@@ -85,7 +85,7 @@ class HA(object):
     
     @staticmethod
     def startKeepalived():
-        ShellCmdExecutor.execCmd('systemctl start keepalived')
+        ShellCmdExecutor.execCmd('systemctl restart keepalived')
         pass
     
     @staticmethod
@@ -136,7 +136,29 @@ class HA(object):
     
     @staticmethod
     def startHaproxy():
-        ShellCmdExecutor.execCmd('systemctl start haproxy')
+        cmd = '/usr/bin/systemctl restart haproxy.service'
+        timeout = 20
+        time_count = 0
+        os.system(cmd)
+        
+        while True :
+            output, exitcode = ShellCmdExecutor.execCmd('ps aux | grep haproxy | grep -v grep')
+            output = output.strip()
+            if output == None or output == '' :
+                print 'restart haproxy: %d count(s).' % time_count
+                os.system(cmd)
+                pass
+            else :
+                print 'HAProxy process exists!'
+                break
+            
+            if time_count == timeout :
+                print 'It is timeout when restart haproxy, and timeout=%s.' % timeout
+                break
+            
+            time.sleep(1)
+            time_count += 1
+            pass
         pass
     
     @staticmethod
@@ -594,7 +616,7 @@ if __name__ == '__main__':
         HA.config()
         HA.start() 
         
-        os.system('touch /opt/openstack_conf/tag/install/ha_installed')
+        os.system('touch %s' % INSTALL_TAG_FILE)
         pass
     print 'hello openstack-kilo:haproxy-keepalived########'
     

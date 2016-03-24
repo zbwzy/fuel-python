@@ -335,6 +335,50 @@ class Keystone(object):
         launchedRdbNum = output.strip()
         return launchedRdbNum
     
+    @staticmethod
+    def scpSSL():
+        '''
+        # scp -r root@{keystone_0_ip}:/etc/keystone/ssl /etc/keystone/
+        # chown -R keystone:keystone /etc/keystone/
+        '''
+        keystone_ips = JSONUtility.getValue('keystone_ips')
+        keystone_ip_list = keystone_ips.split(',')
+        
+        #scp ssl from first keystone
+        scpCmd = 'scp -r root@{keystone_0_ip}:/etc/keystone/ssl /etc/keystone/'.format(keystone_0_ip=keystone_ip_list[0])
+        try:
+            import pexpect
+            #To make the interact string: Are you sure you want to continue connecting.* always appear
+            if os.path.exists('/root/.ssh/known_hosts') :
+                os.system('rm -rf /root/.ssh/known_hosts')
+                pass
+    
+            child = pexpect.spawn(scpCmd)
+            
+            #When do the first shell cmd execution, this interact message is appeared on shell.
+            child.expect('Are you sure you want to continue connecting.*')
+            child.sendline('yes')
+    
+            while True :
+                regex = "[\\s\\S]*" #match any
+                index = child.expect([regex , pexpect.EOF, pexpect.TIMEOUT])
+                if index == 0:
+                    break
+                elif index == 1:
+                    pass   #continue to wait
+                elif index == 2:
+                    pass   #continue to wait
+    
+            child.sendline('exit')
+            child.sendcontrol('c')
+            #child.interact()
+        except OSError:
+            print 'Catch exception %s when send tag.' % OSError.strerror
+            sys.exit(0)
+            pass
+        pass
+        pass
+    
 
 if __name__ == '__main__':
     
