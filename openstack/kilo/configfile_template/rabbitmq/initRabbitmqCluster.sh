@@ -13,6 +13,7 @@ rabbitmqctl add_user <RABBIT_USER_ID> <RABBIT_PASS>
 rabbitmqctl set_permissions -p / <RABBIT_USER_ID> ".*" ".*" ".*"
 
 sleep 5
-rabbitmqctl set_policy ha_all "^" '{"ha-mode":"all"}'
+#rabbitmqctl set_policy ha_all "^" '{"ha-mode":"all"}'
+rabbitmqctl set_policy ha-all '^(?!amq\.).*' '{"ha-mode": "all"}'
 
 echo 'init rabbitmq cluster done######'

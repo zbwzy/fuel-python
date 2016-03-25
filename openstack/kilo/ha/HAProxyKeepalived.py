@@ -232,7 +232,10 @@ listen rdb_mysql
         mysql_ips = JSONUtility.getValue("mysql_ips")
         mysql_ip_list = mysql_ips.strip().split(',')
         
-        if ServerSequence.getIndex(mysql_ip_list, localIP) == 0 :
+        ha_ips = JSONUtility.getValue("ha_ips")
+        ha_ip_list = ha_ips.strip().split(',')
+        
+        if ServerSequence.getIndex(ha_ip_list, localIP) == 0 :
             mysqlBackendString = mysqlBackendApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
             pass
         else :
