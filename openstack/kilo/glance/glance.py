@@ -131,12 +131,14 @@ class Glance(object):
             pass
         #if exist, remove original conf files
         if os.path.exists(glance_api_conf_file_path) :
+            os.system("sudo cp -r %s /etc/glance/glance-api.conf.bak" % glance_api_conf_file_path)
             os.system("sudo rm -rf %s" % glance_api_conf_file_path)
             pass
         
         if os.path.exists(glance_registry_conf_file_path) :
             print 'tttttttt====='
             print 'glance_registry_conf_file_path=%s' % glance_registry_conf_file_path
+            os.system("sudo cp -r %s /etc/glance/glance-registry.conf.bak" % glance_registry_conf_file_path)
             os.system("sudo rm -rf %s" % glance_registry_conf_file_path)
             pass
         

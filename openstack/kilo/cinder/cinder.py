@@ -160,6 +160,8 @@ class Cinder(object):
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % cinderConfDir)
         
         if os.path.exists(cinder_conf_file_path) :
+            #REFACTOR
+            ShellCmdExecutor.execCmd("cp -r %s /etc/cinder/cinder.conf.bak" % cinder_conf_file_path)
             ShellCmdExecutor.execCmd("rm -rf %s" % cinder_conf_file_path)
             pass
         

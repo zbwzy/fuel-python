@@ -116,7 +116,6 @@ class RabbitMQ(object):
         ShellCmdExecutor.execCmd('systemctl enable rabbitmq-server.service')
         ShellCmdExecutor.execCmd('systemctl start rabbitmq-server.service')
         
-        
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         rabbitmq_ips = JSONUtility.getValue('rabbitmq_ips')

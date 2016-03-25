@@ -285,6 +285,8 @@ admin_password=123456
         ShellCmdExecutor.execCmd("chmod 777 %s" % novaConfDir)
         
         if os.path.exists(nova_conf_file_path) :
+            #Refactor
+            ShellCmdExecutor.execCmd('cp -r %s /etc/nova/nova.conf.bak' % nova_conf_file_path)
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
             pass
         

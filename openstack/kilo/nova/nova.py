@@ -237,6 +237,8 @@ vif_plugging_timeout=0
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % novaConfDir)
         
         if os.path.exists(nova_conf_file_path) :
+            #REFACTOR
+            ShellCmdExecutor.execCmd("sudo cp -r %s /etc/nova/nova.conf.bak" % nova_conf_file_path)
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % nova_conf_file_path)
             pass
         
