@@ -221,6 +221,27 @@ class YAMLUtil(object):
         pass
     
     @staticmethod
+    def getNodeNameByIP(ip):
+        '''
+- swift_zone: '59'
+  uid: '59'
+  ip: 10.20.0.84
+  fqdn: kilo4.domain.tld
+  cabinet: '88'
+  role: keystone
+  name: kilo4
+        '''
+        nodeName = ''
+        nodesMap = YAMLUtil.getNodesMap()
+        for node in nodesMap:
+            if node['ip'] == ip:
+                nodeName = node['name']
+                break
+            pass
+        
+        return nodeName
+    
+    @staticmethod
     def setHosts():
         nodes_dict = {}
         host="127.0.0.1 localhost\n"
@@ -257,6 +278,8 @@ if __name__ == "__main__":
     print YAMLUtil.getRoleIPList('mysql')
     print 'has role========================='
     print YAMLUtil.hasRole('cinder')
+    print 'get node name by ip========='
+    print YAMLUtil.getNodeNameByIP('10.20.0.87')
     pass
 
 

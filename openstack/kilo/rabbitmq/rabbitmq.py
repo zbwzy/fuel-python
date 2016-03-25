@@ -113,21 +113,54 @@ class RabbitMQ(object):
     
     @staticmethod
     def start():
-        init_script_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'initRabbitmqCluster.sh')
-        '<RABBIT_USER_ID> <RABBIT_PASS>'
-        if not os.path.exists('/opt/openstack_conf/') :
-            ShellCmdExecutor.execCmd('mkdir /opt/openstack_conf')
+        ShellCmdExecutor.execCmd('systemctl enable rabbitmq-server.service')
+        ShellCmdExecutor.execCmd('systemctl start rabbitmq-server.service')
+        
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        rabbitmq_ips = JSONUtility.getValue('rabbitmq_ips')
+        rabbitmq_ip_list = rabbitmq_ips.strip().split(',')
+        
+        if not os.path.exists('/opt/openstack_conf/scripts') :
+            ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/scripts')
             pass
         
-        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/' % init_script_template_file_path)
-        
-        init_script_path = '/opt/openstack_conf/initRabbitmqCluster.sh'
-        rabbit_user_id = 'nova'
-        rabbit_password = JSONUtility.getValue('rabbit_password')
-        FileUtil.replaceFileContent(init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
-        FileUtil.replaceFileContent(init_script_path, '<RABBIT_PASS>', rabbit_password)
-        time.sleep(3)
-        output,exitcode = ShellCmdExecutor.execCmd('bash %s' % init_script_path)
+        from openstack.common.serverSequence import ServerSequence
+        if ServerSequence.getIndex(rabbitmq_ip_list, localIP) :
+            init_script_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'initRabbitmqCluster.sh')
+            '''
+            <RABBIT_USER_ID> <RABBIT_PASS>
+            '''
+            ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % init_script_template_file_path)
+            
+            init_script_path = '/opt/openstack_conf/scripts/initRabbitmqCluster.sh'
+            rabbit_user_id = 'nova'
+            rabbit_password = JSONUtility.getValue('rabbit_password')
+            FileUtil.replaceFileContent(init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
+            FileUtil.replaceFileContent(init_script_path, '<RABBIT_PASS>', rabbit_password)
+            time.sleep(3)
+            output,exitcode = ShellCmdExecutor.execCmd('bash %s' % init_script_path)
+            pass
+        else :
+            re_init_script_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'reInitRabbitmqCluster.sh')
+            '''
+            <RABBIT_USER_ID> <RABBIT_PASS> <RABBITMQ_MASTER>
+            '''
+            
+            ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % re_init_script_template_file_path)
+            
+            re_init_script_path = '/opt/openstack_conf/scripts/reInitRabbitmqCluster.sh'
+            rabbit_user_id = 'nova'
+            rabbit_password = JSONUtility.getValue('rabbit_password')
+            rabbitmq_master_node = YAMLUtil.getNodeNameByIP(rabbitmq_ip_list[0])
+            FileUtil.replaceFileContent(re_init_script_path, '<RABBITMQ_MASTER>', rabbitmq_master_node)
+            FileUtil.replaceFileContent(re_init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
+            FileUtil.replaceFileContent(re_init_script_path, '<RABBIT_PASS>', rabbit_password)
+            time.sleep(3)
+            output,exitcode = ShellCmdExecutor.execCmd('bash %s' % re_init_script_path)
+            pass
+            pass
         pass
     pass
 
