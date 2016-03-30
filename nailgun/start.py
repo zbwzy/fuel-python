@@ -20,8 +20,15 @@ else :
 
 
 class Params(object):
-    OPENSTACK_ROLES = ['mysql', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 'heat', 
-                       'horizon', 'nova-api', 'nova-compute', 'ceilometer', 'neutron-server', 'neutron-agent']
+#     OPENSTACK_ROLES = ['mysql', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 'heat', 
+#                        'horizon', 'nova-api', 'nova-compute', 'ceilometer', 'neutron-server', 
+#                        'neutron-agent'
+#                        ]
+    
+    OPENSTACK_ROLES = ['mysql', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 
+                       'horizon', 'nova-api', 'nova-compute', 'neutron-server', 
+                       'neutron-agent'
+                       ]
     
     CLUSTER_IP_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/{cluster_id}/ip_map_role.json'
     CLUSTER_ROLE_MAP_JSON_FILE_PATH_TEMPLATE = '/opt/role_ip_map_{cluster_id}.json'

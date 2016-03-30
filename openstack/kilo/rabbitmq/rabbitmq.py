@@ -126,7 +126,7 @@ class RabbitMQ(object):
             pass
         
         from openstack.common.serverSequence import ServerSequence
-        if ServerSequence.getIndex(rabbitmq_ip_list, localIP) :
+        if ServerSequence.getIndex(rabbitmq_ip_list, localIP) == 0:
             init_script_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'initRabbitmqCluster.sh')
             '''
             <RABBIT_USER_ID> <RABBIT_PASS>
