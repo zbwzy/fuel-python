@@ -377,7 +377,6 @@ class Keystone(object):
             sys.exit(0)
             pass
         pass
-        pass
     
 
 if __name__ == '__main__':

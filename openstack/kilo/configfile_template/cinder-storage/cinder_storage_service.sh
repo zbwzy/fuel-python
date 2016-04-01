@@ -27,19 +27,13 @@ systemctl start lvm2-lvmetad.service
 echo 'start to create empty file system=============='
 echo `date`
 
-dd if=/dev/zero of=/home/test-disk bs=1M count=20480 #创建一个20G空文件(字型调整)
+#create 20GB empty file
+dd if=/dev/zero of=/home/test-disk bs=1M count=20480
 echo 'end to create empty file system#####'
 echo `date`
 
-losetup /dev/loop2 /home/test-disk                   #将其转化为loop设备 loop1/loop2都行
-pvcreate /dev/loop2                                  #创建lvm的物理卷
-vgcreate cinder-volumes /dev/loop2                   #创建lvm物理卷组 cinder-volumes 名字不变
+losetup /dev/loop2 /home/test-disk
+pvcreate /dev/loop2
+vgcreate cinder-volumes /dev/loop2
 
-#yum install openstack-cinder targetcli python-oslo-db MySQL-python -y
-
-#cinder.conf文件中,iscsi_helper = lioadm写成iscsi_helper=tgtadm
-
-#/etc/init.d/tgtd restart
-#chkconfig tgtd on
-echo 'init cinder storage done####'
 echo 'init cinder storage done####'

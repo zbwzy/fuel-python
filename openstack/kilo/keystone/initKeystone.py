@@ -412,7 +412,17 @@ if __name__ == '__main__':
             InitKeystone.init()
             pass
         else :
+            ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')
+            
             Keystone.scpSSL()
+            
+            cmd1 = 'chown -R keystone:keystone /var/log/keystone'
+            cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
+            cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'
+            ShellCmdExecutor.execCmd(cmd1)
+            ShellCmdExecutor.execCmd(cmd2)
+            ShellCmdExecutor.execCmd(cmd3)
+            
             Keystone.start()
             pass
         

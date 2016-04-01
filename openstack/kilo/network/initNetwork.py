@@ -46,6 +46,7 @@ if __name__ == '__main__':
     else :
         Network.finalizeInstallation()
         #mark: network is initted
+        
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello network initted#######'
     pass

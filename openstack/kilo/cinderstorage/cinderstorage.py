@@ -120,10 +120,10 @@ class CinderStorage(object):
                                                       'cinder-storage', 
                                                       'cinder_storage_service.sh')
         
-        ShellCmdExecutor.execCmd('cp -r %s /opt/' % script_file_path)
-        ShellCmdExecutor.execCmd('chmod 777 /opt/cinder_storage_service.sh')
-        FileUtil.replaceFileContent('/opt/cinder_storage_service.sh', '<KEYSTONE_VIP>', keystone_vip)
-        ShellCmdExecutor.execCmd('bash /opt/cinder_storage_service.sh')
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % script_file_path)
+        ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/cinder_storage_service.sh')
+        FileUtil.replaceFileContent('/opt/openstack_conf/scripts/cinder_storage_service.sh', '<KEYSTONE_VIP>', keystone_vip)
+        ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/cinder_storage_service.sh')
         
         
         ShellCmdExecutor.execCmd("systemctl restart lvm2-lvmetad.service")
@@ -226,6 +226,12 @@ class CinderStorage(object):
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % cinder_conf_file_path)
         ShellCmdExecutor.execCmd("chown -R cinder:cinder /etc/cinder/")
         
+        #special handling
+        if not os.path.exists('/var/lock/cinder') :
+            os.system('mkdir -p /var/lock/cinder')
+            pass
+        
+        ShellCmdExecutor.execCmd("chown -R cinder:cinder /var/lock/cinder/")
         
         #If add filter, if necessary, modify /etc/lvm/lvm.conf
         '''

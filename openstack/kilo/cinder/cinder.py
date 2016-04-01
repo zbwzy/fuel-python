@@ -181,7 +181,7 @@ class Cinder(object):
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
         ShellCmdExecutor.execCmd("chmod 644 %s" % cinder_conf_file_path)
-        ShellCmdExecutor.execCmd("chown -R cinder:cinder %s" % cinder_conf_file_path)
+        ShellCmdExecutor.execCmd("chown -R cinder:cinder /etc/cinder/")
         pass
     
     @staticmethod

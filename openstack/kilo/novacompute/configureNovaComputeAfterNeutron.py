@@ -48,7 +48,7 @@ class NovaCompute(object):
     
     @staticmethod
     def install():
-        installCmd = 'yum install openstack-neutron-ml2 openstack-neutron-openvswitch -y'
+        installCmd = 'yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch -y'
         ShellCmdExecutor.execCmd(installCmd)
         pass
     
@@ -64,15 +64,12 @@ class NovaCompute(object):
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
-        
-        #REFACTOR LATER
-        neutron_pass = '123456'
+        keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         
         neutronConfFilePath = '/etc/neutron/neutron.conf'
         ShellCmdExecutor.execCmd('chmod 777 /etc/neutron/neutron.conf')
         FileUtil.replaceFileContent(neutronConfFilePath, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(neutronConfFilePath, '<NEUTRON_PASS>', neutron_pass)
-#         FileUtil.replaceFileContent(neutronConfFilePath, '<RABBIT_HOST>', rabbit_vip)
+        FileUtil.replaceFileContent(neutronConfFilePath, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
         FileUtil.replaceFileContent(neutronConfFilePath, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(neutronConfFilePath, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(neutronConfFilePath, '<RABBIT_PASSWORD>', rabbit_password)
@@ -92,17 +89,17 @@ class NovaCompute(object):
     
     @staticmethod
     def configureOVS():
-        ShellCmdExecutor.execCmd("service openvswitch start")
-        ShellCmdExecutor.execCmd("chkconfig openvswitch on")
+        ShellCmdExecutor.execCmd("systemctl enable openvswitch.service")
+        ShellCmdExecutor.execCmd("systemctl start openvswitch.service")
         
-        scriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'addBridgeAndInterface.sh')
-        ShellCmdExecutor.execCmd('cp -r %s /opt/' % scriptPath)
-        
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        
-        FileUtil.replaceFileContent('/opt/addBridgeAndInterface.sh', '<LOCAL_IP>', localIP)
-        ShellCmdExecutor.execCmd('bash /opt/addBridgeAndInterface.sh')
+#         scriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'addBridgeAndInterface.sh')
+#         ShellCmdExecutor.execCmd('cp -r %s /opt/' % scriptPath)
+#         
+#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+#         localIP = output.strip()
+#         
+#         FileUtil.replaceFileContent('/opt/addBridgeAndInterface.sh', '<LOCAL_IP>', localIP)
+#         ShellCmdExecutor.execCmd('bash /opt/addBridgeAndInterface.sh')
         pass
     
     #configure Compute to use networking
@@ -155,34 +152,36 @@ admin_password = <NEUTRON_PASS>
     def finalizeInstallation():
         ShellCmdExecutor.execCmd('ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini')
         
-        ShellCmdExecutor.execCmd('sed -i \'s,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g\' /etc/init.d/neutron-openvswitch-agent')
-        ShellCmdExecutor.execCmd('cp /etc/init.d/neutron-openvswitch-agent /etc/init.d/neutron-openvswitch-agent.orig')
+        ShellCmdExecutor.execCmd('cp /usr/lib/systemd/system/neutron-openvswitch-agent.service /usr/lib/systemd/system/neutron-openvswitch-agent.service.orig')
+        ShellCmdExecutor.execCmd('sed -i \'s,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g\' /usr/lib/systemd/system/neutron-openvswitch-agent.service')
         ########################### assign rights
         ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron/')
         
-        ShellCmdExecutor.execCmd('service openstack-nova-compute restart')
-        ShellCmdExecutor.execCmd('service neutron-openvswitch-agent start')
+        ShellCmdExecutor.execCmd('systemctl restart openstack-nova-compute.service')
+        
+        ShellCmdExecutor.execCmd('systemctl enable neutron-openvswitch-agent.service')
+        
+        ShellCmdExecutor.execCmd('systemctl start neutron-openvswitch-agent.service')
         pass
     
     
 
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:confiugre nova-compute after neutron============'
+    print 'hello openstack-kilo:confiugre nova-compute after neutron============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    TAG_FILE = '/opt/configureNovaComputeAfterNeutron'
+    TAG_FILE = '/opt/openstack_conf/tag/install/configureNovaComputeAfterNeutron'
     if os.path.exists(TAG_FILE) :
         print 'After neutron, nova-compute configured####'
         print 'exit===='
         pass
     else :
-        NovaCompute.configurePrerequisites()
         NovaCompute.install()
         NovaCompute.confiugureNeutron()
         NovaCompute.configureML2()
         NovaCompute.configureOVS()
-        NovaCompute.reconfigureNovaCompute()
+#         NovaCompute.reconfigureNovaCompute()
         NovaCompute.finalizeInstallation()
         
         os.system('touch %s' % TAG_FILE)

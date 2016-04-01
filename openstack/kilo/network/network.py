@@ -183,8 +183,8 @@ class Network(object):
         physical_external_network_interface = 'eth2'
 #         addExternalBridgeCmd = 'ovs-vsctl add-port br-ex %s' % physical_external_network_interface
         addExternalBridgeTemplateScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'addExternalBridge.sh')
-        ShellCmdExecutor.execCmd('cp -r %s /opt/' % addExternalBridgeTemplateScriptPath)
-        FileUtil.replaceFileContent('/opt/addExternalBridge.sh', 
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % addExternalBridgeTemplateScriptPath)
+        FileUtil.replaceFileContent('/opt/openstack_conf/scripts/addExternalBridge.sh', 
                                     '<PHYSICAL_EXTERNAL_NETWORK_INTERFACE>', 
                                     physical_external_network_interface)
 #         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
@@ -193,7 +193,7 @@ class Network(object):
 #                                     '<LOCAL_IP>', 
 #                                     localIP)
         
-        ShellCmdExecutor.execCmd('bash /opt/addExternalBridge.sh')
+        ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/addExternalBridge.sh')
         pass
     
     @staticmethod
@@ -462,6 +462,11 @@ if __name__ == '__main__':
     else :
         Network.install()
         Network.configConfFile()
+        
+        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        AdminOpenrc.prepareAdminOpenrc()
+        
+        os.system('touch %s' % INSTALL_TAG_FILE)
         pass
     print 'openstack-kilo:network done#######'
     pass
