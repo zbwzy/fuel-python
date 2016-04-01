@@ -39,12 +39,12 @@ from openstack.common.role import Role
 
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:init ostf============'
+    print 'hello openstack-kilo:init ostf============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
     if Role.isGlanceRole() :
-        IMAGE_INSTALL_TAG_FILE = '/opt/initOSTFGlancePrivilege'
+        IMAGE_INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initOSTFGlancePrivilege'
         if os.path.exists(IMAGE_INSTALL_TAG_FILE) :
             print 'ostf glance image privilege initted####'
             print 'exit===='

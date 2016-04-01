@@ -295,6 +295,17 @@ if __name__ == '__main__':
          
         #remove duplicated ip
 #         cluster_ip_list = list(set(cluster_ip_list))
+
+
+        if 'nova-compute' in activeRoles:
+            nova_compute_ip_list = activeRoleIPMap['nova-compute']
+            reconfigureNovaComputeCmd = 'python /etc/puppet/fuel-python/openstack/kilo/novacompute/configureNovaComputeAfterNeutron.py'
+                        
+            for nova_compute_ip in nova_compute_ip_list :
+                execRemoteCmd(nova_compute_ip, reconfigureNovaComputeCmd, timeout=600)
+                pass
+            pass
+        
         #restart horizon
         if 'horizon' in activeRoles:
             horizon_ip_list = activeRoleIPMap['horizon']
@@ -305,14 +316,14 @@ if __name__ == '__main__':
                 pass
             pass
         
-#         if 'glance' in activeRoles:
-#             glance_ip_list = activeRoleIPMap['glance']
-#             importImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/glance/importImage.py'
-#             for glance_ip in glance_ip_list :
-#                 execRemoteCmd(glance_ip, importImageCmd, timeout=600)
-#                 time.sleep(10)
-#                 pass
-#             pass
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            importImageCmd = 'python /etc/puppet/fuel-python/openstack/kilo/glance/importImage.py'
+            for glance_ip in glance_ip_list :
+                execRemoteCmd(glance_ip, importImageCmd, timeout=600)
+                time.sleep(10)
+                pass
+            pass
         
 #         vxlanConfigCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network_mode/vxlanconfig.py'
 #         if 'neutron-server' in activeRoles:
@@ -345,24 +356,24 @@ if __name__ == '__main__':
 #             pass
         
         #sync glance image
-#         if 'glance' in activeRoles:
-#             glance_ip_list = activeRoleIPMap['glance']
-#             #########image sync
-#             syncImageCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
-#             for ip in glance_ip_list:
-#                 execRemoteCmd(ip, syncImageCmd, timeout=600)
-#                 pass
-#             pass
-#         
-#         #assign glance image privilege
-#         if 'glance' in activeRoles:
-#             glance_ip_list = activeRoleIPMap['glance']
-#             assignPrivilegeCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTFPrivilege.py'
-#             for ip in glance_ip_list:
-#                 execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
-#                 execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
-#                 pass
-#             pass
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            #########image sync
+            syncImageCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTF.py'
+            for ip in glance_ip_list:
+                execRemoteCmd(ip, syncImageCmd, timeout=600)
+                pass
+            pass
+         
+        #assign glance image privilege
+        if 'glance' in activeRoles:
+            glance_ip_list = activeRoleIPMap['glance']
+            assignPrivilegeCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTFPrivilege.py'
+            for ip in glance_ip_list:
+                execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
+                execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
+                pass
+            pass
                     
         os.system('touch %s' % TAG)
         pass
