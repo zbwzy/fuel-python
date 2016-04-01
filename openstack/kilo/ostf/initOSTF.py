@@ -39,14 +39,13 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
 from openstack.common.role import Role
 
 #install pexpect package
-pexpectPackagePath = os.path.join(PROJ_HOME_DIR, 'externals', 'pexpect-3.3')
-output, exitcode = ShellCmdExecutor.execCmd('cd {packagePath}; python setup.py install'.format(packagePath=pexpectPackagePath))
-print 'installing pexpect============================'
-print 'output=%s' % output
+# pexpectPackagePath = os.path.join(PROJ_HOME_DIR, 'externals', 'pexpect-3.3')
+# output, exitcode = ShellCmdExecutor.execCmd('cd {packagePath}; python setup.py install'.format(packagePath=pexpectPackagePath))
+# print 'installing pexpect============================'
+# print 'output=%s' % output
 
 def scp_image(scpCmd, image_file_name, ip):
     try:
@@ -86,45 +85,46 @@ root@10.20.0.192's password:
     pass
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:init ostf============'
+    print 'hello openstack-kilo:init ostf============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
-    if Role.isNeutronServerRole() :
-        NETWORK_INSTALL_TAG_FILE = '/opt/initOSTFNetwork'
-        if os.path.exists(NETWORK_INSTALL_TAG_FILE) :
-            print 'ostf network initted####'
-            print 'exit===='
-            pass
-        else :
-            if NeutronServerHA.isMasterNode() :
-                network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ostf_network_init.sh')
-                ShellCmdExecutor.execCmd('cp -r %s /opt/' % network_init_script_path)
-                ############
-                keystone_vip = JSONUtility.getValue('keystone_vip')
-                
-                ShellCmdExecutor.execCmd('chmod 777 /opt/ostf_network_init.sh')
-                FileUtil.replaceFileContent('/opt/ostf_network_init.sh', '<KEYSTONE_VIP>', keystone_vip)
-                
-                ###########
-                ShellCmdExecutor.execCmd('bash /opt/ostf_network_init.sh')
-                pass
-    
-            #mark: OSTF network is installed
-            os.system('touch %s' % NETWORK_INSTALL_TAG_FILE)
-            pass
-        pass
+    #REFACTOR LATER
+#     if Role.isNeutronServerRole() :
+#         NETWORK_INSTALL_TAG_FILE = '/opt/initOSTFNetwork'
+#         if os.path.exists(NETWORK_INSTALL_TAG_FILE) :
+#             print 'ostf network initted####'
+#             print 'exit===='
+#             pass
+#         else :
+#             if NeutronServerHA.isMasterNode() :
+#                 network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ostf_network_init.sh')
+#                 ShellCmdExecutor.execCmd('cp -r %s /opt/' % network_init_script_path)
+#                 ############
+#                 keystone_vip = JSONUtility.getValue('keystone_vip')
+#                 
+#                 ShellCmdExecutor.execCmd('chmod 777 /opt/ostf_network_init.sh')
+#                 FileUtil.replaceFileContent('/opt/ostf_network_init.sh', '<KEYSTONE_VIP>', keystone_vip)
+#                 
+#                 ###########
+#                 ShellCmdExecutor.execCmd('bash /opt/ostf_network_init.sh')
+#                 pass
+#     
+#             #mark: OSTF network is installed
+#             os.system('touch %s' % NETWORK_INSTALL_TAG_FILE)
+#             pass
+#         pass
     
     if Role.isGlanceRole() :
         #To sync image on glance hosts
-        IMAGE_INSTALL_TAG_FILE = '/opt/initOSTFGlance'
+        IMAGE_INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initOSTFGlance'
         if os.path.exists(IMAGE_INSTALL_TAG_FILE) :
             print 'ostf glance image initted####'
             print 'exit===='
             pass
         else :
-            if os.path.exists('/opt/existGlanceFileOnHost') :
-                output, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
+            if os.path.exists('/opt/openstack_conf/tag/install/existGlanceFileOnHost') :
+                output, exitcode = ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/getDefaultImageID.sh')
                 imageID = output.strip()
 #                 listImageFileCmd = 'ls /var/lib/glance/images/ | grep %s' % imageID
 #                 output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)

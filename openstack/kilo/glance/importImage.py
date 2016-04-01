@@ -39,17 +39,16 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.glance.glance import Glance
-from openstack.icehouse.glance.glance import GlanceHA
+from openstack.kilo.glance.glance import Glance
 
     
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:importImageToGlance============'
+    print 'hello openstack-kilo:importImageToGlance============'
     
     print 'start time: %s' % time.ctime()
     
-    INSTALL_TAG_FILE = '/opt/imageImported'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/imageImported'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'image imported####'
@@ -57,36 +56,51 @@ if __name__ == '__main__':
         pass
     else :
         print 'start to import image======='
-        imageFilePath = "/etc/puppet/modules/glance/files/cirros-0.3.1-x86_64-disk.img"
+        imageFilePath = "/etc/puppet/modules/glance/files/cirros-0.3.4-x86_64-disk.img"
+        admin_token = JSONUtility.getValue('admin_token')
         keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        
         if os.path.exists(imageFilePath) :
             import_image_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'import_image.sh')
             get_image_id_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'getDefaultImageID.sh')
             get_image_size_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'getDefaultImageFileSize.sh')
             
-            ShellCmdExecutor.execCmd('cp -r %s /opt/' % import_image_script_path)
-            ShellCmdExecutor.execCmd('chmod 777 /opt/import_image.sh')
+            ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % import_image_script_path)
+            ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/import_image.sh')
             
-            ShellCmdExecutor.execCmd('cp -r %s /opt/' % get_image_id_script_path)
-            ShellCmdExecutor.execCmd('chmod 777 /opt/getDefaultImageID.sh')
+            ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % get_image_id_script_path)
+            ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/getDefaultImageID.sh')
             
-            ShellCmdExecutor.execCmd('cp -r %s /opt/' % get_image_size_script_path)
-            ShellCmdExecutor.execCmd('chmod 777 /opt/getDefaultImageFileSize.sh')
+            ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % get_image_size_script_path)
+            ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/getDefaultImageFileSize.sh')
             
-            FileUtil.replaceFileContent('/opt/import_image.sh', '<KEYSTONE_VIP>', keystone_vip)
-            FileUtil.replaceFileContent('/opt/getDefaultImageID.sh', '<KEYSTONE_VIP>', keystone_vip)
-            FileUtil.replaceFileContent('/opt/getDefaultImageFileSize.sh', '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/import_image.sh', '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/import_image.sh', '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/import_image.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageID.sh', '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageID.sh', '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageID.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageFileSize.sh', '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageFileSize.sh', '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageFileSize.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
             time.sleep(1)
             
             from openstack.common.role import Role
-            if Role.isGlanceRole() and GlanceHA.isMasterNode():
-#             if GlanceHA.isMasterNode() :
+            from openstack.common.serverSequence import ServerSequence
+            glance_ips = JSONUtility.getValue('glance_ips')
+            glance_ip_list = glance_ips.strip().split(',')
+            output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+            localIP = output.strip()
+            if Role.isGlanceRole() and ServerSequence.getIndex(glance_ip_list, localIP) == 0 :
                 imported_tag = False
                 retry = 1
                 while retry > 0 :
-                    ShellCmdExecutor.execCmd('bash /opt/import_image.sh')
-                    imageFileSize, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageFileSize.sh')
-                    imageID, exitcode = ShellCmdExecutor.execCmd('bash /opt/getDefaultImageID.sh')
+                    ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/import_image.sh')
+                    imageFileSize, exitcode = ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/getDefaultImageFileSize.sh')
+                    imageID, exitcode = ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/getDefaultImageID.sh')
                     importedImageSizeCmd = "ls -lt /etc/puppet/modules/glance/files/ | grep cirros | awk '{print $5}'"
                     importedImageSize, exitcode = ShellCmdExecutor.execCmd(importedImageSizeCmd)
                     imageID = imageID.strip()
@@ -118,7 +132,7 @@ if __name__ == '__main__':
                     pass
                 
                 if existImageFlag :
-                    os.system('touch /opt/existGlanceFileOnHost')
+                    os.system('touch /opt/openstack_conf/tag/install/existGlanceFileOnHost')
                     pass
             
             os.system('touch %s' % INSTALL_TAG_FILE)
@@ -127,6 +141,6 @@ if __name__ == '__main__':
             print 'Do not exist file %s.' % imageFilePath
             pass
     
-    print 'hello openstack-icehouse:importImageToGlance#######'
+    print 'hello openstack-kilo:importImageToGlance#######'
     pass
 
