@@ -22,7 +22,7 @@ export OS_VOLUME_API_VERSION=2
 
 echo 'start to import image to glance==========='
 
-glance image-create --name='cirros image' --is-public=true \
+glance image-create --name='cirros image' \
 --container-format=bare --disk-format=qcow2 < /etc/puppet/modules/glance/files/cirros-0.3.4-x86_64-disk.img
 
 sleep 12

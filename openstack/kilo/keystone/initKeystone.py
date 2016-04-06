@@ -414,7 +414,34 @@ if __name__ == '__main__':
         else :
             ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')
             
-            Keystone.scpSSL()
+            #wait the file /etc/keystone/ssl produced on first keystone
+            '''
+            /opt/openstack_conf/tag/keystone_0_ssl
+            '''
+            TIMEOUT = 600
+            timeout = TIMEOUT
+            time_count = 0
+            while True:
+                launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
+                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_ssl | wc -l' 
+                output, exitcode = ShellCmdExecutor.execCmd(cmd)
+                ssl_file_tag = output.strip()
+                if str(ssl_file_tag) == "1" :
+                    print 'wait time: %s second(s).' % time_count
+                    Keystone.scpSSL()
+                    break
+                else :
+                    step = 1
+        #             print 'wait %s second(s)......' % step
+                    time_count += step
+                    time.sleep(1)
+                    pass
+                 
+                if time_count == timeout :
+                    print 'Do nothing!timeout=%s.' % timeout
+                    break
+                pass
+            pass
             
             cmd1 = 'chown -R keystone:keystone /var/log/keystone'
             cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'

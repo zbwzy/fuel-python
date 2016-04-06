@@ -399,9 +399,20 @@ if __name__ == '__main__':
         Keystone.install()
         Keystone.configConfFile()
         
+        keystone_ips = JSONUtility.getValue('keystone_ips')
+        keystone_ip_list = keystone_ips.strip().split(',')
         
         if Keystone.getServerIndex() == 0 :
             Keystone.supportPKIToken()
+            
+            if len(keystone_ip_list) > 1 :
+                from openstack.kilo.ssh.SSH import SSH
+                #Mark /etc/keystone/ssl produced on first keystone
+                tag_file_name = 'keystone_0_ssl'
+                for keystone_ip in keystone_ip_list[1:] :
+                    SSH.sendTagTo(keystone_ip, tag_file_name)
+                    pass
+                pass
             pass
         else :
             ##scp /etc/keystone/ssl from first keystone.
