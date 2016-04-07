@@ -381,7 +381,7 @@ class Keystone(object):
 
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:keystone============'
+    print 'hello openstack-kilo:keystone============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -487,6 +487,6 @@ if __name__ == '__main__':
         AdminOpenrc.prepareAdminOpenrc()
         #mark: keystone is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:keystone#######'
+    print 'hello openstack-kilo:keystone#######'
     pass
 
