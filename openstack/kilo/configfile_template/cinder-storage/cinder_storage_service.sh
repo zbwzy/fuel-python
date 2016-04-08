@@ -36,4 +36,6 @@ losetup /dev/loop2 /home/test-disk
 pvcreate /dev/loop2
 vgcreate cinder-volumes /dev/loop2
 
+chmod 777 /home/test-disk
+
 echo 'init cinder storage done####'
