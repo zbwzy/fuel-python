@@ -136,7 +136,7 @@ class CinderStorage(object):
 #         createCmd = 'vgcreate cinder-volumes /dev/sdb1'
 #         ShellCmdExecutor.execCmd(createCmd)
        
-        yumCmd = 'yum install openstack-cinder targetcli python-oslo-db python-oslo-log MySQL-python -y'
+        yumCmd = 'yum install openstack-cinder targetcli python-oslo-db python-oslo-log MySQL-python scsi-target-utils -y'
         ShellCmdExecutor.execCmd(yumCmd)
         
         print 'Cinder-storage.install done####'
@@ -156,8 +156,10 @@ class CinderStorage(object):
     def start(): 
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-volume.service') 
         ShellCmdExecutor.execCmd('systemctl enable target.service')
+        ShellCmdExecutor.execCmd('systemctl enable tgtd.service')
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-volume.service')
         ShellCmdExecutor.execCmd('systemctl start target.service')
+        ShellCmdExecutor.execCmd('systemctl start tgtd.service')
         pass
     
     @staticmethod
@@ -192,6 +194,8 @@ class CinderStorage(object):
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder-storage', 'cinder.conf')
         print 'cinder_conf_template_file_path=%s' % cinder_conf_template_file_path
+        tgtd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder-storage', 'tgtd.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/tgt/' % tgtd_conf_template_file_path)
         
         cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
         print 'cinderConfDir=%s' % cinderConfDir #/etc/cinder
