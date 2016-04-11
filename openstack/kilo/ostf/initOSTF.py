@@ -66,7 +66,9 @@ root@10.20.0.192's password:
         child.sendline(password)
 
         while True :
-            index = child.expect(['%s.*' % image_file_name, pexpect.EOF, pexpect.TIMEOUT]) #pexpect.TIMEOUT, default timeout is 20 secs
+            regex = "[\\s\\S]*" #match any
+            index = child.expect([regex, pexpect.EOF, pexpect.TIMEOUT]) 
+#             index = child.expect(['%s.*' % image_file_name, pexpect.EOF, pexpect.TIMEOUT])
             if index == 0:
                 break
             elif index == 1:

@@ -62,7 +62,8 @@ class NovaCompute(object):
 #         rabbit_host = JSONUtility.getValue("rabbit_host")
 #         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_userid = JSONUtility.getValue("rabbit_userid")
+#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
+        rabbit_userid = 'nova'
         rabbit_password = JSONUtility.getValue("rabbit_password")
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         

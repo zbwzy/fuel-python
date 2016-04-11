@@ -113,6 +113,7 @@ class CinderStorage(object):
         #KEYSTONE_ADMIN_PASSWORD
         print 'Cinder-storage.install start===='
         #
+        admin_token = JSONUtility.getValue('admin_token')
         keystone_vip = JSONUtility.getValue('keystone_vip')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         print 'start to install prerequisites============='
@@ -121,10 +122,12 @@ class CinderStorage(object):
                                                       'cinder_storage_service.sh')
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % script_file_path)
-        ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/cinder_storage_service.sh')
-        FileUtil.replaceFileContent('/opt/openstack_conf/scripts/cinder_storage_service.sh', '<KEYSTONE_VIP>', keystone_vip)
-        ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/cinder_storage_service.sh')
-        
+        cinder_storage_service_script_path = '/opt/openstack_conf/scripts/cinder_storage_service.sh'
+        ShellCmdExecutor.execCmd('chmod 777 %s' % cinder_storage_service_script_path)
+        FileUtil.replaceFileContent(cinder_storage_service_script_path, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(cinder_storage_service_script_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(cinder_storage_service_script_path, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        ShellCmdExecutor.execCmd('bash %s' % cinder_storage_service_script_path)
         
         ShellCmdExecutor.execCmd("systemctl restart lvm2-lvmetad.service")
         
@@ -157,9 +160,10 @@ class CinderStorage(object):
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-volume.service') 
         ShellCmdExecutor.execCmd('systemctl enable target.service')
         ShellCmdExecutor.execCmd('systemctl enable tgtd.service')
+        
+        ShellCmdExecutor.execCmd('systemctl start tgtd.service')
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-volume.service')
         ShellCmdExecutor.execCmd('systemctl start target.service')
-        ShellCmdExecutor.execCmd('systemctl start tgtd.service')
         pass
     
     @staticmethod

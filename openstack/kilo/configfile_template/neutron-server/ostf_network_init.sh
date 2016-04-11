@@ -23,11 +23,15 @@ export OS_VOLUME_API_VERSION=2
 
 echo 'start to init ostf network==========='
 
+#flat mode
 #neutron net-create ext-net-flat --shared --provider:network_type flat \
 #--provider:physical_network physnet1 --router:external true
-#
+
 #neutron subnet-create ext-net-flat --name ext-subnet --allocation-pool start=192.168.242.20,end=192.168.242.30 --disable-dhcp --gateway 192.168.242.2 192.168.242.0/24
 
+#vlan mode
+neutron net-create extenal-vlan --provider:network_type vlan --provider:physical_network physnet1 --router:external
+neutron subnet-create --name extenal-vlan-subnet --allocation-pool start=192.168.242.20,end=192.168.242.100 --enable-dhcp --gateway 192.168.242.1 extenal-vlan 192.168.242.0/24
 
 #neutron net-create private-net
 #create private net defaultly

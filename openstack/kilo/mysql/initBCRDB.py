@@ -37,6 +37,8 @@ if __name__ == '__main__':
         
     print 'hello openstack-kilo:start rdb======='
     BCRDB.start()
+    #init db
+    
     print 'hello openstack-kilo:rdb started#######'
     pass
 

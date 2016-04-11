@@ -268,7 +268,7 @@ if __name__ == '__main__':
             .format(version_tag='kilo')
             execRemoteCmd(ip, startCmd, timeout=600)
             pass
-        
+        time.sleep(10)
         print 'start to init db======'
         initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
         .format(version_tag='kilo')

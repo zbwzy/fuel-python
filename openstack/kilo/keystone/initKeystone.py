@@ -455,6 +455,6 @@ if __name__ == '__main__':
         
         #mark: keystone is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:keystone#######'
+    print 'hello openstack-kilo:keystone#######'
     pass
 

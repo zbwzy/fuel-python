@@ -1,4 +1,6 @@
 #!/bin/bash
+export OS_TOKEN=<ADMIN_TOKEN>
+export OS_URL=http://<KEYSTONE_VIP>:35357/v2.0
 
 export LC_ALL=C
 export OS_NO_CACHE='true'
@@ -32,10 +34,12 @@ dd if=/dev/zero of=/home/test-disk bs=1M count=20480
 echo 'end to create empty file system#####'
 echo `date`
 
+sleep 5
+chmod 777 /home/test-disk
+
 losetup /dev/loop2 /home/test-disk
 pvcreate /dev/loop2
 vgcreate cinder-volumes /dev/loop2
 
-chmod 777 /home/test-disk
-
+systemctl restart lvm2-lvmetad.service
 echo 'init cinder storage done####'

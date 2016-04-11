@@ -221,6 +221,10 @@ class NeutronServer(object):
         
         neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini')
         ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_server_ml2_template_file_path, NEUTRON_ML2_CONF_DIR))
+        
+        #REFACTOR LATER
+        vlan_id_range = '1000:1002'
+        FileUtil.replaceFileContent('/etc/neutron/plugins/ml2/ml2_conf.ini', '<VLAN_ID_RANGE>', vlan_id_range)
         pass
     
     @staticmethod

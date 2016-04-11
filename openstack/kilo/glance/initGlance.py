@@ -46,7 +46,7 @@ from openstack.kilo.glance.glance import Glance
     
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:glance============'
+    print 'hello openstack-kilo:glance============'
     
     print 'start time: %s' % time.ctime()
     
@@ -73,6 +73,6 @@ if __name__ == '__main__':
         #mark: glance is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     
-    print 'hello openstack-icehouse:glance#######'
+    print 'hello openstack-kilo:glance#######'
     pass
 
