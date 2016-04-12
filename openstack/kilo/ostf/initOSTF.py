@@ -50,6 +50,8 @@ from openstack.common.role import Role
 def scp_image(scpCmd, image_file_name, ip):
     try:
         import pexpect
+        #key line
+        os.system('rm -rf /root/.ssh/known_hosts')
         
         '''
 Are you sure you want to continue connecting (yes/no)? yes
@@ -60,15 +62,15 @@ root@10.20.0.192's password:
         child.expect('Are you sure you want to continue connecting.*')
         child.sendline('yes')
         
-        expect_pass_string = "root@{ip}'s password:".format(ip=ip)
-        password = "r00tme"
-        child.expect(expect_pass_string)
-        child.sendline(password)
+#         expect_pass_string = "root@{ip}'s password:".format(ip=ip)
+#         password = "r00tme"
+#         child.expect(expect_pass_string)
+#         child.sendline(password)
 
         while True :
-            regex = "[\\s\\S]*" #match any
-            index = child.expect([regex, pexpect.EOF, pexpect.TIMEOUT]) 
-#             index = child.expect(['%s.*' % image_file_name, pexpect.EOF, pexpect.TIMEOUT])
+#             regex = "[\\s\\S]*" #match any
+#             index = child.expect([regex, pexpect.EOF, pexpect.TIMEOUT])
+            index = child.expect(['%s.*' % image_file_name, pexpect.EOF, pexpect.TIMEOUT])
             if index == 0:
                 break
             elif index == 1:
@@ -89,6 +91,7 @@ root@10.20.0.192's password:
 if __name__ == '__main__':
     print 'hello openstack-kilo:init ostf============'
     print 'start time: %s' % time.ctime()
+    #####
     #when execute script,exec: python <this file absolute path>
     ###############################
     #REFACTOR LATER

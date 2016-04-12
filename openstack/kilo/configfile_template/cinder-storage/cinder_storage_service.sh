@@ -30,16 +30,16 @@ echo 'start to create empty file system=============='
 echo `date`
 
 #create 20GB empty file
-dd if=/dev/zero of=/home/test-disk bs=1M count=20480
+/usr/bin/dd if=/dev/zero of=/home/test-disk bs=1M count=20480
 echo 'end to create empty file system#####'
 echo `date`
 
 sleep 5
 chmod 777 /home/test-disk
 
-losetup /dev/loop2 /home/test-disk
-pvcreate /dev/loop2
-vgcreate cinder-volumes /dev/loop2
+/usr/sbin/losetup /dev/loop2 /home/test-disk
+/usr/sbin/pvcreate /dev/loop2
+/usr/sbin/vgcreate cinder-volumes /dev/loop2
 
 systemctl restart lvm2-lvmetad.service
 echo 'init cinder storage done####'

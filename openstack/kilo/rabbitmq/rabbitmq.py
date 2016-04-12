@@ -116,12 +116,36 @@ class RabbitMQ(object):
         ShellCmdExecutor.execCmd('systemctl enable rabbitmq-server.service')
         ShellCmdExecutor.execCmd('systemctl start rabbitmq-server.service')
         
-        output, exitcode = ShellCmdExecutor.execCmd('ps aux | grep rabbitmq_server | grep erlang | grep -v grep | wc -l')
-        
-        if not output.strip() == '1' :
-            startRabbitmqScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'startRabbitmq.sh')
-            ShellCmdExecutor.execCmd('bash %s' % startRabbitmqScriptPath)
+        TIMEOUT = 10
+        time_count = 0
+        while True :
+            check_rabbitmq_process = 'ps aux  | grep rabbitmq | grep erlang | grep rabbitmq_server | wc -l'
+            output, exitcode = ShellCmdExecutor.execCmd(check_rabbitmq_process)
+            rabbitmq_process_num = output.strip()
+            if rabbitmq_process_num == '0' :
+                ShellCmdExecutor.execCmd('systemctl start rabbitmq-server.service')
+                pass
+            else :
+                print 'rabbitmq is launched####'
+                break
+            
+            print 'ddddd==='
+            print 'time_count=%d' % time_count
+            
+            time_count += 1
+            if time_count == TIMEOUT :
+                print 'when launch rabbitmq, timeout=%d' % TIMEOUT
+                break
+            
+            time.sleep(1)
             pass
+        
+#         output, exitcode = ShellCmdExecutor.execCmd('ps aux | grep rabbitmq_server | grep erlang | grep -v grep | wc -l')
+#         
+#         if not output.strip() == '1' :
+#             startRabbitmqScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'startRabbitmq.sh')
+#             ShellCmdExecutor.execCmd('bash %s' % startRabbitmqScriptPath)
+#             pass
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
@@ -149,9 +173,12 @@ class RabbitMQ(object):
             output,exitcode = ShellCmdExecutor.execCmd('bash %s' % init_script_path)
             if len(rabbitmq_ip_list) > 1 :
                 from openstack.kilo.ssh.SSH import SSH
-                for rabbitmq_ip in rabbitmq_ip_list :
-                    SSH.sendTagTo(rabbitmq_ip, 'rabbitmq_0_launched')
-                    pass
+                retry = 3
+                while retry > 0 :
+                    for rabbitmq_ip in rabbitmq_ip_list[1:] :
+                        SSH.sendTagTo(rabbitmq_ip, 'rabbitmq_0_launched')
+                        pass
+                    retry -= 1
                 pass
             pass
         else :
@@ -180,7 +207,27 @@ class RabbitMQ(object):
                 file_tag = output.strip()
                 if str(file_tag) == "1" :
                     print 'wait time: %s second(s).' % time_count
-                    output,exitcode = ShellCmdExecutor.execCmd('bash %s' % re_init_script_path)
+                    print 'xxxxxxxxxx==='
+                    print 'cd /opt/openstack_conf/scripts/; bash reInitRabbitmqCluster.sh'
+                    output,exitcode = ShellCmdExecutor.execCmd('cd /opt/openstack_conf/scripts/; bash reInitRabbitmqCluster.sh')
+                    '''
+rabbitmqctl stop_app
+sleep 3
+rabbitmqctl join_cluster rabbit@kilo5
+rabbitmqctl start_app
+sleep 2
+rabbitmqctl set_policy ha-all '^(?!amq\.).*' '{"ha-mode": "all"}'
+sleep 2
+rabbitmqctl add_user nova 68ed25e3a0c3be79ec83
+sleep 2
+rabbitmqctl  set_permissions -p / nova '.*' '.*' '.*'
+                    '''
+#                     ShellCmdExecutor.execCmd('rabbitmqctl stop_app')
+#                     ShellCmdExecutor.execCmd('rabbitmqctl join_cluster rabbit@kilo5')
+#                     ShellCmdExecutor.execCmd('rabbitmqctl start_app')
+#                     ShellCmdExecutor.execCmd('rabbitmqctl set_policy ha-all \'^(?!amq\.).*\' \'{"ha-mode": "all"}\'')
+#                     ShellCmdExecutor.execCmd('rabbitmqctl add_user nova 68ed25e3a0c3be79ec83')
+#                     ShellCmdExecutor.execCmd('rabbitmqctl  set_permissions -p / nova \'.*\' \'.*\' \'.*\'')
                     break
                 else :
                     step = 1

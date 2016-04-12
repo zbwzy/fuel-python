@@ -130,12 +130,36 @@ class BCRDB(object):
             start_cmd = start_cmd_template.format(action='bootstrap')
             ShellCmdExecutor.execCmd(start_cmd)
             
+            print 'retry to bootstrap bcrdb==========='
+            retry = 3
+            while retry > 0 :
+                print 'retry=%d' % retry
+                
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep'
+                process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+                process_num = process_num.strip()
+                if process_num != '0' :
+                    print 'break to bootstrap bcrdb====='
+                    break
+                else :
+                    print 'retry=%d' % retry
+                    ShellCmdExecutor.execCmd(start_cmd)
+                    pass
+                
+                retry -= 1
+                pass
+            
             #send tag to other mysql server, mark that: 
             #the first mysql server has been launched.
             if len(mysql_ip_list) > 1:
-                for mysql_ip in mysql_ip_list[1:] :
-                    from openstack.kilo.ssh.SSH import SSH
-                    SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
+                retry = 3
+                while retry > 0 :
+                    for mysql_ip in mysql_ip_list[1:] :
+                        from openstack.kilo.ssh.SSH import SSH
+                        SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
+                        pass
+                    
+                    retry -= 1
                     pass
                 pass
             pass
@@ -151,8 +175,18 @@ class BCRDB(object):
                 output, exitcode = ShellCmdExecutor.execCmd(cmd)
                 file_tag = output.strip()
                 if str(file_tag) == "1" :
+                    time.sleep(5)
                     print 'wait time: %s second(s).' % time_count
+                    
                     ShellCmdExecutor.execCmd(start_cmd)
+                    
+                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep'
+                    process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+                    process_num = process_num.strip()
+                    if process_num == '0' :
+                        print 'start bcrdb again===='
+                        ShellCmdExecutor.execCmd(start_cmd)
+                        pass
                     break
                 else :
                     step = 1

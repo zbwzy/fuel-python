@@ -19,13 +19,13 @@ sleep 2
 #systemctl enable rabbitmq-server.service
 #systemctl start rabbitmq-server.service
 
-rabbitmqctl set_policy ha-all '^(?!amq\.).*' '{"ha-mode": "all"}'
+/usr/sbin/rabbitmqctl set_policy ha-all '^(?!amq\.).*' '{"ha-mode": "all"}'
 
 sleep 2
-rabbitmqctl add_user <RABBIT_USER_ID> <RABBIT_PASS>
+/usr/sbin/rabbitmqctl add_user <RABBIT_USER_ID> <RABBIT_PASS>
 
 sleep 2
 
-rabbitmqctl  set_permissions -p / <RABBIT_USER_ID> '.*' '.*' '.*'
+/usr/sbin/rabbitmqctl set_permissions -p / <RABBIT_USER_ID> '.*' '.*' '.*'
 
 echo 'init rabbitmq cluster done######'

@@ -25,7 +25,7 @@ class Params(object):
 #                        'neutron-agent'
 #                        ]
     
-    OPENSTACK_ROLES = ['keystone', 'glance', 'cinder-api', 'cinder-storage', 
+    OPENSTACK_ROLES = ['mysql', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 
                        'horizon', 'nova-api', 'nova-compute', 'neutron-server', 
                        'neutron-agent'
                        ]
@@ -279,7 +279,7 @@ if __name__ == '__main__':
         
         ####################
         #cluster's all IPs
-        for role in Params.OPENSTACK_ROLES :
+        for role in Params.OPENSTACK_ROLES[1:] :
             print 'role=%s--------------' % role
             if role in activeRoles :
                 ip_list = activeRoleIPMap[role]
