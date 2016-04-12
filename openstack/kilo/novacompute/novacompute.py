@@ -157,7 +157,7 @@ vif_plugging_timeout=0
     def start():        
         ShellCmdExecutor.execCmd("systemctl enable libvirtd.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-compute.service")
-        ShellCmdExecutor.execCmd("systemctl start libvirtd.service")
+        ShellCmdExecutor.execCmd("systemctl restart libvirtd.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-compute.service")
         pass
     

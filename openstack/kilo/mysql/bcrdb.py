@@ -128,12 +128,46 @@ class BCRDB(object):
         start_cmd_template = '/opt/bcrdb/support-files/mysql.server {action}'
         if index == 0 :
             start_cmd = start_cmd_template.format(action='bootstrap')
+            ShellCmdExecutor.execCmd(start_cmd)
+            
+            #send tag to other mysql server, mark that: 
+            #the first mysql server has been launched.
+            if len(mysql_ip_list) > 1:
+                for mysql_ip in mysql_ip_list[1:] :
+                    from openstack.kilo.ssh.SSH import SSH
+                    SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
+                    pass
+                pass
             pass
         else :
             start_cmd = start_cmd_template.format(action='start')
+            
+            #####
+            TIMEOUT = 600
+            timeout = TIMEOUT
+            time_count = 0
+            while True:
+                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep bcrdb_0_launched | wc -l' 
+                output, exitcode = ShellCmdExecutor.execCmd(cmd)
+                file_tag = output.strip()
+                if str(file_tag) == "1" :
+                    print 'wait time: %s second(s).' % time_count
+                    ShellCmdExecutor.execCmd(start_cmd)
+                    break
+                else :
+                    step = 1
+        #             print 'wait %s second(s)......' % step
+                    time_count += step
+                    time.sleep(1)
+                    pass
+                
+                if time_count == timeout :
+                    print 'Timeout %d when wait for the first mysql server launched.' % TIMEOUT
+                    print 'Do nothing!timeout=%s.' % timeout
+                    break
+                pass
+            #####
             pass
-        
-        ShellCmdExecutor.execCmd(start_cmd)
         pass
     
     @staticmethod
@@ -228,7 +262,8 @@ if __name__ == '__main__':
     else :
         BCRDB.install()
         BCRDB.config()
-#         BCRDB.start()
+        BCRDB.start()
+        
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:rdb installed#######'
     pass

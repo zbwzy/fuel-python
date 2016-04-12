@@ -441,8 +441,7 @@ if __name__ == '__main__':
                     print 'Do nothing!timeout=%s.' % timeout
                     break
                 pass
-            pass
-            
+                        
             cmd1 = 'chown -R keystone:keystone /var/log/keystone'
             cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
             cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'

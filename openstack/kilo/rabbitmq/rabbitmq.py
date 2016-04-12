@@ -147,6 +147,12 @@ class RabbitMQ(object):
             FileUtil.replaceFileContent(init_script_path, '<RABBIT_PASS>', rabbit_password)
             time.sleep(3)
             output,exitcode = ShellCmdExecutor.execCmd('bash %s' % init_script_path)
+            if len(rabbitmq_ip_list) > 1 :
+                from openstack.kilo.ssh.SSH import SSH
+                for rabbitmq_ip in rabbitmq_ip_list :
+                    SSH.sendTagTo(rabbitmq_ip, 'rabbitmq_0_launched')
+                    pass
+                pass
             pass
         else :
             re_init_script_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'reInitRabbitmqCluster.sh')
@@ -164,7 +170,30 @@ class RabbitMQ(object):
             FileUtil.replaceFileContent(re_init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
             FileUtil.replaceFileContent(re_init_script_path, '<RABBIT_PASS>', rabbit_password)
             time.sleep(3)
-            output,exitcode = ShellCmdExecutor.execCmd('bash %s' % re_init_script_path)
+            #######
+            TIMEOUT = 600
+            timeout = TIMEOUT
+            time_count = 0
+            while True:
+                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep rabbitmq_0_launched | wc -l' 
+                output, exitcode = ShellCmdExecutor.execCmd(cmd)
+                file_tag = output.strip()
+                if str(file_tag) == "1" :
+                    print 'wait time: %s second(s).' % time_count
+                    output,exitcode = ShellCmdExecutor.execCmd('bash %s' % re_init_script_path)
+                    break
+                else :
+                    step = 1
+        #             print 'wait %s second(s)......' % step
+                    time_count += step
+                    time.sleep(1)
+                    pass
+                
+                if time_count == timeout :
+                    print 'Timeout %d when wait for the first rabbitmq server launched.' % TIMEOUT
+                    print 'Do nothing!timeout=%s.' % timeout
+                    break
+                pass
             pass
         pass
     pass

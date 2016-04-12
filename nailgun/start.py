@@ -25,7 +25,7 @@ class Params(object):
 #                        'neutron-agent'
 #                        ]
     
-    OPENSTACK_ROLES = ['mysql', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 
+    OPENSTACK_ROLES = ['keystone', 'glance', 'cinder-api', 'cinder-storage', 
                        'horizon', 'nova-api', 'nova-compute', 'neutron-server', 
                        'neutron-agent'
                        ]
@@ -263,29 +263,33 @@ if __name__ == '__main__':
         mysql_ip_list = activeRoleIPMap['mysql']
         
 #         cluster_ip_list.extend(mysql_ip_list)
-        for ip in mysql_ip_list :
-            startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
-            .format(version_tag='kilo')
-            execRemoteCmd(ip, startCmd, timeout=600)
-            pass
-        time.sleep(10)
+#         for ip in mysql_ip_list :
+#             startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
+#             .format(version_tag='kilo')
+#             execRemoteCmd(ip, startCmd, timeout=600)
+#             pass
+#         time.sleep(10)
         print 'start to init db======'
         initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
         .format(version_tag='kilo')
-        execRemoteCmd(mysql_ip_list[0], initDBCmd, timeout=600)
+        for mysql_ip in mysql_ip_list:
+            execRemoteCmd(mysql_ip, initDBCmd, timeout=600)
+            pass
         print 'init db done####'
         
         ####################
         #cluster's all IPs
-        for role in Params.OPENSTACK_ROLES[1:] :
+        for role in Params.OPENSTACK_ROLES :
+            print 'role=%s--------------' % role
             if role in activeRoles :
                 ip_list = activeRoleIPMap[role]
                 ####list merge: get cluster' all IPs
 #                 cluster_ip_list.extend(ip_list)
                 ####################################
                 initCmd = getInitCmdByRole(role)
-                
+                print 'initCmd=%s----' % initCmd
                 for ip in ip_list :
+                    print 'ip=%s--' % ip
                     execRemoteCmd(ip, initCmd, timeout=600)
                     pass
                  
