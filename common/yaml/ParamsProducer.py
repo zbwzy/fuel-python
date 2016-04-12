@@ -515,8 +515,14 @@ class ParamsProducer(object):
         if YAMLUtil.hasRoleInNodes(role):
             neutron_service_ips_list = YAMLUtil.getRoleIPList(role)
             neutron_service_ips = ','.join(neutron_service_ips_list)
+            
+            key = 'interface_name'
+            physical_external_network_interface = YAMLUtil.getValue(role, key)
             print 'neutron_service_ips=%s--' % neutron_service_ips
+            print 'physical_external_network_interface=%s--' % physical_external_network_interface
+            
             paramsMap['neutron_service_ips'] = neutron_service_ips
+            paramsMap['physical_external_network_interface'] = physical_external_network_interface
             
             #REFACTOR LATER
             paramsMap['metadata_secret'] = '123456'

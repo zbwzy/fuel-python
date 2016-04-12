@@ -179,8 +179,8 @@ class Network(object):
         #Add a port to the external bridge that connects to the physical external network interface:
         #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
         
-        #REFACTOR LATER:on physical, the below is bond1 or bond2
-        physical_external_network_interface = 'eth2'
+#         physical_external_network_interface = 'eth2'
+        physical_external_network_interface = JSONUtility.getValue('physical_external_network_interface').strip()
 #         addExternalBridgeCmd = 'ovs-vsctl add-port br-ex %s' % physical_external_network_interface
         addExternalBridgeTemplateScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'addExternalBridge.sh')
         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % addExternalBridgeTemplateScriptPath)
