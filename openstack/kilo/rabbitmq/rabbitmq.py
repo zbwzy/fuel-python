@@ -116,6 +116,13 @@ class RabbitMQ(object):
         ShellCmdExecutor.execCmd('systemctl enable rabbitmq-server.service')
         ShellCmdExecutor.execCmd('systemctl start rabbitmq-server.service')
         
+        output, exitcode = ShellCmdExecutor.execCmd('ps aux | grep rabbitmq_server | grep erlang | grep -v grep | wc -l')
+        
+        if not output.strip() == '1' :
+            startRabbitmqScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'startRabbitmq.sh')
+            ShellCmdExecutor.execCmd('bash %s' % startRabbitmqScriptPath)
+            pass
+        
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         rabbitmq_ips = JSONUtility.getValue('rabbitmq_ips')
@@ -158,7 +165,6 @@ class RabbitMQ(object):
             FileUtil.replaceFileContent(re_init_script_path, '<RABBIT_PASS>', rabbit_password)
             time.sleep(3)
             output,exitcode = ShellCmdExecutor.execCmd('bash %s' % re_init_script_path)
-            pass
             pass
         pass
     pass

@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'icehouse'
+OPENSTACK_VERSION_TAG = 'kilo'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone.conf')
 
@@ -311,6 +311,9 @@ class ParamsProducer(object):
         role = 'neutron-server'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
+            key = 'vlan_id_range'
+            vlan_id_range = YAMLUtil.getValue(role, key)
+            
             key = 'neutron_vip'
             neutron_vip = YAMLUtil.getValue(role, key)
             
@@ -328,6 +331,7 @@ class ParamsProducer(object):
             neutron_ip_list = YAMLUtil.getRoleIPList(role)
             neutron_ips = ','.join(neutron_ip_list)
             
+            print 'vlan_id_range=%s--' % vlan_id_range
             print 'neutron_vip=%s--' % neutron_vip
             print 'neutron_vip_interface=%s--' % neutron_vip_interface
             print 'neutron_network_mode=%s--' % neutron_network_mode
@@ -336,6 +340,7 @@ class ParamsProducer(object):
             #print 'neutron_mysql_user_password=%s--' % neutron_mysql_password
             
             print 'neutron_ips=%s--' % neutron_ips
+            paramsMap['vlan_id_range'] = vlan_id_range
             paramsMap['neutron_vip'] = neutron_vip
             paramsMap['neutron_vip_interface'] = neutron_vip_interface
             paramsMap['neutron_mysql_user'] = neutron_mysql_user

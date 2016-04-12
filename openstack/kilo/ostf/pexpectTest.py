@@ -32,7 +32,6 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
 from openstack.common.role import Role
 
 def foo(val1, val2):
@@ -43,6 +42,16 @@ def foo(val1, val2):
 if __name__ == '__main__':
     print 'hello pexpect test============'
     print 'start time: %s' % time.ctime()
+    #TEST
+    
+    output, exitcode = ShellCmdExecutor.execCmd('ps aux | grep pickup | grep -v grep | wc -l')
+    print 'output=\n%s--' % output
+    if output.strip() == '1' :
+        print 'YYYYYY'
+        pass
+    else :
+        print 'NNNNNN'
+    exit()
     #when execute script,exec: python <this file absolute path>
     ###############################
     foo('hello', 'beijing')
