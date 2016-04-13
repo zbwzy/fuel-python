@@ -160,11 +160,6 @@ def getInitCmdByRole(role):
         .format(version_tag='kilo')
         pass
     
-    if role == 'mysql' :
-        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
-        .format(version_tag='kilo')
-        pass
-    
     if role == 'keystone' :
         initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/keystone/initKeystone.py'\
         .format(version_tag='kilo')
@@ -261,7 +256,6 @@ if __name__ == '__main__':
         FileUtil.writeContent(CLUSTER_ROLE_MAP_JSON_FILE_PATH, json.dumps(activeRoleIPMap, indent=4))
                               
         activeRoles = activeRoleIPMap.keys()
-        print 'initBCRDB===================='
         print 'activeRoles=%s' % activeRoles
         #######DO EXECUTION
 #         cluster_ip_list = []
@@ -287,9 +281,9 @@ if __name__ == '__main__':
             execRemoteCmd(ip, startCmd, timeout=600)
             pass
         
-        print 'wait 5 secs======'
+        print 'wait 3 secs======'
         time.sleep(3)
-        
+
         print 'start to init db======'
         initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
         .format(version_tag='kilo')
@@ -399,6 +393,15 @@ if __name__ == '__main__':
                 execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
                 pass
             pass
+        
+        #network init
+        if 'neutron-server' in activeRoles:
+            neutron_ip_list = activeRoleIPMap['neutron-server']
+            initNetCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTFNetwork.py'
+            for ip in neutron_ip_list:
+                execRemoteCmd(ip, initNetCmd, timeout=600)
+                pass
+            pass
                     
         os.system('touch %s' % TAG)
         pass
@@ -469,6 +472,7 @@ if __name__ == '__main__':
 #             pass
 #         pass 
 #     pass
+
 
 
 

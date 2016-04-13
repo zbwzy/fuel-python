@@ -89,53 +89,50 @@ root@10.20.0.192's password:
     pass
     
 if __name__ == '__main__':
-    print 'hello openstack-kilo:init ostf============'
+    print 'hello openstack-kilo:init ostf network============'
     print 'start time: %s' % time.ctime()
     #####
     #when execute script,exec: python <this file absolute path>
-    ###############################    
-    if Role.isGlanceRole() :
-        #To sync image on glance hosts
-        IMAGE_INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initOSTFGlance'
-        if os.path.exists(IMAGE_INSTALL_TAG_FILE) :
-            print 'ostf glance image initted####'
+    ###############################
+    if Role.isNeutronServerRole() :
+        NETWORK_INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initOSTFNetwork'
+        if os.path.exists(NETWORK_INSTALL_TAG_FILE) :
+            print 'ostf network initted####'
             print 'exit===='
             pass
         else :
-            if os.path.exists('/opt/openstack_conf/tag/install/existGlanceFileOnHost') :
-                output, exitcode = ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/getDefaultImageID.sh')
-                imageID = output.strip()
-#                 listImageFileCmd = 'ls /var/lib/glance/images/ | grep %s' % imageID
-#                 output, exitcode = ShellCmdExecutor.execCmd(listImageFileCmd)
-#                 output = output.strip()
-            
-                imageFileName = imageID
-                imageFilePath = os.path.join('/var/lib/glance/images', imageID)
-                glance_ips = JSONUtility.getValue('glance_ips')
-                glance_ips_list = glance_ips.strip().split(',')
-                
-                output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-                local_ip = output.strip()
-                
-                dest_glance_ip_list = []
-                
-                for e in glance_ips_list :
-                    if(not e == local_ip) :
-                        dest_glance_ip_list.append(e)
-                        pass
-                    pass
-                
-                for ip in dest_glance_ip_list :
-                    scpCmd = 'scp {imageFilePath} root@{glance_ip}:/var/lib/glance/images/'.format(imageFilePath=imageFilePath, glance_ip=ip)
-                    print 'scpCmd=%s--' % scpCmd
-                    scp_image(scpCmd, imageFileName, ip)
-                    pass
+            from openstack.common.serverSequence import ServerSequence
+            neutron_server_ips = JSONUtility.getValue('neutron_ips')
+            neutron_ip_list = neutron_server_ips.strip().split(',')
+            output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+            localIP = output.strip()
+            if ServerSequence.getIndex(neutron_ip_list, localIP) == 0:
+                network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ostf_network_init.sh')
+                ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % network_init_script_path)
+                ############
+                keystone_vip = JSONUtility.getValue('keystone_vip')
+                admin_token = JSONUtility.getValue('admin_token')
+                keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+                 
+                ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/ostf_network_init.sh')
+                FileUtil.replaceFileContent('/opt/openstack_conf/scripts/ostf_network_init.sh', '<KEYSTONE_VIP>', keystone_vip)
+                FileUtil.replaceFileContent('/opt/openstack_conf/scripts/ostf_network_init.sh', '<ADMIN_TOKEN>', admin_token)
+                FileUtil.replaceFileContent('/opt/openstack_conf/scripts/ostf_network_init.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+                 
+                ###########
+                ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/ostf_network_init.sh')
                 pass
-            
-            os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)
+            else :
+                print 'This is not the first neutron-server.Do not need to init OSTF network.'
+                pass
+     
+            #mark: OSTF network is installed
+            os.system('touch %s' % NETWORK_INSTALL_TAG_FILE)
             pass
         pass
-    print 'hello ostf initted#######'
+    
+    
+    print 'hello ostf network initted#######'
     pass
 
 

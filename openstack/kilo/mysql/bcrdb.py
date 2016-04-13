@@ -180,7 +180,7 @@ class BCRDB(object):
                     
                     ShellCmdExecutor.execCmd(start_cmd)
                     
-                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep'
+                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep | wc -l'
                     process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                     process_num = process_num.strip()
                     if process_num == '0' :
