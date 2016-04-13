@@ -284,6 +284,110 @@ class BCRDB(object):
             pass
         pass
     
+    @staticmethod
+    def start2():
+        from openstack.common.serverSequence import ServerSequence
+        
+        mysql_ips = JSONUtility.getValue("mysql_ips")
+        print 'mysql_ips=%s---' % mysql_ips
+        mysql_ip_list = mysql_ips.strip().split(',')
+        print 'mysql_ip_list=%s--' % mysql_ip_list
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        local_management_ip = output.strip()
+        
+        index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
+        print 'mysql index=%s--' % str(index)
+        #Judge master
+        if not os.path.exists('/opt/openstack_conf/tag/') :
+            ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
+            pass
+        
+        start_cmd = ''
+        start_cmd_template = '/opt/bcrdb/support-files/mysql.server {action}'
+        if index == 0 :
+            start_cmd = start_cmd_template.format(action='bootstrap')
+#             ShellCmdExecutor.execCmd(start_cmd)
+            
+            print 'retry to bootstrap bcrdb==========='
+            retry = 3
+            while retry > 0 :
+                print 'retry=%d' % retry
+                
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep'
+                process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+                process_num = process_num.strip()
+                if process_num != '0' :
+                    print 'break to bootstrap bcrdb====='
+                    break
+                else :
+                    print 'retry=%d' % retry
+                    ShellCmdExecutor.execCmd(start_cmd)
+                    pass
+                
+                retry -= 1
+                pass
+            
+            #send tag to other mysql server, mark that: 
+            #the first mysql server has been launched.
+            if len(mysql_ip_list) > 1:
+                retry = 3
+                while retry > 0 :
+                    for mysql_ip in mysql_ip_list[1:] :
+                        from openstack.kilo.ssh.SSH import SSH
+                        SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
+                        pass
+                    
+                    retry -= 1
+                    pass
+                pass
+            pass
+        else :
+            start_cmd = start_cmd_template.format(action='start')
+            #####
+            TIMEOUT = 10
+            timeout = TIMEOUT
+            time_count = 0
+            while True:
+                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep bcrdb_0_launched | wc -l' 
+                output, exitcode = ShellCmdExecutor.execCmd(cmd)
+                file_tag = output.strip()
+                if str(file_tag) == "1" :
+                    time.sleep(1)
+                    print 'wait time: %s second(s).' % time_count
+                    
+                    retry = 3
+                    while retry > 0:
+                        check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep | wc -l'
+                        process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+                        process_num = process_num.strip()
+                        if process_num == '0' :
+                            print 'start bcrdb again===='
+                            ShellCmdExecutor.execCmd(start_cmd)
+                            pass
+                        else :
+                            break
+                        
+                        retry -= 1
+                        pass
+                    
+                    break
+                else :
+                    step = 1
+        #             print 'wait %s second(s)......' % step
+                    time_count += step
+                    time.sleep(1)
+                    pass
+                
+                if time_count == timeout :
+                    print 'Timeout %d when wait for the first mysql server launched.' % TIMEOUT
+                    print 'Do nothing!timeout=%s.' % timeout
+                    break
+                pass
+            pass
+        pass
+    pass
+    
 
 if __name__ == '__main__':
         

@@ -36,7 +36,7 @@ from openstack.kilo.mysql.bcrdb import BCRDB
 if __name__ == '__main__':
         
     print 'hello openstack-kilo:start rdb======='
-    BCRDB.start()
+    BCRDB.start2()
     #init db
     
     print 'hello openstack-kilo:rdb started#######'

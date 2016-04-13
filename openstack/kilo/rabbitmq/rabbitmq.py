@@ -243,6 +243,47 @@ rabbitmqctl  set_permissions -p / nova '.*' '.*' '.*'
                 pass
             pass
         pass
+    
+    @staticmethod
+    def start1():
+        TIMEOUT = 10
+        time_count = 0
+        while True :
+            check_rabbitmq_process = 'ps aux  | grep rabbitmq | grep erlang | grep rabbitmq_server | wc -l'
+            output, exitcode = ShellCmdExecutor.execCmd(check_rabbitmq_process)
+            rabbitmq_process_num = output.strip()
+            if rabbitmq_process_num == '0' :
+                ShellCmdExecutor.execCmd('systemctl start rabbitmq-server.service')
+                pass
+            else :
+                print 'rabbitmq is launched####'
+                break
+            
+            print 'time_count=%d' % time_count
+            
+            time_count += 1
+            if time_count == TIMEOUT :
+                print 'when launch rabbitmq, timeout=%d' % TIMEOUT
+                break
+            
+            time.sleep(1)
+            pass
+        
+        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+        localIP = output.strip()
+        rabbitmq_ips = JSONUtility.getValue('rabbitmq_ips')
+        rabbitmq_ip_list = rabbitmq_ips.strip().split(',')
+        
+        from openstack.common.serverSequence import ServerSequence
+        if ServerSequence.getIndex(rabbitmq_ip_list, localIP) == 0:
+            print 'On rabbitmq master, do nothing!'
+            pass
+        else :
+            re_init_script_template_file_path = '/opt/openstack_conf/scripts/reInitRabbitmqCluster.sh'
+            output, exitcode = ShellCmdExecutor.execCmd('bash %s' % re_init_script_template_file_path)
+            print 'when init rabbitmq cluster, output=\n%s--' % output.strip()
+            pass
+        pass
     pass
 
 

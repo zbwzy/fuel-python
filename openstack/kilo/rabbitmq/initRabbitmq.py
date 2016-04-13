@@ -33,27 +33,30 @@ sys.path.append(PROJ_HOME_DIR)
 
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from openstack.common.role import Role
+from openstack.kilo.rabbitmq.rabbitmq import RabbitMQ
 
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:init rabbitmq============'
+    print 'hello openstack-kilo:init rabbitmq============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
     if Role.isRabbitMQRole() :
-        INSTALL_TAG_FILE = '/opt/initRabbitmq'
+        INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initRabbitmqCluster'
         if os.path.exists(INSTALL_TAG_FILE) :
-            print 'rabbitmq initted####'
+            print 'rabbitmq cluster initted####'
             print 'exit===='
             pass
         else :
-            ShellCmdExecutor.execCmd('bash /tmp/killrabbitmq.sh')
-            #mark: rabbitmq is installed
+            
+            #mark: rabbitmq cluster is initted.
+            RabbitMQ.start1()
+            
             os.system('touch %s' % INSTALL_TAG_FILE)
             pass
         pass
     
-    print 'hello rabbitmq initted#######'
+    print 'hello rabbitmq cluster initted#######'
     pass
 
 

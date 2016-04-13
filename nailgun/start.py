@@ -25,7 +25,7 @@ class Params(object):
 #                        'neutron-agent'
 #                        ]
     
-    OPENSTACK_ROLES = ['mysql', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 
+    OPENSTACK_ROLES = ['mysql', 'rabbitmq', 'keystone', 'glance', 'cinder-api', 'cinder-storage', 
                        'horizon', 'nova-api', 'nova-compute', 'neutron-server', 
                        'neutron-agent'
                        ]
@@ -160,6 +160,11 @@ def getInitCmdByRole(role):
         .format(version_tag='kilo')
         pass
     
+    if role == 'mysql' :
+        initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
+        .format(version_tag='kilo')
+        pass
+    
     if role == 'keystone' :
         initCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/keystone/initKeystone.py'\
         .format(version_tag='kilo')
@@ -256,6 +261,7 @@ if __name__ == '__main__':
         FileUtil.writeContent(CLUSTER_ROLE_MAP_JSON_FILE_PATH, json.dumps(activeRoleIPMap, indent=4))
                               
         activeRoles = activeRoleIPMap.keys()
+        print 'initBCRDB===================='
         print 'activeRoles=%s' % activeRoles
         #######DO EXECUTION
 #         cluster_ip_list = []
@@ -263,12 +269,27 @@ if __name__ == '__main__':
         mysql_ip_list = activeRoleIPMap['mysql']
         
 #         cluster_ip_list.extend(mysql_ip_list)
-#         for ip in mysql_ip_list :
-#             startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
-#             .format(version_tag='kilo')
-#             execRemoteCmd(ip, startCmd, timeout=600)
-#             pass
-#         time.sleep(10)
+        for ip in mysql_ip_list :
+            startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
+            .format(version_tag='kilo')
+            execRemoteCmd(ip, startCmd, timeout=600)
+            pass
+        print 'wait 5 secs======'
+        time.sleep(5)
+        
+        print 'initRabbitmq========='
+        rabbit_ip_list = activeRoleIPMap['rabbitmq']
+        
+#         cluster_ip_list.extend(rabbit_ip_list)
+        for ip in rabbit_ip_list :
+            startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/rabbitmq/initRabbitmq.py'\
+            .format(version_tag='kilo')
+            execRemoteCmd(ip, startCmd, timeout=600)
+            pass
+        
+        print 'wait 5 secs======'
+        time.sleep(3)
+        
         print 'start to init db======'
         initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
         .format(version_tag='kilo')
@@ -279,7 +300,7 @@ if __name__ == '__main__':
         
         ####################
         #cluster's all IPs
-        for role in Params.OPENSTACK_ROLES[1:] :
+        for role in Params.OPENSTACK_ROLES[2:] :
             print 'role=%s--------------' % role
             if role in activeRoles :
                 ip_list = activeRoleIPMap[role]
