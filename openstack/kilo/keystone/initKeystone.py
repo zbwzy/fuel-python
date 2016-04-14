@@ -408,7 +408,7 @@ if __name__ == '__main__':
         if Keystone.getServerIndex() == 0 :
             Keystone.importKeystoneDBSchema()
             Keystone.start()
-            time.sleep(3)
+            time.sleep(10)
             InitKeystone.init()
             pass
         else :
@@ -423,7 +423,7 @@ if __name__ == '__main__':
             time_count = 0
             while True:
                 launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
-                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_ssl | wc -l' 
+                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_ssl | wc -l'
                 output, exitcode = ShellCmdExecutor.execCmd(cmd)
                 ssl_file_tag = output.strip()
                 if str(ssl_file_tag) == "1" :
@@ -441,7 +441,7 @@ if __name__ == '__main__':
                     print 'Do nothing!timeout=%s.' % timeout
                     break
                 pass
-                        
+            
             cmd1 = 'chown -R keystone:keystone /var/log/keystone'
             cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
             cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'

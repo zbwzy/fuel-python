@@ -11,7 +11,7 @@ import time
 debug = False 
 
 #This program is used to parse ip_map_role.json on nailgun docker
-if debug == False :
+if debug == True :
     from nailgun.common.ssh import Client as SSHClient
     from nailgun.logger import logger
     pass
@@ -265,7 +265,7 @@ if __name__ == '__main__':
 #         logger.info('OpenStack HA has been initted-----')
 #         pass
 #     else :
-    logger.info('start to init OpenStack HA----------------')
+    print ('start to init OpenStack HA----------------')
     cluster_id = ''
     argv = sys.argv
     argv.pop(0)
@@ -287,7 +287,7 @@ if __name__ == '__main__':
     
     TAG = '/opt/openstack_init_{cluster_id}'.format(cluster_id=str(cluster_id))
     if os.path.exists(TAG) :
-        logger.info('OpenStack HA has been initted-----')
+        print ('OpenStack HA has been initted-----')
         pass
     else :
         activeRoleIPMap = getActiveRoleIPMap(cluster_id)
@@ -301,217 +301,17 @@ if __name__ == '__main__':
 #         cluster_ip_list = []
         ##Do mysql execution
         mysql_ip_list = activeRoleIPMap['mysql']
+        print 'mysql_ip_list=%s' % mysql_ip_list
         
-#         cluster_ip_list.extend(mysql_ip_list)
-        for ip in mysql_ip_list :
-            startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initBCRDB.py'\
-            .format(version_tag='kilo')
-            execRemoteCmd(ip, startCmd, timeout=600)
-            pass
-        print 'wait 5 secs======'
-        time.sleep(5)
+        horizon_ip_list = activeRoleIPMap['horizon']
+        print 'horizon_ip_list=%s' % horizon_ip_list
+        nova_compute_ip_list = activeRoleIPMap['nova-compute']
+        print 'nova_compute_ip_list=%s' % nova_compute_ip_list
+        rabbitmq_ip_list = activeRoleIPMap['rabbitmq']
+        print 'rabbitmq_ip_list=%s' % rabbitmq_ip_list
+        pass    
         
-        print 'initRabbitmq========='
-        rabbit_ip_list = activeRoleIPMap['rabbitmq']
         
-#         cluster_ip_list.extend(rabbit_ip_list)
-        for ip in rabbit_ip_list :
-            startCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/rabbitmq/initRabbitmq.py'\
-            .format(version_tag='kilo')
-            execRemoteCmd(ip, startCmd, timeout=600)
-            pass
-        
-        print 'wait 3 secs======'
-        time.sleep(3)
-
-        print 'start to init db======'
-        initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
-        .format(version_tag='kilo')
-        for mysql_ip in mysql_ip_list:
-            execRemoteCmd(mysql_ip, initDBCmd, timeout=600)
-            pass
-        print 'init db done####'
-        
-        ####################
-        #cluster's all IPs
-        for role in Params.OPENSTACK_ROLES[2:] :
-            print 'role=%s--------------' % role
-            if role in activeRoles :
-                ip_list = activeRoleIPMap[role]
-                ####list merge: get cluster' all IPs
-#                 cluster_ip_list.extend(ip_list)
-                ####################################
-                initCmd = getInitCmdByRole(role)
-                print 'initCmd=%s----' % initCmd
-                for ip in ip_list :
-                    print 'role=%s,ip=%s--' % (role, ip)
-                    execRemoteCmd(ip, initCmd, timeout=600)
-                    pass
-                
-                time.sleep(1)
-                pass
-            pass
-         
-        #remove duplicated ip
-#         cluster_ip_list = list(set(cluster_ip_list))
-
-
-        if 'nova-compute' in activeRoles:
-            nova_compute_ip_list = activeRoleIPMap['nova-compute']
-            reconfigureNovaComputeCmd = 'python /etc/puppet/fuel-python/openstack/kilo/novacompute/configureNovaComputeAfterNeutron.py'
-                        
-            for nova_compute_ip in nova_compute_ip_list :
-                execRemoteCmd(nova_compute_ip, reconfigureNovaComputeCmd, timeout=600)
-                pass
-            pass
-        
-        #restart horizon
-        if 'horizon' in activeRoles:
-            horizon_ip_list = activeRoleIPMap['horizon']
-            restartCmd = 'python /etc/puppet/fuel-python/openstack/kilo/dashboard/restartDashboard.py'
-            
-            for horizon_ip in horizon_ip_list :
-                execRemoteCmd(horizon_ip, restartCmd, timeout=600)
-                pass
-            pass
-        
-        if 'glance' in activeRoles:
-            glance_ip_list = activeRoleIPMap['glance']
-            importImageCmd = 'python /etc/puppet/fuel-python/openstack/kilo/glance/importImage.py'
-            for glance_ip in glance_ip_list :
-                execRemoteCmd(glance_ip, importImageCmd, timeout=600)
-                time.sleep(10)
-                pass
-            pass
-        
-#         vxlanConfigCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/network_mode/vxlanconfig.py'
-#         if 'neutron-server' in activeRoles:
-#             neutron_ip_list = activeRoleIPMap['neutron-server']
-#             
-#             #init network for OSTF
-#             initCmd = 'python /etc/puppet/fuel-python/openstack/icehouse/ostf/initOSTF.py'
-#             
-#             #if necessary, configure vxlan
-#             for neutron_ip in neutron_ip_list:
-#                 execRemoteCmd(neutron_ip, initCmd, timeout=600)
-#                 execRemoteCmd(neutron_ip, vxlanConfigCmd, timeout=600)
-#                 pass
-#             pass
-        
-#         if 'nova-compute' in activeRoles:
-#             nova_compute_ip_list = activeRoleIPMap['nova-compute']
-#             
-#             for nova_compute_ip in nova_compute_ip_list:
-#                 execRemoteCmd(nova_compute_ip, vxlanConfigCmd, timeout=600)
-#                 pass
-#             pass
-#         
-#         if 'neutron-agent' in activeRoles:
-#             neutron_agent_ip_list = activeRoleIPMap['neutron-agent']
-#             
-#             for neutron_agent_ip in neutron_agent_ip_list:
-#                 execRemoteCmd(neutron_agent_ip, vxlanConfigCmd, timeout=600)
-#                 pass
-#             pass
-        
-        #sync glance image
-        if 'glance' in activeRoles:
-            glance_ip_list = activeRoleIPMap['glance']
-            #########image sync
-            syncImageCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTF.py'
-            for ip in glance_ip_list:
-                execRemoteCmd(ip, syncImageCmd, timeout=600)
-                pass
-            pass
-         
-        #assign glance image privilege
-        if 'glance' in activeRoles:
-            glance_ip_list = activeRoleIPMap['glance']
-            assignPrivilegeCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTFPrivilege.py'
-            for ip in glance_ip_list:
-                execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
-                execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
-                pass
-            pass
-        
-        #network init
-        if 'neutron-server' in activeRoles:
-            neutron_ip_list = activeRoleIPMap['neutron-server']
-            initNetCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTFNetwork.py'
-            for ip in neutron_ip_list:
-                execRemoteCmd(ip, initNetCmd, timeout=600)
-                pass
-            pass
-                    
-        os.system('touch %s' % TAG)
-        pass
-    pass
-
-#     
-#     role = 'glance'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'neutron-server'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     
-#     role = 'neutron'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     
-#     role = 'nova-api'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'nova-compute'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass
-#     
-#     role = 'cinder-api'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'cinder-storage'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass  
-#     
-#     role = 'heat'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     pass
 
 
 
