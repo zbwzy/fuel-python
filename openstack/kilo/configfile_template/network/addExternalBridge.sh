@@ -22,6 +22,9 @@ ovs-vsctl add-br br-ex
 #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
 
 ovs-vsctl add-port br-ex <PHYSICAL_EXTERNAL_NETWORK_INTERFACE>
+
+
+
 echo 'add external bridge done####'
 
 

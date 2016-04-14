@@ -442,6 +442,13 @@ if __name__ == '__main__':
                 execRemoteCmd(ip, initNetCmd, timeout=600)
                 pass
             pass
+        
+        #check keystone service , endpoint
+        if 'keystone' in activeRoles:
+            keystone_ip_list = activeRoleIPMap['keystone']
+            checkCmd = 'python /etc/puppet/fuel-python/openstack/kilo/keystone/checkKeystone.py'
+            execRemoteCmd(keystone_ip_list[0], checkCmd, timeout=600)
+            pass
                     
         os.system('touch %s' % TAG)
         pass

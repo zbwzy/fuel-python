@@ -17,13 +17,13 @@ vrrp_script chk_haproxy {
 
 vrrp_instance VI_1 {
     state MASTER 
-    interface eth0 
+    interface <HA_VIP1_INTERFACE> 
     virtual_router_id 11
     priority 100
     advert_int 1
     smtp alert
     track_interface {
-	eth0 
+	<HA_VIP1_INTERFACE> 
     }
     track_script {
         chk_haproxy
@@ -39,13 +39,13 @@ vrrp_instance VI_1 {
 }
 
 vrrp_instance VI_2 { 
-    state BACKUP 
-    interface eth0
+    state BACKUP
+    interface <HA_VIP1_INTERFACE>
     virtual_router_id 202 
     priority 99  
     advert_int 1
     track_interface {
-        eth0 
+        <HA_VIP1_INTERFACE> 
     }
     track_script {
         chk_haproxy

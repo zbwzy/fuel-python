@@ -42,3 +42,4 @@ neutron subnet-create --name net04-subnet --enable-dhcp --gateway 192.168.10.1  
 
 
 echo 'init ostf network done####'
+
