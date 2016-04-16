@@ -88,9 +88,9 @@ if __name__ == '__main__':
             if keystoneServiceIDs == '' or keystoneServiceIDs == None :
                 pass
             else :
-                print 'delete keystone service=========================================='
                 keystoneServiceIDList = keystoneServiceIDs.split('\n')
                 if len(keystoneServiceIDList) > 1 :
+                    print 'delete keystone service=========================================='
                     for id in keystoneServiceIDList[1:] :
                         output, exitcode = ShellCmdExecutor.execCmd('bash %s %s' % (scriptPath1, id))
                         pass

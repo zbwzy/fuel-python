@@ -253,9 +253,9 @@ admin_password=123456
         neutron_vip = JSONUtility.getValue("neutron_vip")
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
-#         nova_vip = JSONUtility.getValue("nova_vip")
         
-#         virt_type = JSONUtility.getValue("virt_type")
+        virt_type = JSONUtility.getValue("virt_type")
+#         nova_vip = JSONUtility.getValue("nova_vip")
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
@@ -307,7 +307,7 @@ admin_password=123456
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_VIP>', glance_vip)
-#         FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
         FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
 #         FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
         

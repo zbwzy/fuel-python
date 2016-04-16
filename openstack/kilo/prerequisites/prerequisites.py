@@ -55,6 +55,11 @@ class Prerequisites(object):
         
         ShellCmdExecutor.execCmd('yum clean all && yum makecache')
         
+        #ntp update
+        from common.yaml.YAMLUtil import YAMLUtil
+        fuel_master_ip = str(YAMLUtil.getValue('global', 'fuel_master_ip'))
+        os.system('/usr/sbin/ntpdate -u %s' % fuel_master_ip)
+                
         #install tar
         ShellCmdExecutor.execCmd('yum install tar -y')
         
