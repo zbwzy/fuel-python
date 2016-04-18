@@ -40,12 +40,12 @@ vrrp_instance VI_1 {
 
 vrrp_instance VI_2 { 
     state MASTER 
-    interface <HA_VIP1_INTERFACE> 
+    interface <HA_VIP2_INTERFACE> 
     virtual_router_id 202 
     priority 100
     advert_int 1
     track_interface {
-        eth0 
+        <HA_VIP2_INTERFACE> 
     }
     track_script {
         chk_haproxy
