@@ -354,19 +354,22 @@ if __name__ == '__main__':
         exit()
         pass
     
-    output, exitcode = ShellCmdExecutor.execCmd('cat /opt/mysql_ip_list')
-    mysql_ip_list = output.strip().split(',')
-    mysql_master_ip = mysql_ip_list[0]
+    MySQL.init()
     
-    output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-    localIP = output.strip()
-    
-    if not localIP == mysql_master_ip :
-        print 'This is not master mysql node,skip db init.............'
-        pass
-    else :
-        MySQL.init()
-        pass
+#     output, exitcode = ShellCmdExecutor.execCmd('cat /opt/mysql_ip_list')
+#     mysql_ip_list = output.strip().split(',')
+#     mysql_master_ip = mysql_ip_list[0]
+#     
+#     output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
+#     localIP = output.strip()
+#     
+#     if not localIP == mysql_master_ip :
+#         print 'This is not master mysql node,skip db init.............'
+#         pass
+#     else :
+#         MySQL.init()
+#         pass
+#     pass
     
     
 

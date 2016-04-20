@@ -125,12 +125,12 @@ class Dashboard(object):
     @staticmethod
     def start():
         ShellCmdExecutor.execCmd("systemctl enable httpd.service")
-        ShellCmdExecutor.execCmd("systemctl start httpd.service")
+        ShellCmdExecutor.execCmd("systemctl start httpd.service", timeout=15)
         pass
     
     @staticmethod
     def restart():
-        ShellCmdExecutor.execCmd("systemctl restart httpd.service")
+        ShellCmdExecutor.execCmd("systemctl restart httpd.service", timeout=15)
         pass
     
     

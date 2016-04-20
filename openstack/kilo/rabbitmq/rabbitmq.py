@@ -60,6 +60,11 @@ class RabbitMQ(object):
     
     @staticmethod
     def install():
+        #ntp update
+        from common.yaml.YAMLUtil import YAMLUtil
+        fuel_master_ip = str(YAMLUtil.getValue('global', 'fuel_master_ip'))
+        os.system('/usr/sbin/ntpdate -u %s' % fuel_master_ip)
+        
         ShellCmdExecutor.execCmd('yum install -y rabbitmq-server')
         ShellCmdExecutor.execCmd('rabbitmq-plugins enable rabbitmq_management')
         pass

@@ -101,13 +101,37 @@ class BCRDB(object):
         ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % EXECUTE_MYSQL_PATH)
         
         ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % MYSQLADMIN_BIN_PATH)
+        
+        ShellCmdExecutor.execCmd('useradd bcrdb')
+        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /opt/bcrdb')
+        pass
+    
+    @staticmethod
+    def reDeploy():
+        if os.path.exists('/opt/bcrdb') :
+            ShellCmdExecutor.execCmd('rm -rf /opt/bcrdb')
+            pass
+        
+        rdb_package_name = 'BC-RDB-2.2.0-el7.x86_64.tar.gz'
+        destTarFilePath = os.path.join('/opt', rdb_package_name) 
+        if os.path.exists(destTarFilePath) :
+            ShellCmdExecutor.execCmd('rm -rf %s' % destTarFilePath)
+            pass
+        
+        bcrdb_source_dir = '/etc/puppet/modules/mysql/files/BC-RDB-2.2.0-el7.x86_64.tar.gz'
+        cp_cmd = 'cp -r %s /opt/' % bcrdb_source_dir
+        ShellCmdExecutor.execCmd(cp_cmd)
+        
+        extract_cmd = 'cd /opt/; tar zvxf %s' % rdb_package_name
+        ShellCmdExecutor.execCmd(extract_cmd)
+        
+        ######re-config
+        BCRDB.config()
         pass
     
     @staticmethod
     def start():
         from openstack.common.serverSequence import ServerSequence
-        ShellCmdExecutor.execCmd('useradd bcrdb')
-        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /opt/bcrdb')
         
         mysql_ips = JSONUtility.getValue("mysql_ips")
         print 'mysql_ips=%s---' % mysql_ips
@@ -135,7 +159,7 @@ class BCRDB(object):
             while retry > 0 :
                 print 'retry=%d' % retry
                 
-                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep'
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep'
                 process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                 process_num = process_num.strip()
                 if process_num != '0' :
@@ -177,10 +201,10 @@ class BCRDB(object):
                 if str(file_tag) == "1" :
                     time.sleep(5)
                     print 'wait time: %s second(s).' % time_count
-                    
+                     
                     ShellCmdExecutor.execCmd(start_cmd)
-                    
-                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep | wc -l'
+                     
+                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep | wc -l'
                     process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                     process_num = process_num.strip()
                     if process_num == '0' :
@@ -194,7 +218,7 @@ class BCRDB(object):
                     time_count += step
                     time.sleep(1)
                     pass
-                
+                 
                 if time_count == timeout :
                     print 'Timeout %d when wait for the first mysql server launched.' % TIMEOUT
                     print 'Do nothing!timeout=%s.' % timeout
@@ -314,7 +338,7 @@ class BCRDB(object):
             while retry > 0 :
                 print 'retry=%d' % retry
                 
-                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep'
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep'
                 process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                 process_num = process_num.strip()
                 if process_num != '0' :
@@ -322,6 +346,7 @@ class BCRDB(object):
                     break
                 else :
                     print 'retry=%d' % retry
+                    BCRDB.reDeploy()
                     ShellCmdExecutor.execCmd(start_cmd)
                     pass
                 
@@ -358,11 +383,12 @@ class BCRDB(object):
                     
                     retry = 3
                     while retry > 0:
-                        check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep -v grep | wc -l'
+                        check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep | wc -l'
                         process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                         process_num = process_num.strip()
                         if process_num == '0' :
                             print 'start bcrdb again===='
+                            BCRDB.reDeploy()
                             ShellCmdExecutor.execCmd(start_cmd)
                             pass
                         else :

@@ -51,6 +51,9 @@ if __name__ == '__main__':
         pass
     else :
         print 'NNNNNN'
+        pass
+    
+    print os.path.join('/opt', 'hello')
     exit()
     #when execute script,exec: python <this file absolute path>
     ###############################
