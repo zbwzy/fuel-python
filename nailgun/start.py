@@ -646,29 +646,29 @@ if __name__ == '__main__':
         print 'wait 3 secs======'
         time.sleep(3)
 
-        print 'start to init db======'
-        #choose one rdb to init db
-        initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
-        .format(version_tag='kilo')
-        chosen_mysql_ip = ''
-        for mysql_ip in mysql_ip_list:
-            check_bcrdb_cmd = 'ssh root@%s ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep' % mysql_ip
-            output,exitcode = ShellCmdExecutor.execCmd(check_bcrdb_cmd)
-            if 'wsrep-new-cluster' in output :
-                print 'rdb is launched on the host %s.' % mysql_ip
-                chosen_mysql_ip = mysql_ip
-                break
-            pass
-        
-        if chosen_mysql_ip != '' :
-            print 'init db on bcrdb:%s' % chosen_mysql_ip
-            execRemoteCmd(chosen_mysql_ip, initDBCmd, timeout=600)
-            pass
-        else :
-            print 'all rdb is down!'
-            pass
-        print 'init db done####'
-        time.sleep(3)
+#         print 'start to init db======'
+#         #choose one rdb to init db
+#         initDBCmd = 'python /etc/puppet/fuel-python/openstack/{version_tag}/mysql/initDB.py'\
+#         .format(version_tag='kilo')
+#         chosen_mysql_ip = ''
+#         for mysql_ip in mysql_ip_list:
+#             check_bcrdb_cmd = 'ssh root@%s ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep' % mysql_ip
+#             output,exitcode = ShellCmdExecutor.execCmd(check_bcrdb_cmd)
+#             if 'wsrep-new-cluster' in output :
+#                 print 'rdb is launched on the host %s.' % mysql_ip
+#                 chosen_mysql_ip = mysql_ip
+#                 break
+#             pass
+#         
+#         if chosen_mysql_ip != '' :
+#             print 'init db on bcrdb:%s' % chosen_mysql_ip
+#             execRemoteCmd(chosen_mysql_ip, initDBCmd, timeout=600)
+#             pass
+#         else :
+#             print 'all rdb is down!'
+#             pass
+#         print 'init db done####'
+#         time.sleep(3)
         ####################
         #cluster's all IPs
         for role in Params.OPENSTACK_ROLES[2:] :

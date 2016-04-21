@@ -186,6 +186,18 @@ class BCRDB(object):
                     retry -= 1
                     pass
                 pass
+                        
+            time.sleep(15)
+            check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep'
+            process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+            if process_num != '0' :
+                print 'to init db===='
+                from openstack.kilo.mysql.initDB import MySQL
+                MySQL.init()
+                pass
+            else :
+                print 'rdb is not launched.'
+                pass
             pass
         else :
             start_cmd = start_cmd_template.format(action='start')
