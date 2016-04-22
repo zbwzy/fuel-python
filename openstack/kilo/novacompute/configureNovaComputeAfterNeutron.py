@@ -163,6 +163,8 @@ admin_password = <NEUTRON_PASS>
         ShellCmdExecutor.execCmd('systemctl enable neutron-openvswitch-agent.service')
         
         ShellCmdExecutor.execCmd('systemctl start neutron-openvswitch-agent.service')
+        
+        ShellCmdExecutor.execCmd('systemctl restart openstack-nova-compute.service')
         pass
     
     

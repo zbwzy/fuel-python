@@ -418,29 +418,32 @@ if __name__ == '__main__':
             '''
             /opt/openstack_conf/tag/keystone_0_ssl
             '''
-            TIMEOUT = 600
-            timeout = TIMEOUT
-            time_count = 0
-            while True:
-                launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
-                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_ssl | wc -l'
-                output, exitcode = ShellCmdExecutor.execCmd(cmd)
-                ssl_file_tag = output.strip()
-                if str(ssl_file_tag) == "1" :
-                    print 'wait time: %s second(s).' % time_count
-                    Keystone.scpSSL()
-                    break
-                else :
-                    step = 1
-        #             print 'wait %s second(s)......' % step
-                    time_count += step
-                    time.sleep(1)
-                    pass
-                 
-                if time_count == timeout :
-                    print 'Do nothing!timeout=%s.' % timeout
-                    break
-                pass
+            Keystone.scpSSL()
+            time.sleep(5)
+#             TIMEOUT = 600
+#             timeout = TIMEOUT
+#             time_count = 0
+#             while True:
+# #                 launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
+#                 cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_ssl | wc -l'
+#                 output, exitcode = ShellCmdExecutor.execCmd(cmd)
+#                 ssl_file_tag = output.strip()
+#                 if str(ssl_file_tag) == "1" :
+#                     print 'wait time: %s second(s).' % time_count
+#                     Keystone.scpSSL()
+#                     time.sleep(5)
+#                     break
+#                 else :
+#                     step = 1
+#         #             print 'wait %s second(s)......' % step
+#                     time_count += step
+#                     time.sleep(1)
+#                     pass
+#                  
+#                 if time_count == timeout :
+#                     print 'Do nothing!timeout=%s.' % timeout
+#                     break
+#                 pass
             
             cmd1 = 'chown -R keystone:keystone /var/log/keystone'
             cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'

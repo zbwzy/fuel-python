@@ -751,6 +751,15 @@ if __name__ == '__main__':
 #                 pass
 #             pass
         
+        #network init
+        if 'neutron-server' in activeRoles:
+            neutron_ip_list = activeRoleIPMap['neutron-server']
+            initNetCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTFNetwork.py'
+            for ip in neutron_ip_list:
+                execRemoteCmd(ip, initNetCmd, timeout=600)
+                pass
+            pass
+        
         #sync glance image
         if 'glance' in activeRoles:
             glance_ip_list = activeRoleIPMap['glance']
@@ -768,15 +777,6 @@ if __name__ == '__main__':
             for ip in glance_ip_list:
                 execRemoteCmd(ip, assignPrivilegeCmd, timeout=600)
                 execRemoteCmd(ip, 'chown -R glance:glance /var/lib/glance/images/', timeout=600)
-                pass
-            pass
-        
-        #network init
-        if 'neutron-server' in activeRoles:
-            neutron_ip_list = activeRoleIPMap['neutron-server']
-            initNetCmd = 'python /etc/puppet/fuel-python/openstack/kilo/ostf/initOSTFNetwork.py'
-            for ip in neutron_ip_list:
-                execRemoteCmd(ip, initNetCmd, timeout=600)
                 pass
             pass
         

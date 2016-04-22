@@ -102,6 +102,9 @@ if __name__ == '__main__':
             print 'exit===='
             pass
         else :
+            print 'wait for 10 secs====='
+            time.sleep(10)
+            
             if os.path.exists('/opt/openstack_conf/tag/install/existGlanceFileOnHost') :
                 output, exitcode = ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/getDefaultImageID.sh')
                 imageID = output.strip()
