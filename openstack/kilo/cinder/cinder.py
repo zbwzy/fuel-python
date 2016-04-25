@@ -80,7 +80,7 @@ class Cinder(object):
     @staticmethod
     def install():
         print 'Cinder.install start===='
-        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db -y'
+        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db python-oslo-log -y'
         ShellCmdExecutor.execCmd(yumCmd)
         print 'Cinder.install done####'
         pass
