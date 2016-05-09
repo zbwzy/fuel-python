@@ -30,14 +30,15 @@ echo 'start to create empty file system=============='
 echo `date`
 
 #create 20GB empty file
-/usr/bin/dd if=/dev/zero of=/home/test-disk bs=1M count=20480
+#/usr/bin/dd if=/dev/zero of=/home/test-disk bs=1M count=20480
+/usr/bin/dd if=/dev/zero of=/var/lib/cinder bs=1M count=20480
 echo 'end to create empty file system#####'
 echo `date`
 
 sleep 5
-chmod 777 /home/test-disk
+chmod 777 /var/lib/cinder
 
-/usr/sbin/losetup /dev/loop2 /home/test-disk
+/usr/sbin/losetup /dev/loop2 /var/lib/cinder
 /usr/sbin/pvcreate /dev/loop2
 /usr/sbin/vgcreate cinder-volumes /dev/loop2
 
