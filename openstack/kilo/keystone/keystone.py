@@ -212,7 +212,8 @@ class Keystone(object):
     def configureEnvVar():
         ShellCmdExecutor.execCmd('export OS_SERVICE_TOKEN=123456')
         template_string = 'export OS_SERVICE_ENDPOINT=http://<KEYSTONE_VIP>:35357/v2.0'
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         cmd = template_string.replace('<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd(cmd)
         pass
@@ -235,7 +236,8 @@ class Keystone(object):
         print 'keystoneAdminEmail=%s' % keystoneAdminEmail
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<ADMIN_EMAIL>', keystoneAdminEmail)
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<KEYSTONE_VIP>', keystone_vip)
         ShellCmdExecutor.execCmd('bash /opt/keystone_init.sh')
         pass
@@ -247,7 +249,8 @@ class Keystone(object):
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % adminOpenRCScriptPath)
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         FileUtil.replaceFileContent('/opt/admin_openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
         time.sleep(2)
         ShellCmdExecutor.execCmd('source /opt/admin_openrc.sh')
@@ -256,11 +259,13 @@ class Keystone(object):
     @staticmethod
     def configConfFile():
         print "configure keystone conf file======"
-        mysql_vip = JSONUtility.getValue("mysql_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
+ 
         admin_token = JSONUtility.getValue("admin_token")
         #memcache service list
-        keystone_ips_string = JSONUtility.getValue("keystone_ips")
-        keystone_ip_list = keystone_ips_string.split(',')
+        keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+        keystone_ip_list = keystone_params_dict['mgmt_ips']
         memcached_service_list = []
         for ip in keystone_ip_list:
             memcached_service_list.append(ip.strip() + ':11211')
@@ -323,8 +328,8 @@ class Keystone(object):
     def getServerIndex():
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         local_management_ip = output.strip()
-        keystone_ips = JSONUtility.getValue('keystone_ips')
-        keystone_ip_list = keystone_ips.split(',')
+        keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+        keystone_ip_list = keystone_params_dict['mgmt_ips']
         index = ServerSequence.getIndex(keystone_ip_list, local_management_ip)
         return index
     
@@ -341,8 +346,8 @@ class Keystone(object):
         # scp -r root@{keystone_0_ip}:/etc/keystone/ssl /etc/keystone/
         # chown -R keystone:keystone /etc/keystone/
         '''
-        keystone_ips = JSONUtility.getValue('keystone_ips')
-        keystone_ip_list = keystone_ips.split(',')
+        keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+        keystone_ip_list = keystone_params_dict['mgmt_ips']
         
         #scp ssl from first keystone
         scpCmd = 'scp -r root@{keystone_0_ip}:/etc/keystone/ssl /etc/keystone/'.format(keystone_0_ip=keystone_ip_list[0])
@@ -399,8 +404,8 @@ if __name__ == '__main__':
         Keystone.install()
         Keystone.configConfFile()
         
-        keystone_ips = JSONUtility.getValue('keystone_ips')
-        keystone_ip_list = keystone_ips.strip().split(',')
+        keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+        keystone_ip_list = keystone_params_dict['mgmt_ips']
         
         if Keystone.getServerIndex() == 0 :
             Keystone.supportPKIToken()

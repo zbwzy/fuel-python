@@ -115,22 +115,19 @@ class Cinder(object):
         RABBIT_HOSTS
         RABBIT_PASSWORD
         '''
-        ha_vip1 = JSONUtility.getValue("ha_vip1")
-        ha_vip2 = JSONUtility.getValue("ha_vip2")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
         
-        mysql_vip = ha_vip1
         cinder_dbpass = JSONUtility.getValue("cinder_dbpass")
         keystone_cinder_password = JSONUtility.getValue("keystone_cinder_password")
-#         mysql_password = JSONUtility.getValue("mysql_password")
         
-#         rabbit_host = JSONUtility.getValue("rabbit_host")
+        rabbitmq_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbitmq_params_dict["rabbit_hosts"]
+#         rabbit_userid = rabbitmq_params_dict["rabbit_userid"]
+        rabbit_password = rabbitmq_params_dict["rabbit_password"]
         
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
-        
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
+        keystone_vip = vipParamsDict["keystone_vip"]
+        glance_vip = vipParamsDict["glance_vip"]
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')

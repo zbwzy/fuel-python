@@ -49,8 +49,9 @@ if __name__ == '__main__':
         pass
     else :
         print 'When configure metadata-agent on neutron-agent, start to configure nova-api========='
-        neutron_vip = JSONUtility.getValue("neutron_vip")
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        neutron_vip = vipParamsDict["neutron_vip"]
         
         metadata_secret = JSONUtility.getValue("metadata_secret")
         

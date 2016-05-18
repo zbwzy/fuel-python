@@ -291,8 +291,8 @@ listen keystone_admin
         keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate
         keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate
         
-        keystone_ips = JSONUtility.getValue("keystone_ips")
-        keystone_ip_list = keystone_ips.strip().split(',')
+        keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+        keystone_ip_list = keystone_params_dict['mgmt_ips']
         
         serverKeystoneAdminAPIBackendTemplate   = 'server keystone<INDEX> <SERVER_IP>:35357 check inter 2000 rise 2 fall 3'
         serverKeystonePublicAPIBackendTemplate  = 'server keystone<INDEX> <SERVER_IP>:5000 check inter 2000 rise 2 fall 3'

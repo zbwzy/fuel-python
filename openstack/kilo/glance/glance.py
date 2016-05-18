@@ -106,18 +106,20 @@ class Glance(object):
     def configConfFile():
         #RABBIT_HOSTS RABBIT_PASSWORD GLANCE_VIP GLANCE_DBPASS MYSQL_VIP KEYSTONE_VIP KEYSTONE_GLANCE_PASSWORD 
         print "configure glance conf file======"
-        mysql_vip = JSONUtility.getValue("mysql_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
+        glance_vip = vipParamsDict["glance_vip"]
         print "glance_vip=%s" % glance_vip
         glance_dbpass = JSONUtility.getValue("glance_dbpass")
         keystone_glance_password = JSONUtility.getValue("keystone_glance_password")
         glance_ips = JSONUtility.getValue("glance_ips")
         print "glance_ips=%s" % glance_ips
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_userid = "nova"
-        rabbit_password = JSONUtility.getValue("rabbit_password")
+        keystone_vip = vipParamsDict["keystone_vip"]
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_userid = rabbit_params_dict["rabbit_userid"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         glanceConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'GLANCE_CONF_DIR')

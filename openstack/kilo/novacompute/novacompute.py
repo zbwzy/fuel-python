@@ -240,16 +240,18 @@ admin_password=123456
         ####
         NovaCompute.reconfigLibvirtd()
         ####
-        mysql_vip = JSONUtility.getValue("mysql_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
         
-#         rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
+        rabbit_userid = rabbit_params_dict["rabbit_userid"]
         
-        glance_vip = JSONUtility.getValue("glance_vip")
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        neutron_vip = JSONUtility.getValue("neutron_vip")
+        glance_vip = vipParamsDict["glance_vip"]
+        keystone_vip = vipParamsDict["keystone_vip"]
+        neutron_vip = vipParamsDict["neutron_vip"]
+
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         

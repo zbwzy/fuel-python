@@ -274,8 +274,8 @@ class BCRDB(object):
                 pass
             #whether keystone exists in the cluster
             if YAMLUtil.hasRole('keystone') :
-                keystone_ips = JSONUtility.getValue("keystone_ips")
-                keystone_ip_list = keystone_ips.strip().split(',')
+                keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+                keystone_ip_list = keystone_params_dict['mgmt_ips']
                 #send tag to first server of keystone cluster
                 SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
                 pass

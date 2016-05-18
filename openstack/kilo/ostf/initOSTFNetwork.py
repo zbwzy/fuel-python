@@ -110,7 +110,8 @@ if __name__ == '__main__':
                 network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ostf_network_init.sh')
                 ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % network_init_script_path)
                 ############
-                keystone_vip = JSONUtility.getValue('keystone_vip')
+                vipParamsDict = JSONUtility.getValue('vip')
+                keystone_vip = vipParamsDict["keystone_vip"]
                 admin_token = JSONUtility.getValue('admin_token')
                 keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
                  

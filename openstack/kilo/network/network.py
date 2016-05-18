@@ -156,8 +156,9 @@ class Network(object):
         ShellCmdExecutor.execCmd('cat %s > /tmp/metadata_agent.ini' % neutron_metadata_template_conf_file_path)
         ShellCmdExecutor.execCmd('mv /tmp/metadata_agent.ini /etc/neutron/')
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        nova_vip = JSONUtility.getValue("nova_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        nova_vip = vipParamsDict["nova_vip"]
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         #REFACTOR LATER
         metadata_secret = '123456'#JSONUtility.getValue("metadata_secret")
@@ -306,12 +307,13 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         ShellCmdExecutor.execCmd("cat %s > /tmp/neutron.conf" % neutron_template_conf_file_path)
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
-#         rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+#         rabbit_userid = rabbit_params_dict("rabbit_userid")
+        rabbit_password = rabbit_params_dict["rabbit_password"]
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOSTS>', rabbit_hosts)

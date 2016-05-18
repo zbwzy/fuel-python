@@ -163,18 +163,16 @@ class Ceilometer(object):
     
     @staticmethod
     def configConfFile():
-        mysql_vip = JSONUtility.getValue("mysql_vip")
-        mysql_password = JSONUtility.getValue("mysql_password")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
+
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_userid = rabbit_params_dict["rabbit_userid"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
         
-        rabbit_host = JSONUtility.getValue("rabbit_host")
-        
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_userid = JSONUtility.getValue("rabbit_userid")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
-        
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        
-        mongodb_vip = JSONUtility.getValue("mongodb_vip")
+        keystone_vip = vipParamsDict["keystone_vip"] 
+        mongodb_vip = '' 
         ceilometer_mongo_password = JSONUtility.getValue("ceilometer_mongo_password")
         
         metering_secret = JSONUtility.getValue("ceilometer_metering_secret")
@@ -186,8 +184,6 @@ class Ceilometer(object):
         localIP = output.strip()
         
         print 'mysql_vip=%s' % mysql_vip
-        print 'mysql_password=%s' % mysql_password
-        print 'rabbit_host=%s' % rabbit_host
         print 'rabbit_hosts=%s' % rabbit_hosts
         print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
@@ -389,7 +385,8 @@ class CeilometerHA(object):
     def configureHAProxy():
         ####################configure haproxy
         #server heat-01 192.168.1.137:8004 check inter 10s
-        ceilometer_vip = JSONUtility.getValue("ceilometer_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        ceilometer_vip = vipParamsDict["ceilometer_vip"]
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
@@ -517,7 +514,8 @@ vrrp_instance 42 {
         '''
         #WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        ceilometer_vip = JSONUtility.getValue("ceilometer_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        ceilometer_vip = vipParamsDict["ceilometer_vip"] 
         ceilometer_vip_interface = JSONUtility.getValue("ceilometer_vip_interface")
         
         weight_counter = 300
@@ -592,7 +590,8 @@ vrrp_instance 42 {
             pass
         else :
             ceilometer_vip_interface = JSONUtility.getValue("ceilometer_vip_interface")
-            ceilometer_vip = JSONUtility.getValue("ceilometer_vip")
+            vipParamsDict = JSONUtility.getValue('vip')
+            ceilometer_vip = vipParamsDict["ceilometer_vip"]
             
             CeilometerHA.addVIP(ceilometer_vip, ceilometer_vip_interface)
             

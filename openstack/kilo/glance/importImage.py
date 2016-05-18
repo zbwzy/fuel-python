@@ -58,7 +58,8 @@ if __name__ == '__main__':
         print 'start to import image======='
         imageFilePath = "/etc/puppet/modules/glance/files/cirros-0.3.4-x86_64-disk.img"
         admin_token = JSONUtility.getValue('admin_token')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         
         if os.path.exists(imageFilePath) :

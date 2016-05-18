@@ -154,14 +154,16 @@ class NeutronServer(object):
         KEYSTONE_VIP
         KEYSTONE_NEUTRON_PASSWORD
         '''
-        mysql_vip = JSONUtility.getValue("mysql_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
         neutron_dbpass = JSONUtility.getValue("neutron_dbpass")
         
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        nova_vip = JSONUtility.getValue("nova_vip")
+        keystone_vip = vipParamsDict["keystone_vip"]
+        nova_vip = vipParamsDict["nova_vip"]
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')

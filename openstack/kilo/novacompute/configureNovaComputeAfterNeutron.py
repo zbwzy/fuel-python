@@ -58,12 +58,14 @@ class NovaCompute(object):
         
         ShellCmdExecutor.execCmd('cp -r %s /etc/neutron/' % neutronConfTemplateFilePath)
         #configure neutron
-        keystone_vip = JSONUtility.getValue('keystone_vip')
-#         rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
-        rabbit_userid = 'nova'
-        rabbit_password = JSONUtility.getValue("rabbit_password")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
+        rabbit_userid = rabbit_params_dict["rabbit_userid"]
+        
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         
         neutronConfFilePath = '/etc/neutron/neutron.conf'
@@ -105,8 +107,9 @@ class NovaCompute(object):
     #configure Compute to use networking
     @staticmethod
     def reconfigureNovaCompute():
-        neutron_vip = JSONUtility.getValue("neutron_vip")
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        neutron_vip = vipParamsDict["neutron_vip"]
         
         APIsAndDrivers = '''
 network_api_class = nova.network.neutronv2.api.API

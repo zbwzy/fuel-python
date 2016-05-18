@@ -145,17 +145,20 @@ class Heat(object):
     
     @staticmethod
     def configConfFile():
-        mysql_vip = JSONUtility.getValue("mysql_vip")
-        mysql_password = JSONUtility.getValue("mysql_password")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
         
-        rabbit_host = JSONUtility.getValue("rabbit_host")
+        mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+        mysql_password = mysql_params_dict["mysql_password"]
         
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_userid = JSONUtility.getValue("rabbit_userid")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_userid = rabbit_params_dict["rabbit_userid"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
+        
+        keystone_vip = vipParamsDict["keystone_vip"]
+        glance_vip = vipParamsDict["glance_vip"]
         heat_mysql_password = JSONUtility.getValue("heat_mysql_password")
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -165,7 +168,6 @@ class Heat(object):
         
         print 'mysql_vip=%s' % mysql_vip
         print 'mysql_password=%s' % mysql_password
-        print 'rabbit_host=%s' % rabbit_host
         print 'rabbit_hosts=%s' % rabbit_hosts
         print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
@@ -368,7 +370,8 @@ class HeatHA(object):
     def configureHAProxy():
         ####################configure haproxy
         #server heat-01 192.168.1.137:8004 check inter 10s
-        heat_vip = JSONUtility.getValue("heat_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        heat_vip = vipParamsDict["heat_vip"]
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
@@ -494,7 +497,7 @@ vrrp_instance 42 {
         '''
         #WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
         ##Here: connect to ZooKeeper to coordinate the weight
-        heat_vip = JSONUtility.getValue("heat_vip")
+        heat_vip = '' 
         heat_vip_interface = JSONUtility.getValue("heat_vip_interface")
         
         weight_counter = 300
@@ -569,7 +572,7 @@ vrrp_instance 42 {
             pass
         else :
             heat_vip_interface = JSONUtility.getValue("heat_vip_interface")
-            heat_vip = JSONUtility.getValue("heat_vip")
+            heat_vip = '' 
             
             HeatHA.addVIP(heat_vip, heat_vip_interface)
             

@@ -114,7 +114,8 @@ class CinderStorage(object):
         print 'Cinder-storage.install start===='
         #
         admin_token = JSONUtility.getValue('admin_token')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         print 'start to install prerequisites============='
         script_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 
@@ -178,14 +179,17 @@ class CinderStorage(object):
         RABBIT_PASSWORD
         RABBIT_HOSTS
         '''
-        mysql_vip = JSONUtility.getValue("mysql_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"]
+
         cinder_dbpass = JSONUtility.getValue("cinder_dbpass")
         
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
+        keystone_vip = vipParamsDict["keystone_vip"]
+        glance_vip = vipParamsDict["glance_vip"]
         keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()

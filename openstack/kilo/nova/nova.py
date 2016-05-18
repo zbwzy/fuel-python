@@ -175,17 +175,18 @@ vif_plugging_timeout=0
         NOVA_DBPASS
         MYSQL_VIP
         '''
-        mysql_vip = JSONUtility.getValue("ha_vip1")
-#         mysql_password = JSONUtility.getValue("mysql_password")
+        vipParamsDict = JSONUtility.getValue('vip')
+        mysql_vip = vipParamsDict["mysql_vip"] 
+
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
+#         rabbit_userid = rabbit_params_dict["rabbit_userid"]
         
-#         rabbit_host = JSONUtility.getValue("rabbit_host")
-        rabbit_hosts = JSONUtility.getValue("rabbit_hosts")     #Like: 10.20.0.195:5672,10.20.0.194:5672
-#         rabbit_userid = JSONUtility.getValue("rabbit_userid")
-        rabbit_password = JSONUtility.getValue("rabbit_password")
-        
-        keystone_vip = JSONUtility.getValue("keystone_vip")
-        glance_vip = JSONUtility.getValue("glance_vip")
-        neutron_vip = JSONUtility.getValue("neutron_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        cinder_vip = vipParamsDict["cinder_vip"]
+        glance_vip = vipParamsDict["glance_vip"]
+        neutron_vip = vipParamsDict["neutron_vip"]
        
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")

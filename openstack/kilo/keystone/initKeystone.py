@@ -116,7 +116,9 @@ Repeat User Password:
     @staticmethod
     def initKeystoneUser(): #init all component's user/password/project/endpoint in keystone
         admin_token = JSONUtility.getValue('admin_token')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
+ 
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         keystone_ip = output.strip()
@@ -142,10 +144,12 @@ Repeat User Password:
     def initGlanceUser():
         #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_GLANCE_PASSWORD GLANCE_VIP
         admin_token = JSONUtility.getValue('admin_token')
+        vipParamsDict = JSONUtility.getValue('vip')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_glance_password = JSONUtility.getValue('keystone_glance_password')
-        glance_vip = JSONUtility.getValue('ha_vip1')
+        
+        glance_vip = vipParamsDict["glance_vip"]
         
         initGlanceScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'initGlanceUser.sh')
         ##
@@ -170,11 +174,15 @@ Repeat User Password:
     def initNovaUser():
         #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_NOVA_PASSWORD NOVA_VIP
         admin_token = JSONUtility.getValue('admin_token')
-        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
-        keystone_nova_password = JSONUtility.getValue('keystone_nova_password')
-        nova_vip = JSONUtility.getValue('ha_vip1')
+        vipParamsDict = JSONUtility.getValue('vip')
         
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        
+        keystone_nova_password = JSONUtility.getValue('keystone_nova_password')
+        
+        
+        nova_vip = vipParamsDict["nova_vip"]
         initNovaScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'initNovaUser.sh')
         ##
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -197,13 +205,12 @@ Repeat User Password:
     @staticmethod
     def initNeutronUser():
         admin_token = JSONUtility.getValue('admin_token')
-        ha_vip1 = JSONUtility.getValue('ha_vip1')
-        ha_vip2 = JSONUtility.getValue('ha_vip2')
+        vipParamsDict = JSONUtility.getValue('vip')
         
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = ha_vip1
+        keystone_vip = vipParamsDict['keystone_vip']
         keystone_neutron_password = JSONUtility.getValue('keystone_neutron_password')
-        neutron_vip = ha_vip1
+        neutron_vip = vipParamsDict['neutron_vip']
         
         initNeutronScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'initNeutronUser.sh')
         ##
@@ -228,9 +235,11 @@ Repeat User Password:
     def initCinderUser():
         admin_token = JSONUtility.getValue('admin_token')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
-        cinder_vip = JSONUtility.getValue('ha_vip1')
+        cinder_vip = vipParamsDict['cinder_vip']
         
         initCinderScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'initCinderUser.sh')
         ##
@@ -255,7 +264,9 @@ Repeat User Password:
     @staticmethod
     def initKeystone(): #init all component's user/password/project/endpoint in keystone
         admin_token = JSONUtility.getValue('admin_token')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_vip = vipParamsDict['keystone_vip']
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         keystone_ip = output.strip()
@@ -275,15 +286,19 @@ Repeat User Password:
             time.sleep(1)
             output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
             print 'initKeystone.output=%s' % output
+            pass
+        pass
     
     @staticmethod
     def initGlance():
         #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_GLANCE_PASSWORD GLANCE_VIP
         admin_token = JSONUtility.getValue('admin_token')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_glance_password = JSONUtility.getValue('keystone_glance_password')
-        glance_vip = JSONUtility.getValue('ha_vip1')
+        glance_vip = vipParamsDict['glance_vip']
         
         initGlanceScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'initGlance.sh')
         ##
@@ -308,10 +323,12 @@ Repeat User Password:
     def initNova():
         #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_NOVA_PASSWORD NOVA_VIP
         admin_token = JSONUtility.getValue('admin_token')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_nova_password = JSONUtility.getValue('keystone_nova_password')
-        nova_vip = JSONUtility.getValue('ha_vip1')
+        nova_vip = vipParamsDict['nova_vip']
         
         initNovaScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'initNova.sh')
         ##
@@ -335,13 +352,12 @@ Repeat User Password:
     @staticmethod
     def initNeutron():
         admin_token = JSONUtility.getValue('admin_token')
-        ha_vip1 = JSONUtility.getValue('ha_vip1')
-        ha_vip2 = JSONUtility.getValue('ha_vip2')
+        vipParamsDict = JSONUtility.getValue('vip')
         
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = ha_vip1
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_neutron_password = JSONUtility.getValue('keystone_neutron_password')
-        neutron_vip = ha_vip1
+        neutron_vip = vipParamsDict["neutron_vip"]
         
         initNeutronScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'initNeutron.sh')
         ##
@@ -365,10 +381,12 @@ Repeat User Password:
     @staticmethod
     def initCinder():
         admin_token = JSONUtility.getValue('admin_token')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
-        cinder_vip = JSONUtility.getValue('ha_vip1')
+        cinder_vip = vipParamsDict["cinder_vip"]
         
         initCinderScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'initCinder.sh')
         ##

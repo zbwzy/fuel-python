@@ -56,7 +56,8 @@ class AdminOpenrc(object):
         
         admin_token = JSONUtility.getValue('admin_token')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_vip = JSONUtility.getValue('keystone_vip')
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)

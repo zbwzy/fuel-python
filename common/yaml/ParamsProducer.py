@@ -156,9 +156,6 @@ class ParamsProducer(object):
             mysql_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
             mysql_ex_ips_list = YAMLUtil.getRoleExIPList(role)
             
-            mysql_ips = ','.join(mysql_ips_list)
-            print 'mysql_ips=%s' % mysql_ips
-            
             paramsMap['mysql'] = {}
             mysqlParams = paramsMap['mysql']
             
@@ -167,7 +164,6 @@ class ParamsProducer(object):
             mysqlParams['storage_ips'] = mysql_storage_ips_list
             mysqlParams['ex_ips'] = mysql_ex_ips_list
             
-            print 'pppppppppppppp=%s,qqqqqqq=%s' % (YAMLUtil.getManagementIP(), mysql_ips_list)
             if YAMLUtil.getManagementIP() in mysql_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
                 pass
@@ -228,31 +224,27 @@ class ParamsProducer(object):
         role = 'keystone'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            key = 'keystone_vip'
-            keystone_vip = YAMLUtil.getValue(role, key)
             
-            key = 'keystone_vip_interface'
-            keystone_vip_interface = YAMLUtil.getValue(role, key)
-            
-            key = 'keystone_mysql_user'
-            keystone_mysql_user = YAMLUtil.getValue(role, key)
+            keystone_mysql_user = 'keystone'
             
             #key = 'keystone_mysql_password'
             #keystone_mysql_password = YAMLUtil.getValue(role, key)
             
             keystone_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            keystone_ips = ','.join(keystone_ips_list)
-            
-            print 'keystone_vip=%s--' % keystone_vip
-            print 'keystone_vip_interface=%s--' % keystone_vip_interface
+            keystone_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            keystone_ex_ips_list = YAMLUtil.getRoleExIPList(role)
             print 'keystone_mysql_user=%s--' % keystone_mysql_user 
-            print 'keystone_ips=%s--' % keystone_ips
             
-            paramsMap['keystone_vip'] = keystone_vip
-            paramsMap['keystone_vip_interface'] = keystone_vip_interface
-            paramsMap['keystone_mysql_user'] = keystone_mysql_user
-            #paramsMap['keystone_mysql_password'] = keystone_mysql_password
-            paramsMap['keystone_ips'] = keystone_ips
+            paramsMap[role] = {}
+            keystoneParams = paramsMap[role]
+            
+            keystoneParams['keystone_mysql_user'] = keystone_mysql_user
+            keystoneParams['mgmt_ips'] = keystone_ips_list
+            keystoneParams['storage_ips'] = keystone_storage_ips_list
+            keystoneParams['ex_ips'] = keystone_ex_ips_list
+            
+            #XXXXX 11111
+#             keystoneParams['keystone_ips'] = keystone_ips
             
             if YAMLUtil.getManagementIP() in keystone_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -621,17 +613,19 @@ class ParamsProducer(object):
             print 'ha ip list#####'
             
             #dispatch vip
-            paramsMap['mysql_vip'] = ha_vip1
-            paramsMap['rabbit_vip'] = ha_vip1
-            paramsMap['keystone_vip'] = ha_vip1
-            paramsMap['glance_vip'] = ha_vip1
-            paramsMap['neutron_vip'] = ha_vip1
-            paramsMap['nova_vip'] = ha_vip1
-            paramsMap['dashboard_vip'] = ha_vip1
-            paramsMap['cinder_vip'] = ha_vip1
-            paramsMap['heat_vip'] = ha_vip1
+            paramsMap['vip'] = {}
+            vipParams = paramsMap['vip']
+            vipParams['mysql_vip'] = ha_vip1
+            vipParams['rabbit_vip'] = ha_vip1
+            vipParams['keystone_vip'] = ha_vip1
+            vipParams['glance_vip'] = ha_vip1
+            vipParams['neutron_vip'] = ha_vip1
+            vipParams['nova_vip'] = ha_vip1
+            vipParams['dashboard_vip'] = ha_vip1
+            vipParams['cinder_vip'] = ha_vip1
+            vipParams['heat_vip'] = ha_vip1
             
-            paramsMap['ceilometer_vip'] = ha_vip2
+            vipParams['ceilometer_vip'] = ha_vip2
             pass
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()

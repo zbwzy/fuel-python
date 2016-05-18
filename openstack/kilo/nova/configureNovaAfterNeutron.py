@@ -48,8 +48,9 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-        neutron_vip = JSONUtility.getValue("neutron_vip")
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        neutron_vip = vipParamsDict["neutron_vip"]
         
         APIsAndDrivers = '''
 network_api_class = nova.network.neutronv2.api.API

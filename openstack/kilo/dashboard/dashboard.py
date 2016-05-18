@@ -157,7 +157,8 @@ class Dashboard(object):
         ShellCmdExecutor.execCmd('cp -r /tmp/local_settings %s' % dashboardConfFileDir)
         ShellCmdExecutor.execCmd('rm -rf /tmp/local_settings')
         
-        keystone_vip = JSONUtility.getValue("keystone_vip")
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict["keystone_vip"]
         print "keystone_vip=%s" % keystone_vip
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
