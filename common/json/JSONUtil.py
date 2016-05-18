@@ -57,6 +57,13 @@ class JSONUtility(object):
         return value
     
     @staticmethod
+    def getRoleParamsDict(role):
+        roleParamsDict = JSONUtility.getValue(role)
+        #Return dict
+        return roleParamsDict
+        pass
+    
+    @staticmethod
     def getValueInJsonFile(key, json_file_path): 
         if not os.path.exists(json_file_path) :
             print 'ERROR:the json file %s NOT exist!' % json_file_path
@@ -80,6 +87,12 @@ class JSONUtility(object):
         return value
     
         
-        
+if __name__ == '__main__':
+    ipList = JSONUtility.getRoleParamsDict('rabbitmq')['mgmt_ips']
+    print 'ipList=%s--' % ipList
+    print 'type(ipList)=%s--' % type(ipList)
+    for e in ipList :
+        print e
+    pass        
         
     

@@ -39,6 +39,37 @@ def foo(val1, val2):
     print 'value2=%s' % val2
     pass
 
+def testRetWithException(data):
+    if data:
+        ret = 'OK'
+        pass
+    else :
+        print 'raise value error.'
+        raise ValueError
+    
+    return ret
+
+class attrtest(object):
+    
+    def __init__(self):
+        pass
+ 
+    def trygetattr0(self):
+        self.name = 'lucas'
+        print self.name
+        #equals to self.name
+        print getattr(self,'name')
+    
+    def attribute1(self,para1):
+        print 'attribute1 called and '+ para1+' is passed in as a parameter'
+    
+    def trygetattr(self):
+        fun = getattr(self,'attribute1')
+        print type(fun)
+        fun('crown')
+        pass
+    
+
 if __name__ == '__main__':
     print 'hello pexpect test============'
     print 'start time: %s' % time.ctime()
@@ -52,6 +83,26 @@ if __name__ == '__main__':
     else :
         print 'NNNNNN'
         pass
+    
+    full_name = '/opt/x86server.yml'
+    print 'file_name=%s--' % os.path.basename(full_name)
+    print 'dir_name=%s--' % os.path.dirname(full_name)
+    exit()
+    
+#     print 'test attr==========='
+#     test = attrtest()
+#     print 'getattr(self,\'name\') equals to self.name '
+#     test.trygetattr0()
+#     print 'attribute1 is indirectly called by fun()'
+#     test.trygetattr()
+#     print 'attrribute1 is directly called'
+#     test.attribute1('tomato')
+#     exit()
+    
+#     print 'test ret==============='
+#     ret = testRetWithException(None or '')
+#     print 'ret=%s------' % ret
+#     exit()
     
     print os.path.join('/opt', 'hello')
     

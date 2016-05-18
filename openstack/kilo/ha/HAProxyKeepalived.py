@@ -35,6 +35,7 @@ class HA(object):
     classdocs
     '''
     HaproxyConfFilePath = '/etc/haproxy/haproxy.cfg'
+    
     def __init__(self):
         '''
         Constructor
@@ -48,21 +49,20 @@ class HA(object):
     
     @staticmethod
     def configKeepalived():
-        ha_vip1 = JSONUtility.getValue('ha_vip1')
-        ha_vip2 = JSONUtility.getValue('ha_vip2')
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
         
-        ha_vip1_interface = JSONUtility.getValue('ha_vip1_interface')
-        ha_vip2_interface = JSONUtility.getValue('ha_vip2_interface')
+        ha_vip1_interface = haParamsDict['ha_vip1_interface']
+        ha_vip2_interface = haParamsDict['ha_vip2_interface']
         
         keepalived_conf_1_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.1')
         keepalived_conf_2_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.2')
         
         keepalived_conf_dest_path = '/etc/keepalived/keepalived.conf'
-        haproxy_keepalived_ips = JSONUtility.getValue('ha_ips')
-        haproxy_keepalived_ip_list = haproxy_keepalived_ips.split(',')
+        haproxy_keepalived_ip_list = haParamsDict['ha_ips']
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
+        local_management_ip = YAMLUtil.getManagementIP()
         serverIndex = ServerSequence.getIndex(haproxy_keepalived_ip_list, local_management_ip)
         if serverIndex == 0 :
             ShellCmdExecutor.execCmd('cp -r %s %s' % (keepalived_conf_1_template_path, keepalived_conf_dest_path))
@@ -194,11 +194,13 @@ class HA(object):
     
     @staticmethod
     def setMysqlHaproxyString():
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
+        localIP = YAMLUtil.getManagementIP()
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
         
-        ha_vip1 = JSONUtility.getValue('ha_vip1')
-        ha_vip2 = JSONUtility.getValue('ha_vip2')
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        ha_ip_list = haParamsDict['ha_ips']
+        
         mysqlBackendApiStringTemplate = '''
 listen rdb_mysql
   bind <HA_VIP1>:3306
@@ -229,11 +231,8 @@ listen rdb_mysql
   <RDB_MYSQL_SERVER_LIST>
         '''
         
-        mysql_ips = JSONUtility.getValue("mysql_ips")
-        mysql_ip_list = mysql_ips.strip().split(',')
-        
-        ha_ips = JSONUtility.getValue("ha_ips")
-        ha_ip_list = ha_ips.strip().split(',')
+        mysqlParams = JSONUtility.getRoleParamsDict('mysql')
+        mysql_ip_list = mysqlParams['mgmt_ips']
         
         if ServerSequence.getIndex(ha_ip_list, localIP) == 0 :
             mysqlBackendString = mysqlBackendApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
@@ -592,8 +591,8 @@ listen rabbitmq
   timeout server  48h
   <RABBITMQ_SERVER_LIST>
         '''
-        rabbitmq_ips = JSONUtility.getValue("rabbitmq_ips")
-        rabbitmq_ip_list = rabbitmq_ips.strip().split(',')
+        rabbitmq_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbitmq_ip_list = rabbitmq_params_dict['mgmt_ips'] 
 
         serverRabbitmqBackupTemplate   = 'server rabbitmq<INDEX> <SERVER_IP>:5672  backup check inter 5000 rise 2 fall 3'
 
@@ -632,7 +631,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/ha_installed'
     if os.path.exists(INSTALL_TAG_FILE) :

@@ -1,0 +1,574 @@
+---
+use_cow_images: true
+uid: '101'
+nova-api:
+  nova_mysql_user: nova
+  nova_mysql_password: 406fa3f5b9306ad53a6f
+  nova_vip_interface: eth0
+  bond_1: ''
+  install: true
+  nova_vip: 10.20.0.66
+  metadata_secret: 77562a6f89c4f9774581
+  bond_2: ''
+global:
+  keystone_glance_password: 5a45147097dbe342f50c
+  glance_dbpass: 50bb469f019a0bdfc028
+  ceilometer_dbpass: a61b80b3bbdc7fe4190b
+  keystone_neutron_password: a904b50105457f024d60
+  heat_dbpass: 88812003414f3b24fbcb
+  keystone_dbpass: 83760b29ed26b1733f8d
+  neutron_dbpass: 7908c6e85e727b324332
+  fuel_master_ip: 10.254.9.9
+  keystone_nova_password: c29f7bdb1a35a223dc50
+  keystone_ceilometer_password: 9061b0e6a8807e335b47
+  nova_dbpass: 704839cc7074963ac66e
+  keystone_cinder_password: caa2cf9872786d031407
+  keystone_heat_password: fb08a8958992d44d1fe7
+  cluster_id: 26
+  keystone_admin_password: 22f3fcfa29b32e0744ca
+  admin_token: 8de451ed1e8ba7f80b22
+  cinder_dbpass: fa89f3b169ad40dcc371
+  bclinux_repo_url: bclinux.mirrors.org
+neutron-server:
+  neutron_vip_interface: eth0
+  vlan_id_range: 1000:1010
+  neutron_mysql_user: neutron
+  neutron_mysql_password: 8a03da0aa36db2bba8ec
+  bond_2: ''
+  install: true
+  neutron_network_mode: gre
+  bond_1: ''
+  neutron_vip: 10.20.0.66
+syslog:
+  syslog_port: '514'
+  syslog_transport: tcp
+  syslog_server: ''
+  metadata:
+    weight: 50
+    label: Syslog
+public_network_range: 10.142.9.0/24
+libvirt_type: qemu
+cobbler:
+  profile: bclinux7.1
+nsx_plugin:
+  replication_mode: true
+  nsx_password: ''
+  nsx_username: admin
+  connector_type: stt
+  packages_url: ''
+  nsx_controllers: ''
+  l3_gw_service_uuid: ''
+  transport_zone_uuid: ''
+  metadata:
+    restrictions:
+    - action: hide
+      condition: cluster:net_provider != 'neutron' or networking_parameters:net_l23_provider
+        != 'nsx'
+    enabled: false
+    weight: 20
+    label: VMware NSX
+mysql:
+  mysql_vip_interface: eth0
+  mysql_vip: 10.20.0.66
+  root_password: 5311661ab473a998bf4f
+  install: true
+  action: config
+  bond_1: ''
+  bond_2: ''
+fail_if_error: false
+glance:
+  image_cache_max_size: '5368709120'
+  glance_mysql_password: 6c737dd0046fc88565f0
+  glance_mysql_user: glance
+  glance_vip: 10.20.0.66
+  install: true
+  glance_vip_interface: eth0
+  bond_1: ''
+  bond_2: ''
+provision:
+  image_data:
+    "/boot":
+      container: gzip
+      uri: http://10.254.9.9:8080/targetimages/centos_65_x86_64-boot.img.gz
+      format: ext2
+    "/":
+      container: gzip
+      uri: http://10.254.9.9:8080/targetimages/centos_65_x86_64.img.gz
+      format: ext4
+  method: cobbler
+  metadata:
+    restrictions:
+    - action: hide
+      condition: not ('experimental' in version:feature_groups)
+    weight: 80
+    label: Provision
+openstack_version_prev: 
+neutron-agent:
+  bond_2: ''
+  interface_name: bond1
+  neutron_network_mode: gre
+  bond_1: ''
+  install: true
+quantum_settings:
+  database:
+    passwd: dn0mjEry
+  keystone:
+    admin_password: 5vA2MYC8
+  L3:
+    use_namespaces: true
+  L2:
+    phys_nets:
+      physnet2:
+        bridge: br-prv
+        vlan_range: 1000:1030
+    base_mac: fa:16:3e:00:00:00
+    segmentation_type: vlan
+  predefined_networks:
+    net04_ext:
+      shared: false
+      L2:
+        network_type: local
+        router_ext: true
+        physnet: 
+        segment_id: 
+      L3:
+        nameservers: []
+        subnet: 10.142.9.0/24
+        floating: 10.142.9.130:10.142.9.254
+        gateway: 
+        enable_dhcp: false
+      tenant: admin
+    net04:
+      shared: false
+      L2:
+        network_type: vlan
+        router_ext: false
+        physnet: physnet2
+        segment_id: 
+      L3:
+        nameservers:
+        - 8.8.4.4
+        - 8.8.8.8
+        subnet: 192.168.111.0/24
+        floating: 
+        gateway: 192.168.111.1
+        enable_dhcp: true
+      tenant: admin
+  metadata:
+    metadata_proxy_shared_secret: VEaA1B2v
+openstack_version: 2014.2-6.0
+disable_offload: true
+nova_quota: false
+puppet_modules_source: rsync://10.254.9.9:/puppet/2014.2-6.0/modules/
+storage:
+  iser: false
+  volumes_ceph: false
+  objects_ceph: false
+  vc_user: ''
+  volumes_lvm: true
+  osd_pool_size: '2'
+  vc_datastore: ''
+  images_vcenter: false
+  vc_host: ''
+  ephemeral_ceph: false
+  vc_image_dir: "/openstack_glance"
+  volumes_vmdk: false
+  vc_datacenter: ''
+  vc_password: ''
+  images_ceph: false
+  metadata:
+    weight: 60
+    label: Storage
+zabbix:
+  username: admin
+  db_password: V1a4oLTa
+  password: zabbix
+  metadata:
+    restrictions:
+    - action: hide
+      condition: not ('experimental' in version:feature_groups)
+    weight: 70
+    label: Zabbix Access
+  db_root_password: jmjOWrLS
+nova:
+  db_password: jwVUKUaa
+  user_password: lt2gAGl0
+  state_path: "/var/lib/nova"
+master_ip: 10.254.9.9
+priority: 500
+external_dns:
+  dns_list: 8.8.8.8, 8.8.4.4
+  metadata:
+    weight: 90
+    label: Upstream DNS
+murano:
+  db_password: 7aWpPye0
+  user_password: zcYLgqqk
+  enabled: false
+  rabbit_password: X7kLBg6g
+role: rabbitmq
+deployment_mode: ha_compact
+vlan_splinters:
+  vswitch: disabled
+  metadata:
+    restrictions:
+    - action: hide
+      condition: cluster:net_provider != 'neutron'
+    enabled: false
+    toggleable: true
+    weight: 50
+    label: VLAN Splinters
+ip: 10.254.9.6
+keystone:
+  keystone_mysql_password: 08d795e4a0058e1b0b8d
+  keystone_mysql_user: keystone
+  install: true
+  keystone_vip: 10.20.0.66
+  keystone_vip_interface: eth0
+  bond_1: ''
+  bond_2: ''
+nodes:
+- swift_zone: '101'
+  uid: '101'
+  public_address: 10.142.9.6
+  ip: 10.254.9.6
+  internal_netmask: 255.255.255.0
+  fqdn: kilo6.domain.tld
+  cabinet: '1'
+  role: mysql
+  public_netmask: 255.255.255.0
+  internal_address: 10.142.10.6
+  storage_address: 10.142.50.6
+  storage_netmask: 255.255.255.0
+  name: kilo6
+- swift_zone: '101'
+  uid: '101'
+  public_address: 10.142.9.6
+  ip: 10.254.9.6
+  internal_netmask: 255.255.255.0
+  fqdn: kilo6.domain.tld
+  cabinet: '1'
+  role: rabbitmq
+  public_netmask: 255.255.255.0
+  internal_address: 10.142.10.6
+  storage_address: 10.142.50.6
+  storage_netmask: 255.255.255.0
+  name: kilo6
+- swift_zone: '102'
+  uid: '102'
+  public_address: 10.142.9.5
+  ip: 10.254.9.5
+  internal_netmask: 255.255.255.0
+  fqdn: kilo5.domain.tld
+  cabinet: '1'
+  role: mysql
+  public_netmask: 255.255.255.0
+  internal_address: 10.142.10.5
+  storage_address: 10.142.50.5
+  storage_netmask: 255.255.255.0
+  name: kilo5
+- swift_zone: '102'
+  uid: '102'
+  public_address: 10.142.9.5
+  ip: 10.254.9.5
+  internal_netmask: 255.255.255.0
+  fqdn: kilo5.domain.tld
+  cabinet: '1'
+  role: rabbitmq
+  public_netmask: 255.255.255.0
+  internal_address: 10.142.10.5
+  storage_address: 10.142.50.5
+  storage_netmask: 255.255.255.0
+  name: kilo5
+auto_assign_floating_ip: false
+haproxy-keepalived:
+  haproxy_vipinterface1: ovs-bond0
+  haproxy_vipinterface2: ovs-bond0
+  haproxy_vip1: 10.142.10.233
+  install: true
+  haproxy_vip2: 10.142.10.234
+  bond_1: ''
+  bond_2: ''
+ceilometer:
+  ceilometer_mongo_password: 8a1f01dca5df2aa9e504
+  ceilometer_mongo_user: ceilometer
+  ceilometer_vip: 10.20.0.66
+  bond_1: ''
+  install: true
+  ceilometer_vip_interface: eth0
+  metadata_secret: 47ddbf70490edf2b0b4b
+  bond_2: ''
+corosync:
+  group: 226.94.1.1
+  verified: false
+  port: '12000'
+  metadata:
+    restrictions:
+    - action: hide
+      condition: 'true'
+    weight: 50
+    label: Corosync
+metadata:
+  weight: 30
+  label: Common
+status: discover
+masterip: 10.254.9.6
+puppet_manifests_source: rsync://10.254.9.9:/puppet/2014.2-6.0/manifests/
+mongodb:
+  mongodb_vip_interface: eth0
+  mongodb_vip: 10.20.0.66
+  mongo_user: ceilometer
+  mongo_password: c604cc77f0145309f40e
+  install: true
+  bond_1: ''
+  bond_2: ''
+online: true
+network_scheme:
+  transformations:
+  - action: add-br
+    name: br-enp129s0f0
+  - action: add-port
+    bridge: br-enp129s0f0
+    name: enp129s0f0
+  - action: add-br
+    name: br-enp129s0f1
+  - action: add-port
+    bridge: br-enp129s0f1
+    name: enp129s0f1
+  - action: add-br
+    name: br-enp130s0f0
+  - action: add-port
+    bridge: br-enp130s0f0
+    name: enp130s0f0
+  - action: add-br
+    name: br-enp130s0f1
+  - action: add-port
+    bridge: br-enp130s0f1
+    name: enp130s0f1
+  - action: add-br
+    name: br-ovs-bond0
+  - action: add-bond
+    bridge: br-ovs-bond0
+    interfaces:
+    - enp2s0f0
+    - enp2s0f1
+    name: ovs-bond0
+    properties:
+    - bond_mode=active-backup
+  - action: add-br
+    name: br-ex
+  - action: add-br
+    name: br-mgmt
+  - action: add-br
+    name: br-storage
+  - action: add-br
+    name: br-fw-admin
+  - action: add-patch
+    bridges:
+    - br-ovs-bond0
+    - br-storage
+    vlan_ids:
+    - 800
+    - 0
+    tags:
+    - 800
+    - 0
+  - action: add-patch
+    bridges:
+    - br-ovs-bond0
+    - br-mgmt
+    vlan_ids:
+    - 778
+    - 0
+    tags:
+    - 778
+    - 0
+  - action: add-patch
+    bridges:
+    - br-enp130s0f0
+    - br-fw-admin
+    trunks:
+    - 0
+  - action: add-patch
+    bridges:
+    - br-ovs-bond0
+    - br-ex
+    vlan_ids:
+    - 777
+    - 0
+    tags:
+    - 777
+    - 0
+  roles:
+    management: br-mgmt
+    storage: br-storage
+    ex: br-ex
+    fw-admin: br-fw-admin
+  interfaces:
+    enp2s0f0:
+      L2:
+        vlan_splinters: 'off'
+    enp2s0f1:
+      L2:
+        vlan_splinters: 'off'
+    enp130s0f0:
+      L2:
+        vlan_splinters: 'off'
+    enp130s0f1:
+      L2:
+        vlan_splinters: 'off'
+    enp129s0f0:
+      L2:
+        vlan_splinters: 'off'
+    enp129s0f1:
+      L2:
+        vlan_splinters: 'off'
+  version: '1.0'
+  provider: ovs
+  endpoints:
+    br-fw-admin:
+      IP:
+      - 10.254.9.6/24
+      other_nets:
+      - 10.254.9.0/24
+      gateway: 10.254.9.254
+      default_gateway: true
+    br-storage:
+      IP:
+      - 10.142.50.6/24
+      other_nets: []
+    br-mgmt:
+      IP:
+      - 10.142.10.6/24
+      other_nets: []
+    br-ex:
+      IP:
+      - 10.142.9.6/24
+      other_nets: []
+cinder:
+  db_password: htfRdhRd
+  user_password: zzB581Rk
+heat:
+  heat_mysql_password: cb0f218e28f4915d04c3
+  heat_vip: 10.20.0.66
+  bond_2: ''
+  install: true
+  heat_vip_interface: eth0
+  bond_1: ''
+  heat_mysql_user: heat
+test_vm_image:
+  os_name: cirros
+  img_path: "/opt/vm/cirros-x86_64-disk.img"
+  container_format: bare
+  min_ram: 64
+  disk_format: qcow2
+  glance_properties: '--property murano_image_info=''{"title": "Murano Demo", "type":
+    "cirros.demo"}'''
+  img_name: TestVM
+  public: 'true'
+fuel_version: '6.0'
+rabbit:
+  password: hTmKZvjS
+resume_guests_state_on_host_boot: true
+management_network_range: 10.142.10.0/24
+vcenter:
+  datastore_regex: ''
+  vlan_interface: ''
+  use_vcenter: true
+  vc_user: ''
+  host_ip: ''
+  cluster: ''
+  vc_password: ''
+  metadata:
+    restrictions:
+    - action: hide
+      condition: settings:common.libvirt_type.value != 'vcenter'
+    weight: 20
+    label: vCenter
+base_syslog:
+  syslog_port: '514'
+  syslog_server: 10.254.9.9
+storage_network_range: 10.142.50.0/24
+swift:
+  user_password: fuslkcMu
+nova-compute:
+  virt_type: qemu
+  bond_1: ''
+  install: true
+  bond_2: ''
+auth_key: ''
+public_network_assignment:
+  assign_to_all_nodes: false
+  metadata:
+    restrictions:
+    - action: hide
+      condition: cluster:net_provider != 'neutron'
+    weight: 50
+    label: Public network assignment
+quantum: true
+access:
+  metadata:
+    weight: 10
+    label: Access
+  password: admin
+  user: admin
+  tenant: admin
+  email: admin@localhost
+fqdn: kilo6.domain.tld
+rabbitmq:
+  rabbit_userid: guest
+  rabbit_vip_interface: eth0
+  rabbit_password: 3ebe1e9681de7a698553
+  rabbit_vip: 10.20.0.66
+  install: true
+  action: config
+  bond_1: ''
+  bond_2: ''
+horizon:
+  dashboard_vip: 10.20.0.66
+  dashboard_vip_interface: eth0
+  bond_1: ''
+  install: true
+  bond_2: ''
+kernel_params:
+  kernel: console=ttyS0,9600 console=tty0 biosdevname=0 crashkernel=none rootdelay=90
+    nomodeset
+  metadata:
+    weight: 40
+    label: Kernel parameters
+compute_scheduler_driver: nova.scheduler.filter_scheduler.FilterScheduler
+cinder-storage:
+  cinder_mysql_password: 5abd3fecacdf6bef6564
+  cinder_mysql_user: cinder
+  bond_1: ''
+  install: true
+  bond_2: ''
+neutron_mellanox:
+  vf_num: '16'
+  metadata:
+    enabled: true
+    toggleable: false
+    weight: 50
+    label: Mellanox Neutron components
+  plugin: disabled
+repo_metadata:
+  2014.2-6.0: http://10.254.9.9:8080/2014.2-6.0/centos/bclinux7.1
+debug: false
+sahara:
+  db_password: j0rgvNcZ
+  user_password: lFbDkKxX
+  enabled: false
+deployment_id: 26
+external_ntp:
+  ntp_list: 0.pool.ntp.org, 1.pool.ntp.org
+  metadata:
+    weight: 100
+    label: Upstream NTP
+cinder-api:
+  cinder_mysql_password: a71c516e20482562c534
+  cinder_mysql_user: cinder
+  cinder_vip: 10.20.0.66
+  install: true
+  bond_1: ''
+  bond_2: ''
+  cinder_vip_interface: eth0

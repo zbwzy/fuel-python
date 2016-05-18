@@ -87,14 +87,15 @@ class RabbitMQ(object):
         ShellCmdExecutor.execCmd('cp -r %s /etc/rabbitmq/' % rabbitmq_config_template_file_path)
         ShellCmdExecutor.execCmd('cp -r %s /etc/rabbitmq/' % rabbitmq_env_conf_template_file_path)
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        management_ip = output.strip()
+        management_ip = YAMLUtil.getManagementIP()
         print 'management_ip=%s--' % management_ip
         print ''
         FileUtil.replaceFileContent(rabbitmq_config_file_path, '<MANAGEMENT_IP>', management_ip)
-        rabbitmq_ips = JSONUtility.getValue('rabbitmq_ips')
+
+        rabbitmq_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbitmq_ip_list = rabbitmq_params_dict['mgmt_ips']
+
         rabbit_at_ip_list = []
-        rabbitmq_ip_list = rabbitmq_ips.split(',')
         for ip in rabbitmq_ip_list:
             rabbit_at_ip_list.append("'"+'rabbit@'+ip+"'")
             pass
@@ -152,10 +153,12 @@ class RabbitMQ(object):
 #             ShellCmdExecutor.execCmd('bash %s' % startRabbitmqScriptPath)
 #             pass
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        rabbitmq_ips = JSONUtility.getValue('rabbitmq_ips')
-        rabbitmq_ip_list = rabbitmq_ips.strip().split(',')
+        localIP = YAMLUtil.getManagementIP()
+
+        rabbitmq_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbitmq_ip_list = rabbitmq_params_dict['mgmt_ips']
+        rabbit_user_id = rabbitmq_params_dict['rabbit_userid']
+        rabbit_password = rabbitmq_params_dict['rabbit_password']
         
         if not os.path.exists('/opt/openstack_conf/scripts') :
             ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/scripts')
@@ -170,8 +173,6 @@ class RabbitMQ(object):
             ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % init_script_template_file_path)
             
             init_script_path = '/opt/openstack_conf/scripts/initRabbitmqCluster.sh'
-            rabbit_user_id = 'nova'
-            rabbit_password = JSONUtility.getValue('rabbit_password')
             FileUtil.replaceFileContent(init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
             FileUtil.replaceFileContent(init_script_path, '<RABBIT_PASS>', rabbit_password)
             time.sleep(3)
@@ -195,9 +196,7 @@ class RabbitMQ(object):
             ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % re_init_script_template_file_path)
             
             re_init_script_path = '/opt/openstack_conf/scripts/reInitRabbitmqCluster.sh'
-            rabbit_user_id = 'nova'
-            rabbit_password = JSONUtility.getValue('rabbit_password')
-            rabbitmq_master_node = YAMLUtil.getNodeNameByIP(rabbitmq_ip_list[0])
+            rabbitmq_master_node = YAMLUtil.getNodeNameByManagementIP(rabbitmq_ip_list[0])
             FileUtil.replaceFileContent(re_init_script_path, '<RABBITMQ_MASTER>', rabbitmq_master_node)
             FileUtil.replaceFileContent(re_init_script_path, '<RABBIT_USER_ID>', rabbit_user_id)
             FileUtil.replaceFileContent(re_init_script_path, '<RABBIT_PASS>', rabbit_password)
@@ -274,10 +273,10 @@ rabbitmqctl  set_permissions -p / nova '.*' '.*' '.*'
             time.sleep(1)
             pass
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        rabbitmq_ips = JSONUtility.getValue('rabbitmq_ips')
-        rabbitmq_ip_list = rabbitmq_ips.strip().split(',')
+        localIP = YAMLUtil.getManagementIP()
+
+        rabbitmq_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbitmq_ip_list = rabbitmq_params_dict['mgmt_ips']
         
         from openstack.common.serverSequence import ServerSequence
         if ServerSequence.getIndex(rabbitmq_ip_list, localIP) == 0:

@@ -130,7 +130,7 @@ class YAMLUtil(object):
     @staticmethod
     def writeIPList(role):
         #Default, in /opt/{role}_ip_list
-        ipList = YAMLUtil.getRoleIPList(role)
+        ipList = YAMLUtil.getRoleManagementIPList(role)
         ipListContent = ','.join(ipList)
         ip_list_file_path = '/opt/{role}_ip_list'.format(role=role).replace('-', '_')
         
@@ -143,7 +143,7 @@ class YAMLUtil(object):
     
     
     @staticmethod
-    def getRoleIPList(role): #acsend by role uid
+    def getRoleManagementIPList(role): #acsend by role uid
         nodesMap = YAMLUtil.getNodesMap()
         uid_list = []
         node_map_list = []
@@ -173,7 +173,7 @@ class YAMLUtil(object):
                     if role == 'rabbitmq' :
                         sorted_role_ip_list.append("'"+'rabbit@'+nodeMap['name']+"'")
                     else :
-                        sorted_role_ip_list.append(nodeMap['ip'])
+                        sorted_role_ip_list.append(nodeMap['internal_address'])
                     pass
                 pass
             pass
@@ -181,7 +181,89 @@ class YAMLUtil(object):
         return sorted_role_ip_list
     
     @staticmethod
-    def getRabbitRoleIPList(role): #acsend by role uid
+    def getRoleStorageIPList(role): #acsend by role uid
+        nodesMap = YAMLUtil.getNodesMap()
+        uid_list = []
+        node_map_list = []
+        number = 1
+        for nodeMap in nodesMap :
+            print number
+            print 'rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrole=%s--, type=%s--' % (role, type(role))
+            print 'nodeMapRole=%s--, type=%s--' % (nodeMap['role'], type(nodeMap['role']))
+            print nodeMap['role'] == role
+            
+            if nodeMap['role'].strip() == role.strip() :
+                print 'xxxxxxxxxxxxxxxxx======'
+                uid = string.atoi(nodeMap['uid'])
+                print 'yyyyyyyyyyyyyyyyyy'
+                uid_list.append(uid)
+                node_map_list.append(nodeMap)
+                pass
+            number += 1
+            print ''
+            pass
+        
+        uid_list.sort()
+        sorted_role_ip_list = [] #ascend by role uid
+        for uid in uid_list :
+            for nodeMap in node_map_list :
+                if nodeMap['uid'] == str(uid) :
+#                     if role == 'rabbitmq' :
+#                         sorted_role_ip_list.append("'"+'rabbit@'+nodeMap['name']+"'")
+#                     else :
+#                         sorted_role_ip_list.append(nodeMap['storage_address'])
+#                         pass
+                    sorted_role_ip_list.append(nodeMap['storage_address'])
+                    pass
+                pass
+            pass
+        
+        return sorted_role_ip_list
+    
+    
+    #get role business address
+    @staticmethod
+    def getRoleExIPList(role): #acsend by role uid
+        nodesMap = YAMLUtil.getNodesMap()
+        uid_list = []
+        node_map_list = []
+        number = 1
+        for nodeMap in nodesMap :
+            print number
+            print 'rrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrole=%s--, type=%s--' % (role, type(role))
+            print 'nodeMapRole=%s--, type=%s--' % (nodeMap['role'], type(nodeMap['role']))
+            print nodeMap['role'] == role
+            
+            if nodeMap['role'].strip() == role.strip() :
+                print 'xxxxxxxxxxxxxxxxx======'
+                uid = string.atoi(nodeMap['uid'])
+                print 'yyyyyyyyyyyyyyyyyy'
+                uid_list.append(uid)
+                node_map_list.append(nodeMap)
+                pass
+            number += 1
+            print ''
+            pass
+        
+        uid_list.sort()
+        sorted_role_ip_list = [] #ascend by role uid
+        for uid in uid_list :
+            for nodeMap in node_map_list :
+                if nodeMap['uid'] == str(uid) :
+#                     if role == 'rabbitmq' :
+#                         sorted_role_ip_list.append("'"+'rabbit@'+nodeMap['name']+"'")
+#                     else :
+#                         sorted_role_ip_list.append(nodeMap['storage_address'])
+#                         pass
+                    sorted_role_ip_list.append(nodeMap['public_address'])
+                    pass
+                pass
+            pass
+        
+        return sorted_role_ip_list
+    
+    @staticmethod
+    def getRabbitRoleManagementIPList(role): #acsend by role uid
         nodesMap = YAMLUtil.getNodesMap()
         uid_list = []
         node_map_list = []
@@ -198,7 +280,7 @@ class YAMLUtil(object):
         for uid in uid_list :
             for nodeMap in node_map_list :
                 if nodeMap['uid'] == str(uid) :
-                    sorted_role_ip_list.append(nodeMap['ip'])
+                    sorted_role_ip_list.append(nodeMap['internal_address'])
                     pass
                 pass
             pass
@@ -220,21 +302,49 @@ class YAMLUtil(object):
         return dataMap['ip']
         pass
     
+    #local management ip
     @staticmethod
-    def getNodeNameByIP(ip):
+    def getManagementIP():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        mgmt_ip = dataMap['network_scheme']['endpoints']['br-mgmt']['IP'][0].rstrip('/24')
+        return mgmt_ip
+    
+    #local business ip
+    @staticmethod
+    def getExIP():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        ex_ip = dataMap['network_scheme']['endpoints']['br-ex']['IP'][0].rstrip('/24')
+        return ex_ip
+    
+    #local storage ip
+    @staticmethod
+    def getStorageIP():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        storage_ip = dataMap['network_scheme']['endpoints']['br-storage']['IP'][0].rstrip('/24')
+        return storage_ip
+    
+    @staticmethod
+    def getNodeNameByManagementIP(mgmt_ip):
         '''
-- swift_zone: '59'
-  uid: '59'
-  ip: 10.20.0.84
-  fqdn: kilo4.domain.tld
-  cabinet: '88'
-  role: keystone
-  name: kilo4
+nodes:
+- swift_zone: '101'
+  uid: '101'
+  public_address: 10.142.9.6
+  ip: 10.254.9.6
+  internal_netmask: 255.255.255.0
+  fqdn: kilo6.domain.tld
+  cabinet: '1'
+  role: mysql
+  public_netmask: 255.255.255.0
+  internal_address: 10.142.10.6
+  storage_address: 10.142.50.6
+  storage_netmask: 255.255.255.0
+  name: kilo6
         '''
         nodeName = ''
         nodesMap = YAMLUtil.getNodesMap()
         for node in nodesMap:
-            if node['ip'] == ip:
+            if node['internal_address'] == mgmt_ip:
                 nodeName = node['name']
                 break
             pass
@@ -247,9 +357,9 @@ class YAMLUtil(object):
         host="127.0.0.1 localhost\n"
         nodesMap = YAMLUtil.getNodesMap()
         for node in nodesMap:
-            if nodes_dict.has_key(node['ip']) == False:
-                nodes_dict[node['ip']]=node['name']
-                host = host + node['ip'] + " " + node['name'] + "\n"
+            if nodes_dict.has_key(node['internal_address']) == False:
+                nodes_dict[node['internal_address']] = node['name']
+                host = host + node['internal_address'] + " " + node['name'] + "\n"
                 pass
             pass
          
@@ -260,26 +370,43 @@ class YAMLUtil(object):
     
 if __name__ == "__main__":
     print 'test yaml========================'
-    yamlFilePath = os.path.join(PROJ_HOME_DIR, 'common', 'yaml', 'astute.yaml')
-    component_name = 'mysql'
-    key = 'mysql_vip'
-    value = YAMLUtil.getValue(component_name, key)
-    YAMLUtil.getNodesMap()
-    print 'mysql_vip=%s------' % value
-    print 'mysql_vip_interface=%s--------' % YAMLUtil.getValue(component_name, 'mysql_vip_interface')
-    print 'mysql_ip_list=%s--' % YAMLUtil.getIPList('glance')
+    ###New Test codes
+    mgmt_ip = YAMLUtil.getManagementIP()
+    print 'mgmt_ip=%s---' % mgmt_ip
     
-    print 'xxxxxxxxx'
-    YAMLUtil.writeIPList('mysql')
-    print 'debug--------------'
-    nodesMap = YAMLUtil.getNodesMap()
-    print YAMLUtil.hasRoleInNodes('mysql')
-    print 'get role ip list ascend by uid==========='
-    print YAMLUtil.getRoleIPList('mysql')
-    print 'has role========================='
-    print YAMLUtil.hasRole('cinder')
-    print 'get node name by ip========='
-    print YAMLUtil.getNodeNameByIP('10.20.0.87')
+    storage_ip = YAMLUtil.getStorageIP()
+    print 'storage_ip=%s---' % storage_ip
+    
+    ex_ip = YAMLUtil.getExIP()
+    print 'ex_ip=%s---' % ex_ip
+    
+    print 'rabbit mgmt ip list======='
+    print YAMLUtil.getRabbitRoleManagementIPList('rabbitmq')
+    
+    print 'mysql mgmt ip list======='
+    print YAMLUtil.getRoleManagementIPList('mysql')
+    
+#     print 'hosts======'
+#     YAMLUtil.setHosts()
+    
+    ###Original Test Codes
+#     yamlFilePath = os.path.join(PROJ_HOME_DIR, 'common', 'yaml', 'astute.yaml')
+#     component_name = 'mysql'
+#     value = YAMLUtil.getValue(component_name, key)
+#     YAMLUtil.getNodesMap()
+#     print 'mysql_ip_list=%s--' % YAMLUtil.getIPList('glance')
+#     
+#     print 'xxxxxxxxx'
+#     YAMLUtil.writeIPList('mysql')
+#     print 'debug--------------'
+#     nodesMap = YAMLUtil.getNodesMap()
+#     print YAMLUtil.hasRoleInNodes('mysql')
+#     print 'get role ip list ascend by uid==========='
+#     print YAMLUtil.getRoleManagementIPList('mysql')
+#     print 'has role========================='
+#     print YAMLUtil.hasRole('cinder')
+#     print 'get node name by ip========='
+#     print YAMLUtil.getNodeNameByManagementIP('10.20.0.87')
     pass
 
 

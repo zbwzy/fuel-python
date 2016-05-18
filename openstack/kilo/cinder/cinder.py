@@ -124,7 +124,6 @@ class Cinder(object):
 #         mysql_password = JSONUtility.getValue("mysql_password")
         
 #         rabbit_host = JSONUtility.getValue("rabbit_host")
-#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
 #         rabbit_userid = JSONUtility.getValue("rabbit_userid")

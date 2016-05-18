@@ -33,6 +33,7 @@ sys.path.append(PROJ_HOME_DIR)
 
 
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
+from common.yaml.YAMLUtil import YAMLUtil
 from common.json.JSONUtil import JSONUtility
 from common.file.FileUtil import FileUtil
 from openstack.common.serverSequence import ServerSequence
@@ -73,14 +74,13 @@ class BCRDB(object):
         MYSQLADMIN_BIN_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysqladmin')
         
         ShellCmdExecutor.execCmd('cp -r %s %s' % (SOURCE_RDB_CONF_FILE_TEMPLATE_PATH, DEST_RDB_CONF_DIR))
-        mysql_ips = JSONUtility.getValue("mysql_ips")
-        print 'mysql_ips=%s---' % mysql_ips
-        mysql_ip_list = mysql_ips.strip().split(',')
-        print 'mysql_ip_list=%s--' % mysql_ip_list
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
         
-        mysql_ip_list1 = []
+        mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+        mysql_ip_list = mysql_params_dict['mgmt_ips']
+        print 'mysql_ip_list=%s--' % mysql_ip_list
+        local_management_ip = YAMLUtil.getManagementIP()
+        
+        mysql_ip_list1 = [] #The rest mysql except itself
         for ip in mysql_ip_list :
             if ip.strip() != local_management_ip :
                 mysql_ip_list1.append(ip)
@@ -88,7 +88,7 @@ class BCRDB(object):
             pass
         
         print 'mysql_ip_list1=%s--' % mysql_ip_list1
-        mysql_ip_list_string = ','.join(mysql_ip_list1) #The rest mysql except itself
+        mysql_ip_list_string = ','.join(mysql_ip_list1)
         print 'mysql_ip_list_string=%s--' % mysql_ip_list_string
         
         FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<MYSQL_IP_LIST>', mysql_ip_list_string)
@@ -133,13 +133,11 @@ class BCRDB(object):
     def start():
         from openstack.common.serverSequence import ServerSequence
         
-        mysql_ips = JSONUtility.getValue("mysql_ips")
-        print 'mysql_ips=%s---' % mysql_ips
-        mysql_ip_list = mysql_ips.strip().split(',')
+        mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+        mysql_ip_list = mysql_params_dict['mgmt_ips']
         print 'mysql_ip_list=%s--' % mysql_ip_list
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
+        local_management_ip = YAMLUtil.getManagementIP()
         
         index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
         print 'mysql index=%s--' % str(index)
@@ -243,13 +241,12 @@ class BCRDB(object):
     @staticmethod
     def start1():
         from openstack.common.serverSequence import ServerSequence
-        mysql_ips = JSONUtility.getValue("mysql_ips")
-        print 'mysql_ips=%s---' % mysql_ips
-        mysql_ip_list = mysql_ips.strip().split(',')
+        
+        mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+        mysql_ip_list = mysql_params_dict['mgmt_ips']
         print 'mysql_ip_list=%s--' % mysql_ip_list
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
+        local_management_ip = YAMLUtil.getManagementIP()
         
         index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
         print 'mysql index=%s--' % str(index)
@@ -275,11 +272,13 @@ class BCRDB(object):
             for slave_ip in slave_mysql_server_list :
                 SSH.sendTagTo(slave_ip, tag_file_name)
                 pass
-            
-            keystone_ips = JSONUtility.getValue("keystone_ips")
-            keystone_ip_list = keystone_ips.strip().split(',')
-            #send tag to first server of keystone cluster
-            SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
+            #whether keystone exists in the cluster
+            if YAMLUtil.hasRole('keystone') :
+                keystone_ips = JSONUtility.getValue("keystone_ips")
+                keystone_ip_list = keystone_ips.strip().split(',')
+                #send tag to first server of keystone cluster
+                SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
+                pass
             pass
         else :
             print 'start to launch mysql slave================'
@@ -312,7 +311,9 @@ class BCRDB(object):
             index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
             tag_file_name = 'bcrdb_{index}'.format(index=str(index))
             print 'slave mysql tag_file_name=%s' % tag_file_name
-            SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
+            if YAMLUtil.hasRole('keystone') :
+                SSH.sendTagTo(keystone_ip_list[0], tag_file_name)
+                pass
             
             print 'send tag to first mysql===='
             SSH.sendTagTo(mysql_ip_list[0], tag_file_name)
@@ -324,13 +325,11 @@ class BCRDB(object):
     def start2():
         from openstack.common.serverSequence import ServerSequence
         
-        mysql_ips = JSONUtility.getValue("mysql_ips")
-        print 'mysql_ips=%s---' % mysql_ips
-        mysql_ip_list = mysql_ips.strip().split(',')
+        mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+        mysql_ip_list = mysql_params_dict['mgmt_ips']
         print 'mysql_ip_list=%s--' % mysql_ip_list
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
+        local_management_ip = YAMLUtil.getManagementIP()
         
         index = ServerSequence.getIndex(mysql_ip_list, local_management_ip)
         print 'mysql index=%s--' % str(index)

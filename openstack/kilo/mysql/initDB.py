@@ -145,7 +145,9 @@ class MySQL(object):
             
             #init mysql password
             user = 'root'
-            initPasswd = JSONUtility.getValue('mysql_password')
+            
+            mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+            initPasswd = mysql_params_dict['mysql_password']
             oldPasswd = 'bcrdb'
             print 'initPasswd=%s--' % initPasswd
             MySQL.initPassword(user, oldPasswd, initPasswd)
@@ -356,20 +358,6 @@ if __name__ == '__main__':
     
     MySQL.init()
     
-#     output, exitcode = ShellCmdExecutor.execCmd('cat /opt/mysql_ip_list')
-#     mysql_ip_list = output.strip().split(',')
-#     mysql_master_ip = mysql_ip_list[0]
-#     
-#     output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-#     localIP = output.strip()
-#     
-#     if not localIP == mysql_master_ip :
-#         print 'This is not master mysql node,skip db init.............'
-#         pass
-#     else :
-#         MySQL.init()
-#         pass
-#     pass
     
     
 

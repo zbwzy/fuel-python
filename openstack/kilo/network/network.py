@@ -26,7 +26,7 @@ if debug == True :
     pass
 else :
     # The real dir in which this project is deployed on PROD env.
-    PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
+    PROJ_HOME_DIR = '/etc/puppet/fuel-python'
     pass
 
 OPENSTACK_VERSION_TAG = 'kilo'
@@ -307,7 +307,6 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
 #         rabbit_host = JSONUtility.getValue("rabbit_host")
-#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
 #         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
@@ -315,7 +314,6 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         keystone_vip = JSONUtility.getValue("keystone_vip")
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         
-#         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_HOSTS>', rabbit_hosts)
 #         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<RABBIT_PASSWORD>', rabbit_password)

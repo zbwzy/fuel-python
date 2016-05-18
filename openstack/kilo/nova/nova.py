@@ -179,7 +179,6 @@ vif_plugging_timeout=0
 #         mysql_password = JSONUtility.getValue("mysql_password")
         
 #         rabbit_host = JSONUtility.getValue("rabbit_host")
-#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")     #Like: 10.20.0.195:5672,10.20.0.194:5672
 #         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")

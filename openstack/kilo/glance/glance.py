@@ -182,7 +182,6 @@ class Glance(object):
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<KEYSTONE_GLANCE_PASSWORD>', keystone_glance_password)
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<KEYSTONE_GLANCE_PASSWORD>', keystone_glance_password)
         
-#         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)    

@@ -149,7 +149,6 @@ class Heat(object):
         mysql_password = JSONUtility.getValue("mysql_password")
         
         rabbit_host = JSONUtility.getValue("rabbit_host")
-#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_userid = JSONUtility.getValue("rabbit_userid")
@@ -205,7 +204,6 @@ class Heat(object):
         
         FileUtil.replaceFileContent(heat_conf_file_path, '<HEAT_MYSQL_PASSWORD>', heat_mysql_password)
         
-#         FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(heat_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)

@@ -181,8 +181,6 @@ class CinderStorage(object):
         mysql_vip = JSONUtility.getValue("mysql_vip")
         cinder_dbpass = JSONUtility.getValue("cinder_dbpass")
         
-#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
-        
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
         rabbit_password = JSONUtility.getValue("rabbit_password")
         

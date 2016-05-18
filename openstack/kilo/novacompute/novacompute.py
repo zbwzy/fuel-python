@@ -243,7 +243,6 @@ admin_password=123456
         mysql_vip = JSONUtility.getValue("mysql_vip")
         
 #         rabbit_host = JSONUtility.getValue("rabbit_host")
-#         rabbit_vip = JSONUtility.getValue("rabbit_vip")
         rabbit_hosts = JSONUtility.getValue("rabbit_hosts")
 #         rabbit_userid = JSONUtility.getValue("rabbit_userid")
         rabbit_password = JSONUtility.getValue("rabbit_password")
@@ -255,7 +254,6 @@ admin_password=123456
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         
         virt_type = JSONUtility.getValue("virt_type")
-#         nova_vip = JSONUtility.getValue("nova_vip")
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
@@ -297,7 +295,6 @@ admin_password=123456
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % nova_conf_file_path)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-#         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOST>', rabbit_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
 #         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
