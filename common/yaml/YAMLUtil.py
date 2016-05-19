@@ -300,22 +300,43 @@ class YAMLUtil(object):
     @staticmethod
     def getManagementIP():
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
-        mgmt_ip = dataMap['network_scheme']['endpoints']['br-mgmt']['IP'][0].rstrip('/24')
-        return mgmt_ip
+        ss = dataMap['network_scheme']['endpoints']['br-mgmt']['IP'][0].strip()
+        ip = ''
+        if '/' in str(ss) :
+            ip = ss.split('/')[0]
+        else :
+            ip = ss
+            pass
+        
+        return ip
     
     #local business ip
     @staticmethod
     def getExIP():
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
-        ex_ip = dataMap['network_scheme']['endpoints']['br-ex']['IP'][0].rstrip('/24')
-        return ex_ip
+        ss = dataMap['network_scheme']['endpoints']['br-ex']['IP'][0].strip()
+        ip = ''
+        if '/' in str(ss) :
+            ip = ss.split('/')[0]
+        else :
+            ip = ss
+            pass
+        
+        return ip
     
     #local storage ip
     @staticmethod
     def getStorageIP():
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
-        storage_ip = dataMap['network_scheme']['endpoints']['br-storage']['IP'][0].rstrip('/24')
-        return storage_ip
+        ss = dataMap['network_scheme']['endpoints']['br-storage']['IP'][0].strip()
+        ip = ''
+        if '/' in str(ss) :
+            ip = ss.split('/')[0]
+        else :
+            ip = ss
+            pass
+        
+        return ip
     
     @staticmethod
     def getNodeNameByManagementIP(mgmt_ip):
