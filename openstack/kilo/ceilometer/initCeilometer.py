@@ -59,15 +59,17 @@ if __name__ == '__main__':
         print 'ceilometer initted####'
         print 'exit===='
     else :
-        Ceilometer.start()
-        #add HA
-        CeilometerHA.install()
-        CeilometerHA.configure()
-        CeilometerHA.start()
-        
-        ##########################
-        Ceilometer.restart()
-        CeilometerHA.start()
+        ###Original Codes
+#         Ceilometer.start()
+#         #add HA
+#         CeilometerHA.install()
+#         CeilometerHA.configure()
+#         CeilometerHA.start()
+#         
+#         ##########################
+#         Ceilometer.restart()
+#         CeilometerHA.start()
+        ###Original Codes
         
     #     os.system("service haproxy restart")
         

@@ -233,7 +233,6 @@ class Keystone(object):
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
         
         keystoneAdminEmail = JSONUtility.getValue("admin_email")
-        print 'keystoneAdminEmail=%s' % keystoneAdminEmail
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<ADMIN_EMAIL>', keystoneAdminEmail)
         
         vipParamsDict = JSONUtility.getValue('vip')
@@ -432,8 +431,8 @@ if __name__ == '__main__':
 #             print 'test timeout==='
 #             while True:
 #                 launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
-#                 mysql_ips = JSONUtility.getValue('mysql_ips')
-#                 mysql_ip_list = mysql_ips.split(',')
+#                 mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+#                 mysql_ip_list = mysql_params_dict["mgmt_ips"]
 #                 if  str(launchedMysqlServerNum) == str(len(mysql_ip_list)) :
 #                     print 'wait time: %s second(s).' % time_count
 #                     Keystone.importKeystoneDBSchema()
@@ -465,26 +464,26 @@ if __name__ == '__main__':
 #             from common.yaml.YAMLUtil import YAMLUtil
 #             #send to first glance
 #             if YAMLUtil.hasRoleInNodes('glance'):
-#                 glance_ips = JSONUtility.getValue('glance_ips')
-#                 glance_ip_list = glance_ips.split(',')
+#                 glance_params_dict = JSONUtility.getRoleParamsDict('glance')
+#                 glance_ip_list = glance_params_dict["mgmt_ips"]
 #                 SSH.sendTagTo(glance_ip_list[0], tag_file_name)
 #             
 #             #send to first neutron-server
 #             if YAMLUtil.hasRoleInNodes('neutron-server'):
-#                 neutron_ips = JSONUtility.getValue('neutron_ips')
-#                 neutron_ip_list = neutron_ips.split(',')
+#                 neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
+#                 neutron_ip_list = neutron_params_dict["mgmt_ips"]
 #                 SSH.sendTagTo(neutron_ip_list[0], tag_file_name)
 #             
 #             #send to first nova-api
 #             if YAMLUtil.hasRoleInNodes('nova-api'):
-#                 nova_ips = JSONUtility.getValue('nova_ips')
-#                 nova_ip_list = nova_ips.split(',')
+#                 nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
+#                 nova_ip_list = nova_api_params_dict["mgmt_ips"]
 #                 SSH.sendTagTo(nova_ip_list[0], tag_file_name)
 #                 
 #             #send to first cinder
 #             if YAMLUtil.hasRoleInNodes('cinder'):
-#                 cinder_ips = JSONUtility.getValue('cinder_ips')
-#                 cinder_ip_list = cinder_ips.split(',')
+#                 cinder_params_dict = JSONUtility.getRoleParamsDict('cinder-api')
+#                 cinder_ip_list = cinder_params_dict["mgmt_ips"]
 #                 SSH.sendTagTo(cinder_ip_list[0], tag_file_name)
 #                 
 #             pass

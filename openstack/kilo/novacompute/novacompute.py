@@ -255,7 +255,8 @@ admin_password=123456
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         
-        virt_type = JSONUtility.getValue("virt_type")
+        nova_compute_params_dict = JSONUtility.getRoleParamsDict('nova-compute')
+        virt_type = nova_compute_params_dict["virt_type"]
         
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()

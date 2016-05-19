@@ -15,7 +15,7 @@ import sys
 import os
 import time
 
-debug = True
+debug = False
 if debug == True :
     #MODIFY HERE WHEN DO LOCAL DEV
     PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
@@ -264,9 +264,6 @@ class ParamsProducer(object):
             key = 'glance_vip'
             glance_vip = YAMLUtil.getValue(role, key)
             
-            key = 'glance_vip_interface'
-            glance_vip_interface = YAMLUtil.getValue(role, key)
-            
             key = 'glance_mysql_user'
             glance_mysql_user = YAMLUtil.getValue(role, key)
             
@@ -274,18 +271,21 @@ class ParamsProducer(object):
             #glance_mysql_password = YAMLUtil.getValue(role, key)
             
             glance_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            glance_ips = ','.join(glance_ips_list)
+            
+            glance_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            glance_ex_ips_list = YAMLUtil.getRoleExIPList(role)
             
             print 'glance_vip=%s--' % glance_vip
-            print 'glance_vip_interface=%s--' % glance_vip_interface
             print 'glance_mysql_user=%s--' % glance_mysql_user
             #print 'glance_mysql_password=%s--' % glance_mysql_password 
-            print 'glance_ips=%s--' % glance_ips
-            paramsMap['glance_vip'] = glance_vip
-            paramsMap['glance_vip_interface'] = glance_vip_interface
-            paramsMap['glance_mysql_user'] = glance_mysql_user
+            
+            paramsMap['glance'] = {}
+            glanceParams = paramsMap['glance']
+            glanceParams['glance_mysql_user'] = glance_mysql_user
+            glanceParams['mgmt_ips'] = glance_ips_list
+            glanceParams['storage_ips'] = glance_storage_ips_list
+            glanceParams['ex_ips'] = glance_ex_ips_list
             #paramsMap['glance_mysql_password'] = glance_mysql_password
-            paramsMap['glance_ips'] = glance_ips
             
             if YAMLUtil.getManagementIP() in glance_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -299,39 +299,34 @@ class ParamsProducer(object):
             key = 'vlan_id_range'
             vlan_id_range = YAMLUtil.getValue(role, key)
             
-            key = 'neutron_vip'
-            neutron_vip = YAMLUtil.getValue(role, key)
-            
-            key = 'neutron_vip_interface'
-            neutron_vip_interface = YAMLUtil.getValue(role, key)
-            
             key = 'neutron_network_mode'
             neutron_network_mode = YAMLUtil.getValue(role, key)
             
             key = 'neutron_mysql_user'
-            neutron_mysql_user = YAMLUtil.getValue(role, key)
+#             neutron_mysql_user = YAMLUtil.getValue(role, key)
+            neutron_mysql_user = "neutron"
             #key = 'neutron_mysql_password'
             #neutron_mysql_password = YAMLUtil.getValue(role, key)
             
             neutron_ip_list = YAMLUtil.getRoleManagementIPList(role)
-            neutron_ips = ','.join(neutron_ip_list)
+            neutron_storage_ip_list = YAMLUtil.getRoleStorageIPList(role)
+            neutron_ex_ip_list = YAMLUtil.getRoleExIPList(role)
             
             print 'vlan_id_range=%s--' % vlan_id_range
-            print 'neutron_vip=%s--' % neutron_vip
-            print 'neutron_vip_interface=%s--' % neutron_vip_interface
             print 'neutron_network_mode=%s--' % neutron_network_mode
             
             print 'neutron_mysql_user=%s--' % neutron_mysql_user
             #print 'neutron_mysql_user_password=%s--' % neutron_mysql_password
             
-            print 'neutron_ips=%s--' % neutron_ips
-            paramsMap['vlan_id_range'] = vlan_id_range
-            paramsMap['neutron_vip'] = neutron_vip
-            paramsMap['neutron_vip_interface'] = neutron_vip_interface
-            paramsMap['neutron_mysql_user'] = neutron_mysql_user
-            #paramsMap['neutron_mysql_password'] = neutron_mysql_password
-            paramsMap['neutron_network_mode'] = neutron_network_mode
-            paramsMap['neutron_ips'] = neutron_ips
+            paramsMap['neutron-server'] = {}
+            neutronServerParams = paramsMap['neutron-server']
+            neutronServerParams['vlan_id_range'] = vlan_id_range
+            neutronServerParams['neutron_mysql_user'] = neutron_mysql_user
+            #neutronServerParams['neutron_mysql_password'] = neutron_mysql_password
+            neutronServerParams['neutron_network_mode'] = neutron_network_mode
+            neutronServerParams['mgmt_ips'] = neutron_ip_list
+            neutronServerParams['storage_ips'] = neutron_storage_ip_list
+            neutronServerParams['ex_ips'] = neutron_ex_ip_list
             
             if YAMLUtil.getManagementIP() in neutron_ip_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -342,33 +337,29 @@ class ParamsProducer(object):
         role = 'nova-api'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            key = 'nova_vip'
-            nova_vip = YAMLUtil.getValue(role, key)
-            
-            key = 'nova_vip_interface'
-            nova_vip_interface = YAMLUtil.getValue(role, key)
             
             key = 'nova_mysql_user'
-            nova_mysql_user = YAMLUtil.getValue(role, key)
+            nova_mysql_user = "nova"
+#             nova_mysql_user = YAMLUtil.getValue(role, key)
             
             #key = 'nova_mysql_password'
             #nova_mysql_password = YAMLUtil.getValue(role, key)
             
             nova_ip_list = YAMLUtil.getRoleManagementIPList(role)
-            nova_ips = ','.join(nova_ip_list)
+            nova_storage_ip_list = YAMLUtil.getRoleStorageIPList(role)
+            nova_ex_ip_list = YAMLUtil.getRoleExIPList(role)
             
-            print 'nova_vip=%s--' % nova_vip
-            print 'nova_vip_interface=%s--' % nova_vip_interface
             print 'nova_mysql_user=%s--' % nova_mysql_user
             #print 'nova_mysql_password=%s--' % nova_mysql_password
             
-            print 'nova_ips=%s--' % nova_ips
             print YAMLUtil.hasRoleInNodes('nova-api')
-            paramsMap['nova_vip'] = nova_vip
-            paramsMap['nova_vip_interface'] = nova_vip_interface
-            paramsMap['nova_mysql_user'] = nova_mysql_user
+            paramsMap[role] = {}
+            novaApiParams = paramsMap[role]
+            novaApiParams['nova_mysql_user'] = nova_mysql_user
+            novaApiParams['mgmt_ips'] = nova_ip_list
+            novaApiParams['storage_ips'] = nova_storage_ip_list
+            novaApiParams['ex_ips'] = nova_ex_ip_list
             #paramsMap['nova_mysql_password'] = nova_mysql_password
-            paramsMap['nova_ips'] = nova_ips
             
             if YAMLUtil.getManagementIP() in nova_ip_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -384,10 +375,15 @@ class ParamsProducer(object):
             print 'virt_type=%s' % virt_type
             
             nova_compute_ip_list = YAMLUtil.getRoleManagementIPList(role)
-            nova_compute_ips = ','.join(nova_compute_ip_list)
-            print 'nova_compute_ips=%s--' % nova_compute_ips
-            paramsMap['virt_type'] = virt_type
-            paramsMap['nova_compute_ips'] = nova_compute_ips
+            nova_compute_storage_ip_list = YAMLUtil.getRoleStorageIPList(role)
+            nova_compute_ex_ip_list = YAMLUtil.getRoleExIPList(role)
+            
+            paramsMap[role] = {}
+            novaComputeParams = paramsMap[role]
+            novaComputeParams['virt_type'] = virt_type
+            novaComputeParams['mgmt_ips'] = nova_compute_ip_list
+            novaComputeParams['storage_ips'] = nova_compute_storage_ip_list
+            novaComputeParams['ex_ips'] = nova_compute_ex_ip_list
             
             if YAMLUtil.getManagementIP() in nova_compute_ip_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -397,19 +393,15 @@ class ParamsProducer(object):
         role = 'horizon'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            key = 'dashboard_vip'
-            dashboard_vip= YAMLUtil.getValue(role, key)
-            key = 'dashboard_vip_interface'
-            dashboard_vip_interface = YAMLUtil.getValue(role, key)
-            
             dashboard_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            dashboard_ips = ','.join(dashboard_ips_list)
-            print 'dashboard_vip=%s--' % dashboard_vip
-            print 'dashboard_vip_interface=%s--' % dashboard_vip_interface
-            print 'dashboard_ips=%s--' % dashboard_ips
-            paramsMap['dashboard_vip'] = dashboard_vip
-            paramsMap['dashboard_vip_interface'] = dashboard_vip_interface
-            paramsMap['dashboard_ips'] = dashboard_ips
+            dashboard_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            dashboard_ex_ips_list = YAMLUtil.getRoleExIPList(role)
+            
+            paramsMap[role] = {}
+            horizonParams = paramsMap[role]
+            horizonParams["mgmt_ips"] = dashboard_ips_list
+            horizonParams["storage_ips"] = dashboard_storage_ips_list
+            horizonParams["ex_ips"] = dashboard_ex_ips_list
             
             if YAMLUtil.getManagementIP() in dashboard_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -420,30 +412,23 @@ class ParamsProducer(object):
         role = 'cinder-api'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            key = 'cinder_vip'
-            cinder_vip = YAMLUtil.getValue(role, key)
-            
-            key = 'cinder_vip_interface'
-            cinder_vip_interface = YAMLUtil.getValue(role, key)
-            
-            key = 'cinder_mysql_user'
-            cinder_mysql_user = YAMLUtil.getValue(role, key)
-            
-            #key = 'cinder_mysql_password'
-            #cinder_mysql_password = YAMLUtil.getValue(role, key)
+#             key = 'cinder_mysql_user'
+#             cinder_mysql_user = YAMLUtil.getValue(role, key)
+            cinder_mysql_user = "cinder"
             
             cinder_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            cinder_ips = ','.join(cinder_ips_list)
-            print 'cinder_vip=%s-' % cinder_vip
-            print 'cinder_vip_interface=%s--' % cinder_vip_interface
+            cinder_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            cinder_ex_ips_list = YAMLUtil.getRoleExIPList(role)
+            
             print 'cinder_mysql_user=%s--' % cinder_mysql_user
-            #print 'cinder_mysql_password=%s--' % cinder_mysql_password
-            print 'cinder_ips=%s--' % cinder_ips
-            paramsMap['cinder_vip'] = cinder_vip
-            paramsMap['cinder_vip_interface'] = cinder_vip_interface
-            paramsMap['cinder_mysql_user'] = cinder_mysql_user
-            #paramsMap['cinder_mysql_password'] = cinder_mysql_password
-            paramsMap['cinder_ips'] = cinder_ips
+            paramsMap[role] = {}
+            cinderParams = paramsMap[role]
+            cinderParams['cinder_mysql_user'] = cinder_mysql_user
+            cinderParams["mgmt_ips"] = cinder_ips_list
+            cinderParams["storage_ips"] = cinder_storage_ips_list
+            cinderParams["ex_ips"] = cinder_ex_ips_list
+            #XXXXX
+#             paramsMap['cinder_ips'] = cinder_ips
             
             if YAMLUtil.getManagementIP() in cinder_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -454,9 +439,15 @@ class ParamsProducer(object):
         role = 'cinder-storage'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            cinder_storage_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            cinder_storage_ips = ','.join(cinder_storage_ips_list)
-            paramsMap['cinder_storage_ips'] = cinder_storage_ips
+            cinder_ips_list = YAMLUtil.getRoleManagementIPList(role)
+            cinder_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            cinder_ex_ips_list = YAMLUtil.getRoleExIPList(role)
+            
+            paramsMap[role] = {}
+            cinderStorageParams = paramsMap[role]
+            cinderStorageParams["mgmt_ips"] = cinder_ips_list
+            cinderStorageParams["storage_ips"] = cinder_storage_ips_list
+            cinderStorageParams["ex_ips"] = cinder_ex_ips_list
             
             if YAMLUtil.getManagementIP() in cinder_storage_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -468,51 +459,49 @@ class ParamsProducer(object):
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
             heat_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            heat_ips = ','.join(heat_ips_list)
-            print 'heat_ips=%s--' % heat_ips
+            heat_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            heat_ex_ips_list = YAMLUtil.getRoleExIPList(role)
             
-            key = 'heat_vip'
-            heat_vip = YAMLUtil.getValue(role, key)
-            
-            key = 'heat_vip_interface'
-            heat_vip_interface = YAMLUtil.getValue(role, key)
-            
-            key = 'heat_mysql_user'
-            heat_mysql_user = YAMLUtil.getValue(role, key)
-            
-            #key = 'heat_mysql_password'
-            #heat_mysql_password = YAMLUtil.getValue(role, key)
-            
-            paramsMap['heat_ips'] = heat_ips
-            paramsMap['heat_vip'] = heat_vip
-            paramsMap['heat_vip_interface'] = heat_vip_interface
-            paramsMap['heat_mysql_user'] = heat_mysql_user
-            #paramsMap['heat_mysql_password'] = heat_mysql_password
+#             key = 'heat_mysql_user'
+#             heat_mysql_user = YAMLUtil.getValue(role, key)
+            heat_mysql_user = "heat"
+            paramsMap[role] = {}
+            heatParams = paramsMap[role]
+#             paramsMap['heat_ips'] = heat_ips
+            heatParams["mgmt_ips"] = heat_ips_list
+            heatParams["storage_ips"] = heat_storage_ips_list
+            heatParams["ex_ips"] = heat_ex_ips_list
+            heatParams['heat_mysql_user'] = heat_mysql_user
             
             if YAMLUtil.getManagementIP() in heat_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
                 pass
             pass
         
+        #Network Node
         print 'neutron-agent============================================'
         role = 'neutron-agent'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            neutron_service_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            neutron_service_ips = ','.join(neutron_service_ips_list)
+            net_node_ips_list = YAMLUtil.getRoleManagementIPList(role)
+            net_node_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            net_node_ex_ips_list = YAMLUtil.getRoleExIPList(role)
             
             key = 'interface_name'
             physical_external_network_interface = YAMLUtil.getValue(role, key)
-            print 'neutron_service_ips=%s--' % neutron_service_ips
             print 'physical_external_network_interface=%s--' % physical_external_network_interface
             
-            paramsMap['neutron_service_ips'] = neutron_service_ips
-            paramsMap['physical_external_network_interface'] = physical_external_network_interface
+            paramsMap['network'] = {}
+            networkParams = paramsMap['network']
+            networkParams["mgmt_ips"] = net_node_ips_list
+            networkParams["storage_ips"] = net_node_storage_ips_list
+            networkParams["ex_ips"] = net_node_ex_ips_list
+            networkParams['physical_external_network_interface'] = physical_external_network_interface
             
             #REFACTOR LATER
-            paramsMap['metadata_secret'] = '123456'
+            networkParams['metadata_secret'] = '123456'
             
-            if YAMLUtil.getManagementIP() in neutron_service_ips_list :
+            if YAMLUtil.getManagementIP() in net_node_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
                 pass
             pass
@@ -549,37 +538,28 @@ class ParamsProducer(object):
         role = 'ceilometer'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            key = 'ceilometer_vip'
-            ceilometer_vip = YAMLUtil.getValue(role, key)
-            
-            key = 'ceilometer_vip_interface'
-            ceilometer_vip_interface = YAMLUtil.getValue(role, key)
-            
-            key = 'ceilometer_mongo_user'
-            ceilometer_mongo_user = YAMLUtil.getValue(role, key)
-            
-            key = 'ceilometer_mongo_password'
-            ceilometer_mongo_password = YAMLUtil.getValue(role, key)
-            
-            ceilometer_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            ceilometer_ips = ','.join(ceilometer_ips_list)
-            print 'ceilometer_vip=%s-' % ceilometer_vip
-            print 'ceilometer_vip_interface=%s--' % ceilometer_vip_interface
-            print 'ceilometer_mongo_user=%s--' % ceilometer_mongo_user
-            print 'ceilometer_mongo_password=%s--' % ceilometer_mongo_password
-            print 'ceilometer_ips=%s--' % ceilometer_ips
-            paramsMap['ceilometer_vip'] = ceilometer_vip
-            paramsMap['ceilometer_vip_interface'] = ceilometer_vip_interface
-            paramsMap['ceilometer_mongo_user'] = ceilometer_mongo_user
-            paramsMap['ceilometer_mongo_password'] = ceilometer_mongo_password
-            paramsMap['ceilometer_ips'] = ceilometer_ips
-            
-            #REFACTOR LATER
-            ceilometer_metering_secret = '7c1edcdfc1b2841c21ff'
-            paramsMap['ceilometer_metering_secret'] = ceilometer_metering_secret
-            
-            if YAMLUtil.getManagementIP() in ceilometer_ips_list :
-                FileUtil.writeContent(is_role_file_path, 'true')
+            print 'Do nothing currently======='
+#             key = 'ceilometer_mongo_user'
+#             ceilometer_mongo_user = YAMLUtil.getValue(role, key)
+#             
+#             key = 'ceilometer_mongo_password'
+#             ceilometer_mongo_password = YAMLUtil.getValue(role, key)
+#             
+#             ceilometer_ips_list = YAMLUtil.getRoleManagementIPList(role)
+#             ceilometer_ips = ','.join(ceilometer_ips_list)
+#             print 'ceilometer_mongo_user=%s--' % ceilometer_mongo_user
+#             print 'ceilometer_mongo_password=%s--' % ceilometer_mongo_password
+#             print 'ceilometer_ips=%s--' % ceilometer_ips
+#             paramsMap['ceilometer_mongo_user'] = ceilometer_mongo_user
+#             paramsMap['ceilometer_mongo_password'] = ceilometer_mongo_password
+#             paramsMap['ceilometer_ips'] = ceilometer_ips
+#             
+#             #REFACTOR LATER
+#             ceilometer_metering_secret = '7c1edcdfc1b2841c21ff'
+#             paramsMap['ceilometer_metering_secret'] = ceilometer_metering_secret
+#             
+#             if YAMLUtil.getManagementIP() in ceilometer_ips_list :
+#                 FileUtil.writeContent(is_role_file_path, 'true')
             pass
         
         print 'get global var==========================================='

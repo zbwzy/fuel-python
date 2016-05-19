@@ -163,8 +163,8 @@ class Dashboard(object):
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         localIP = output.strip()
         
-        dashboard_ips_string = JSONUtility.getValue("dashboard_ips")
-        dashboard_ip_list = dashboard_ips_string.split(',')
+        horizon_params_dict = JSONUtility.getRoleParamsDict('horizon')
+        dashboard_ip_list = horizon_params_dict["mgmt_ips"]
         memcached_service_list = []
         for ip in dashboard_ip_list:
             memcached_service_list.append(ip.strip() + ':11211')

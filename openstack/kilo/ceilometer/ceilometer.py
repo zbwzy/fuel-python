@@ -649,9 +649,12 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-        Prerequisites.prepare()
-        Ceilometer.install()
-        Ceilometer.configConfFile()
+        print 'Do nothing currently============'
+#         Prerequisites.prepare()
+#         Ceilometer.install()
+#         Ceilometer.configConfFile()
+        
+        
     #     Ceilometer.start()
     #     
     #     ## Ceilometer HA

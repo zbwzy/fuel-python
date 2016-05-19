@@ -31,6 +31,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 
 class NovaCompute(object):
@@ -84,9 +85,8 @@ class NovaCompute(object):
         ml2ConfTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'ml2_conf.ini')
         ShellCmdExecutor.execCmd('cp -r %s /etc/neutron/plugins/ml2/' % ml2ConfTemplatePath)
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        FileUtil.replaceFileContent('/etc/neutron/plugins/ml2/ml2_conf.ini', '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localIP)
+        localExIP = YAMLUtil.getExIP()
+        FileUtil.replaceFileContent('/etc/neutron/plugins/ml2/ml2_conf.ini', '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localExIP)
         pass
     
     @staticmethod

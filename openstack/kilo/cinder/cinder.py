@@ -36,6 +36,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 from openstack.kilo.ssh.SSH import SSH 
 from openstack.common.serverSequence import ServerSequence
 
@@ -191,10 +192,9 @@ class Cinder(object):
     
     @staticmethod
     def getServerIndex():
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
-        cinder_ips = JSONUtility.getValue('cinder_ips')
-        cinder_ip_list = cinder_ips.split(',')
+        local_management_ip = YAMLUtil.getManagementIP()
+        cinder_params_dict = JSONUtility.getRoleParamsDict('cinder-api')
+        cinder_ip_list = cinder_params_dict["mgmt_ips"]
         index = ServerSequence.getIndex(cinder_ip_list, local_management_ip)
         return index
     pass
@@ -225,8 +225,8 @@ if __name__ == '__main__':
         #import cinder db schema
 #         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
 #         localIP = output.strip()
-#         cinder_ips = JSONUtility.getValue("cinder_ips")
-#         cinder_ip_list = cinder_ips.strip().split(',')
+#         cinder_params_dict = JSONUtility.getRoleParamsDict('cinder-api')
+#         cinder_ip_list = cinder_params_dict["mgmt_ips"]
 #         
 #         first_cinder_launched_mark_file = '/opt/openstack_conf/tag/cinder0_launched'
 #         

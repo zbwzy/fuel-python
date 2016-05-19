@@ -40,6 +40,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 from openstack.common.serverSequence import ServerSequence
 from openstack.kilo.ssh.SSH import SSH
 
@@ -112,8 +113,6 @@ class Glance(object):
         print "glance_vip=%s" % glance_vip
         glance_dbpass = JSONUtility.getValue("glance_dbpass")
         keystone_glance_password = JSONUtility.getValue("keystone_glance_password")
-        glance_ips = JSONUtility.getValue("glance_ips")
-        print "glance_ips=%s" % glance_ips
         
         keystone_vip = vipParamsDict["keystone_vip"]
         rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
@@ -203,10 +202,9 @@ class Glance(object):
     
     @staticmethod
     def getServerIndex():
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
-        glance_ips = JSONUtility.getValue('glance_ips')
-        glance_ip_list = glance_ips.split(',')
+        local_management_ip = YAMLUtil.getManagementIP()
+        glance_params_dict = JSONUtility.getRoleParamsDict('glance')
+        glance_ip_list = glance_params_dict["mgmt_ips"]
         index = ServerSequence.getIndex(glance_ip_list, local_management_ip)
         return index
 
@@ -260,8 +258,8 @@ if __name__ == '__main__':
 #             Glance.start()
 #             
 #             #To send to the rest glance
-#             glance_ips = JSONUtility.getValue('glance_ips')
-#             glance_ip_list = glance_ips.split(',')
+#             glance_params_dict = JSONUtility.getRoleParamsDict('glance')
+#             glance_ip_list = glance_params_dict["mgmt_ips"] 
 #             
 #             if len(glance_ip_list) > 1 :
 #                 for glance_ip in glance_ip_list[1:] :

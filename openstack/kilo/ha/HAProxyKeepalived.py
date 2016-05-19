@@ -218,7 +218,7 @@ listen rdb_mysql
         
         mysqlBackendApiStringTemplate2 = '''
 listen rdb_mysql
-  bind <HA_VIP2>:3306
+  bind <HA_VIP1>:3306
   balance  leastconn
   mode  tcp
   option  mysql-check user haproxy
@@ -238,7 +238,9 @@ listen rdb_mysql
             mysqlBackendString = mysqlBackendApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
             pass
         else :
-            mysqlBackendString = mysqlBackendApiStringTemplate2.replace('<HA_VIP2>', ha_vip2)
+#             mysqlBackendString = mysqlBackendApiStringTemplate2.replace('<HA_VIP2>', ha_vip2)
+            mysqlBackendString = mysqlBackendApiStringTemplate2.replace('<HA_VIP1>', ha_vip1)
+            pass
         
         #mysql master
         serverMysqlBacendString1 = 'server mysql1 %s:3306 check inter 2000 rise 2 fall 3' % mysql_ip_list[0]
@@ -346,9 +348,8 @@ listen glance_registry
   option  httplog
   <GLANCE_REGISTRY_API_SERVER_LIST>
   '''
-        glance_ips = JSONUtility.getValue("glance_ips")
-        glance_ip_list = glance_ips.strip().split(',')
-        
+        glance_params_dict = JSONUtility.getRoleParamsDict('glance')
+        glance_ip_list = glance_params_dict["mgmt_ips"]
         glanceBackendApiString = glanceBackendApiStringTemplate
         glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate
         ###############
@@ -403,8 +404,8 @@ listen nova_metadata_api
   <NOVA_METADATA_API_SERVER_LIST>
         '''
         
-        nova_api_ips = JSONUtility.getValue("nova_ips")
-        nova_api_ip_list = nova_api_ips.strip().split(',')
+        nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
+        nova_api_ip_list = nova_api_params_dict["mgmt_ips"]
         
         novaComputeApiBackendString = novaComputeApiBackendStringTemplate
         novaMetadataApiBackendString = novaMetadataApiBackendStringTemplate
@@ -453,8 +454,9 @@ listen neutron_api
   <NEUTRON_SERVER_LIST>
         '''
         neutronServerBackendString = neutronServerBackendApiStringTemplate
-        neutron_ips = JSONUtility.getValue("neutron_ips")
-        neutron_ip_list = neutron_ips.strip().split(',')
+        
+        neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
+        neutron_ip_list = neutron_params_dict["mgmt_ips"]
         
         serverNeutronServerBackendTemplate   = 'server coreapi<INDEX> <SERVER_IP>:9696 check inter 2000 rise 2 fall 3'
         
@@ -495,8 +497,8 @@ listen horizon
   timeout  server 3h
   <HORIZON_SERVER_LIST>
         '''
-        horizon_ips = JSONUtility.getValue("dashboard_ips")
-        horizon_ip_list = horizon_ips.strip().split(',')
+        horizon_params_dict = JSONUtility.getRoleParamsDict('horizon')
+        horizon_ip_list = horizon_params_dict["mgmt_ips"]
 
         serverHorizonServerBackendTemplate   = 'server coreapi<INDEX> <SERVER_IP>:80 cookie coreapi<INDEX> check inter 2000 rise 2 fall 3'
 
@@ -526,8 +528,8 @@ listen cinder_api
   option  httplog
   <CINDER_SERVER_LIST>
         '''
-        cinder_ips = JSONUtility.getValue("cinder_ips")
-        cinder_ip_list = cinder_ips.strip().split(',')
+        cinder_params_dict = JSONUtility.getRoleParamsDict('cinder-api')
+        cinder_ip_list = cinder_params_dict["mgmt_ips"]
 
         serverCinderBackendTemplate   = 'server cinder<INDEX> <SERVER_IP>:8776 check inter 2000 rise 2 fall 3'
 
@@ -557,8 +559,8 @@ listen ceilometer_api
   option  httplog
   <CEILOMETER_SERVER_LIST>
         '''
-        ceilometer_ips = JSONUtility.getValue("ceilometer_ips")
-        ceilometer_ip_list = ceilometer_ips.strip().split(',')
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        ceilometer_ip_list = ceilometer_params_dict["mgmt_ips"]
 
         serverCeilometerBackendTemplate   = 'server ceilometer<INDEX> <SERVER_IP>:8777 check inter 2000 rise 2 fall 3'
 

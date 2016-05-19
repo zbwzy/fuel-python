@@ -102,8 +102,8 @@ if __name__ == '__main__':
             pass
         else :
             from openstack.common.serverSequence import ServerSequence
-            neutron_server_ips = JSONUtility.getValue('neutron_ips')
-            neutron_ip_list = neutron_server_ips.strip().split(',')
+            neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
+            neutron_ip_list = neutron_params_dict["mgmt_ips"]
             output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
             localIP = output.strip()
             if ServerSequence.getIndex(neutron_ip_list, localIP) == 0:

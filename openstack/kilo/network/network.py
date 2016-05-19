@@ -39,6 +39,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 class Prerequisites(object):
     '''
@@ -116,10 +117,8 @@ class Network(object):
         ShellCmdExecutor.execCmd('cat %s > /tmp/ml2_conf.ini' % ml2_template_conf_file_path)
         ShellCmdExecutor.execCmd('mv /tmp/ml2_conf.ini /etc/neutron/plugins/ml2/')
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
-        
-        FileUtil.replaceFileContent(Network.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localIP)
+        localExIP = YAMLUtil.getExIP()
+        FileUtil.replaceFileContent(Network.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localExIP)
         pass
     
     @staticmethod
@@ -160,8 +159,9 @@ class Network(object):
         keystone_vip = vipParamsDict["keystone_vip"]
         nova_vip = vipParamsDict["nova_vip"]
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
-        #REFACTOR LATER
-        metadata_secret = '123456'#JSONUtility.getValue("metadata_secret")
+        
+        network_node_params_dict = JSONUtility.getRoleParamsDict('network')
+        metadata_secret = network_node_params_dict["metadata_secret"]
         
         FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(Network.NEUTRON_METADATA_CONF_FILE_PATH, '<NOVA_VIP>', nova_vip)
@@ -174,20 +174,22 @@ class Network(object):
         output, exitcode = ShellCmdExecutor.execCmd('systemctl enable openvswitch.service')
         output, exitcode = ShellCmdExecutor.execCmd('systemctl start openvswitch.service')
         time.sleep(3)
-        #Add the external bridge:
-        ShellCmdExecutor.execCmd('ovs-vsctl add-br br-ex')
+        #Add br-int bridge:
+        ShellCmdExecutor.execCmd('ovs-vsctl add-br br-int')
         time.sleep(2)
         #Add a port to the external bridge that connects to the physical external network interface:
         #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
         
 #         physical_external_network_interface = 'eth2'
-        physical_external_network_interface = JSONUtility.getValue('physical_external_network_interface').strip()
+#         networkParams = JSONUtility.getRoleParamsDict('network')
+#         physical_external_network_interface = networkParams['physical_external_network_interface'].strip()
+        
 #         addExternalBridgeCmd = 'ovs-vsctl add-port br-ex %s' % physical_external_network_interface
         addExternalBridgeTemplateScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'addExternalBridge.sh')
         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % addExternalBridgeTemplateScriptPath)
-        FileUtil.replaceFileContent('/opt/openstack_conf/scripts/addExternalBridge.sh', 
-                                    '<PHYSICAL_EXTERNAL_NETWORK_INTERFACE>', 
-                                    physical_external_network_interface)
+#         FileUtil.replaceFileContent('/opt/openstack_conf/scripts/addExternalBridge.sh', 
+#                                     '<PHYSICAL_EXTERNAL_NETWORK_INTERFACE>', 
+#                                     physical_external_network_interface)
 #         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
 #         localIP = output.strip()
 #         FileUtil.replaceFileContent('/opt/addExternalBridge.sh', 

@@ -39,6 +39,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 from openstack.kilo.ssh.SSH import SSH 
 from openstack.common.serverSequence import ServerSequence
 
@@ -177,6 +178,7 @@ vif_plugging_timeout=0
         '''
         vipParamsDict = JSONUtility.getValue('vip')
         mysql_vip = vipParamsDict["mysql_vip"] 
+        keystone_vip = vipParamsDict["keystone_vip"]
 
         rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
         rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
@@ -190,12 +192,12 @@ vif_plugging_timeout=0
        
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
-        metadata_secret = '123456' #JSONUtility.getValue("metadata_secret")    #the same with dhcp.ini in neutron
+        metadata_secret = '123456'     #the same with dhcp.ini in neutron
         
         nova_dbpass = JSONUtility.getValue("nova_dbpass")
         
-        nova_ips = JSONUtility.getValue('nova_ips')
-        nova_ip_list = nova_ips.strip().split(',')
+        nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
+        nova_ip_list = nova_api_params_dict["mgmt_ips"]
         memcached_service_list = []
         for ip in nova_ip_list:
             memcached_service_list.append(ip.strip() + ':11211')
@@ -291,10 +293,9 @@ vif_plugging_timeout=0
     
     @staticmethod
     def getServerIndex():
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
-        nova_ips = JSONUtility.getValue('nova_ips')
-        nova_ip_list = nova_ips.split(',')
+        local_management_ip = YAMLUtil.getManagementIP()
+        nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
+        nova_ip_list = nova_api_params_dict["mgmt_ips"]
         index = ServerSequence.getIndex(nova_ip_list, local_management_ip)
         return index
     
@@ -321,8 +322,8 @@ if __name__ == '__main__':
         #import nova db schema
 #         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
 #         localIP = output.strip()
-#         nova_ips = JSONUtility.getValue("nova_ips")
-#         nova_ip_list = nova_ips.strip().split(',')
+#         nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
+#         nova_ip_list = nova_api_params_dict["mgmt_ips"]
 #         
 #         first_nova_launched_mark_file = '/opt/openstack_conf/tag/nova0_launched'
 #         

@@ -79,8 +79,8 @@ class VXLANConfig(object):
     @staticmethod
     def reConfigureML2():
         #support vxlan network mode
-        network_mode = JSONUtility.getValue('neutron_network_mode')
-        network_mode = network_mode.strip()
+        neutron_server_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
+        network_mode = neutron_server_params_dict['neutron_network_mode']
         
         if network_mode == 'vxlan' :
             FileUtil.replaceFileContent(VXLANConfig.NEUTRON_ML2_CONF_FILE_PATH, 'type_drivers = flat,gre', 'type_drivers = vxlan,flat,gre')

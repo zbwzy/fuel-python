@@ -53,7 +53,8 @@ if __name__ == '__main__':
         keystone_vip = vipParamsDict["keystone_vip"]
         neutron_vip = vipParamsDict["neutron_vip"]
         
-        metadata_secret = JSONUtility.getValue("metadata_secret")
+        network_node_params_dict = JSONUtility.getRoleParamsDict('network')
+        metadata_secret = network_node_params_dict["metadata_secret"]
         
         #MetadataConfiguration
         metadata_configuration = '''

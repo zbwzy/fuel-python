@@ -224,7 +224,8 @@ class NeutronServer(object):
         neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini')
         ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_server_ml2_template_file_path, NEUTRON_ML2_CONF_DIR))
         
-        vlan_id_range = JSONUtility.getValue('vlan_id_range').strip()
+        neutron_server_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
+        vlan_id_range = neutron_server_params_dict['vlan_id_range']
         FileUtil.replaceFileContent('/etc/neutron/plugins/ml2/ml2_conf.ini', '<VLAN_ID_RANGE>', vlan_id_range)
         pass
     
@@ -232,8 +233,8 @@ class NeutronServer(object):
     def getServerIndex():
         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
         local_management_ip = output.strip()
-        neutron_ips = JSONUtility.getValue('neutron_ips')
-        neutron_server_ip_list = neutron_ips.split(',')
+        neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
+        neutron_server_ip_list = neutron_params_dict["mgmt_ips"]
         index = ServerSequence.getIndex(neutron_server_ip_list, local_management_ip)
         return index
 
@@ -255,8 +256,8 @@ if __name__ == '__main__':
         #import neutron server db schema
 #         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
 #         localIP = output.strip()
-#         neutron_ips = JSONUtility.getValue("neutron_ips")
-#         neutron_ip_list = neutron_ips.split(',')
+#         neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
+#         neutron_ip_list = neutron_params_dict["mgmt_ips"]
 #         
 #         first_neutron_launched_mark_file = '/opt/openstack_conf/tag/neutronserver0_launched'
 #         

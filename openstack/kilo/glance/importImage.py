@@ -91,8 +91,8 @@ if __name__ == '__main__':
             
             from openstack.common.role import Role
             from openstack.common.serverSequence import ServerSequence
-            glance_ips = JSONUtility.getValue('glance_ips')
-            glance_ip_list = glance_ips.strip().split(',')
+            glance_params_dict = JSONUtility.getRoleParamsDict('glance')
+            glance_ip_list = glance_params_dict["mgmt_ips"]
             output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
             localIP = output.strip()
             if Role.isGlanceRole() and ServerSequence.getIndex(glance_ip_list, localIP) == 0 :

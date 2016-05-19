@@ -4,7 +4,7 @@ systemctl restart openvswitch.service
 
 sleep 2
 
-#ovs-vsctl add-br br-int
+ovs-vsctl add-br br-int
 #ovs-vsctl add-br br-ex
 #
 #ovs-vsctl add-br br-eth0
@@ -17,11 +17,12 @@ sleep 2
 
 #############
 #Add the external bridge:
-ovs-vsctl add-br br-ex
+#ovs-vsctl add-br br-ex
+
 #Add a port to the external bridge that connects to the physical external network interface
 #Replace INTERFACE_NAME with the actual interface name. For example, eth2 or ens256.
 
-ovs-vsctl add-port br-ex <PHYSICAL_EXTERNAL_NETWORK_INTERFACE>
+#ovs-vsctl add-port br-ex <PHYSICAL_EXTERNAL_NETWORK_INTERFACE>
 
 
 

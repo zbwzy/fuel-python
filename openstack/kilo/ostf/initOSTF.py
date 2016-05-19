@@ -114,15 +114,15 @@ if __name__ == '__main__':
             
                 imageFileName = imageID
                 imageFilePath = os.path.join('/var/lib/glance/images', imageID)
-                glance_ips = JSONUtility.getValue('glance_ips')
-                glance_ips_list = glance_ips.strip().split(',')
+                glance_params_dict = JSONUtility.getRoleParamsDict('glance')
+                glance_ip_list = glance_params_dict["mgmt_ips"]
                 
                 output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
                 local_ip = output.strip()
                 
                 dest_glance_ip_list = []
                 
-                for e in glance_ips_list :
+                for e in glance_ip_list :
                     if(not e == local_ip) :
                         dest_glance_ip_list.append(e)
                         pass
