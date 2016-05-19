@@ -529,10 +529,6 @@ class ParamsProducer(object):
 #             paramsMap['mongodb_vip_interface'] = mongodb_vip_interface
 #             paramsMap['mongodb_ips'] = mongodb_ips
 #             
-#             if ParamsProducer.isExistElementInArray(YAMLUtil.getLocalIP(), mongodb_ips_list) :
-#                 FileUtil.writeContent(is_role_file_path, 'true')
-#                 pass
-#             pass
         
         print 'ceilometer==========================================='
         role = 'ceilometer'

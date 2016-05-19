@@ -230,7 +230,7 @@ class Keystone(object):
         
         ShellCmdExecutor.execCmd('cp -r %s /opt/' % keystoneInitScriptPath)
         
-        localIP = Keystone.getLocalIP()
+        localIP = YAMLUtil.getManagementIP()
         FileUtil.replaceFileContent('/opt/keystone_init.sh', '<LOCAL_IP>', localIP)
         
         keystoneAdminEmail = JSONUtility.getValue("admin_email")
@@ -314,14 +314,6 @@ class Keystone(object):
         
         print "configure keystone conf file done####"
         pass
-    
-    @staticmethod
-    def getLocalIP():
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
-        localIP = output.strip()
-        return localIP
     
     @staticmethod
     def getServerIndex():

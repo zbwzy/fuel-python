@@ -296,12 +296,6 @@ class YAMLUtil(object):
             pass
         return False
     
-    @staticmethod
-    def getLocalIP():
-        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
-        return dataMap['ip']
-        pass
-    
     #local management ip
     @staticmethod
     def getManagementIP():
