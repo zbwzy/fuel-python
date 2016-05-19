@@ -40,6 +40,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 from openstack.common.serverSequence import ServerSequence
 from openstack.kilo.ssh.SSH import SSH
 
@@ -298,8 +299,7 @@ class Keystone(object):
 #         
 #         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keystone_conf_file_path)
         ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
-        localIP = Keystone.getLocalIP()
-        print 'localip=%s--' % localIP
+        localIP = YAMLUtil.getManagementIP()  
         
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<LOCAL_IP>', localIP)
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
@@ -325,8 +325,7 @@ class Keystone(object):
     
     @staticmethod
     def getServerIndex():
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
+        local_management_ip = YAMLUtil.getManagementIP() 
         keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
         keystone_ip_list = keystone_params_dict['mgmt_ips']
         index = ServerSequence.getIndex(keystone_ip_list, local_management_ip)
@@ -389,7 +388,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/keystone_installed'
     

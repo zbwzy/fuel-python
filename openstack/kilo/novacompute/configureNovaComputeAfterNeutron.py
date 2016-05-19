@@ -97,8 +97,7 @@ class NovaCompute(object):
 #         scriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'addBridgeAndInterface.sh')
 #         ShellCmdExecutor.execCmd('cp -r %s /opt/' % scriptPath)
 #         
-#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-#         localIP = output.strip()
+#         localIP = YAMLUtil.getManagementIP() 
 #         
 #         FileUtil.replaceFileContent('/opt/addBridgeAndInterface.sh', '<LOCAL_IP>', localIP)
 #         ShellCmdExecutor.execCmd('bash /opt/addBridgeAndInterface.sh')

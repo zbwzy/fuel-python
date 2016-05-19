@@ -31,6 +31,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil  
+from common.yaml.YAMLUtil import YAMLUtil
 from openstack.kilo.ssh.SSH import SSH 
 from openstack.common.serverSequence import ServerSequence
 
@@ -166,8 +167,7 @@ class NeutronServer(object):
         nova_vip = vipParamsDict["nova_vip"]
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
+        localIP = YAMLUtil.getManagementIP() 
         print 'mysql_vip=%s' % mysql_vip
         print 'rabbit_hosts=%s' % rabbit_hosts
         print 'rabbit_password=%s' % rabbit_password
@@ -231,8 +231,7 @@ class NeutronServer(object):
     
     @staticmethod
     def getServerIndex():
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        local_management_ip = output.strip()
+        local_management_ip = YAMLUtil.getManagementIP() 
         neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
         neutron_server_ip_list = neutron_params_dict["mgmt_ips"]
         index = ServerSequence.getIndex(neutron_server_ip_list, local_management_ip)
@@ -254,8 +253,7 @@ if __name__ == '__main__':
         NeutronServer.configConfFile()
         
         #import neutron server db schema
-#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-#         localIP = output.strip()
+#         localIP = YAMLUtil.getManagementIP() 
 #         neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
 #         neutron_ip_list = neutron_params_dict["mgmt_ips"]
 #         

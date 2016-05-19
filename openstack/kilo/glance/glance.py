@@ -161,12 +161,8 @@ class Glance(object):
         
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_api_conf_file_path)
         ShellCmdExecutor.execCmd('sudo chmod 777 %s' % glance_registry_conf_file_path)
-        ###########LOCAL_IP:retrieve it from one file, the LOCAL_IP file is generated when this project inits.
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
-        localIP = output.strip()
-        print 'localip=%s--' % localIP
-        
+
+        localIP = YAMLUtil.getManagementIP() 
         FileUtil.replaceFileContent(glance_api_conf_file_path, '<LOCAL_IP>', localIP)
         FileUtil.replaceFileContent(glance_registry_conf_file_path, '<LOCAL_IP>', localIP)
         

@@ -36,6 +36,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 class Prerequisites(object):
     '''
@@ -153,8 +154,7 @@ class MongoDB(object):
     @staticmethod
     def init():
         #only mongodb master, exec this method
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
+        localIP = YAMLUtil.getManagementIP() 
         ceilometer_mongo_password = JSONUtility.getValue("ceilometer_mongo_password")
         
         initCmd = 'mongo --host <LOCAL_IP> --eval \'db = db.getSiblingDB("ceilometer");db.addUser({user: "ceilometer",pwd: "<CEILOMETER_DBPASS>",roles: [ "readWrite", "dbAdmin" ]})\''

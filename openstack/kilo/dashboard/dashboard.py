@@ -42,6 +42,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 class Prerequisites(object):
     '''
@@ -160,8 +161,7 @@ class Dashboard(object):
         vipParamsDict = JSONUtility.getValue('vip')
         keystone_vip = vipParamsDict["keystone_vip"]
         print "keystone_vip=%s" % keystone_vip
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
+        localIP = YAMLUtil.getManagementIP() 
         
         horizon_params_dict = JSONUtility.getRoleParamsDict('horizon')
         dashboard_ip_list = horizon_params_dict["mgmt_ips"]
@@ -225,7 +225,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /etc/puppet/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/dashboard_installed'
     if os.path.exists(INSTALL_TAG_FILE) :

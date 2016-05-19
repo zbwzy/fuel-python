@@ -223,8 +223,7 @@ if __name__ == '__main__':
         Cinder.configConfFile()
         
         #import cinder db schema
-#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-#         localIP = output.strip()
+#         localIP = YAMLUtil.getManagementIP() 
 #         cinder_params_dict = JSONUtility.getRoleParamsDict('cinder-api')
 #         cinder_ip_list = cinder_params_dict["mgmt_ips"]
 #         

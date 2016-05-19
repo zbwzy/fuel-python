@@ -39,6 +39,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 class Prerequisites(object):
     '''
@@ -258,8 +259,7 @@ admin_password=123456
         nova_compute_params_dict = JSONUtility.getRoleParamsDict('nova-compute')
         virt_type = nova_compute_params_dict["virt_type"]
         
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        localIP = output.strip()
+        localIP = YAMLUtil.getManagementIP() 
         
         print 'nova compute configuration========='
         print 'mysql_vip=%s' % mysql_vip
@@ -344,7 +344,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
 
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/novacompute_installed'

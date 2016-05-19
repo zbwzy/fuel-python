@@ -305,7 +305,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
     
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/novacontroller_installed'
@@ -320,8 +320,7 @@ if __name__ == '__main__':
         
         ###########
         #import nova db schema
-#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-#         localIP = output.strip()
+#         localIP = YAMLUtil.getManagementIP() 
 #         nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
 #         nova_ip_list = nova_api_params_dict["mgmt_ips"]
 #         

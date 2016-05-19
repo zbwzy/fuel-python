@@ -40,6 +40,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 from openstack.kilo.keystone.keystone import Keystone
 
@@ -120,8 +121,7 @@ Repeat User Password:
         keystone_vip = vipParamsDict["keystone_vip"]
  
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        keystone_ip = output.strip()
+        keystone_ip = YAMLUtil.getManagementIP() 
         if Keystone.getServerIndex() == 0 :
             initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystoneUser.sh')
             if not os.path.exists('/opt/openstack_conf/scripts') :
@@ -137,7 +137,6 @@ Repeat User Password:
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
             time.sleep(3)
 #             output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
-            print 'initKeystone.output=%s' % output
             InitKeystone.initOpenstackComponentToKeystone(initKeystoneDestFilePath, keystone_admin_password)
     
     @staticmethod
@@ -268,8 +267,7 @@ Repeat User Password:
         
         keystone_vip = vipParamsDict['keystone_vip']
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-        keystone_ip = output.strip()
+        keystone_ip = YAMLUtil.getManagementIP() 
         if Keystone.getServerIndex() == 0 :
             initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystone.sh')
             if not os.path.exists('/opt/openstack_conf/scripts') :
@@ -414,7 +412,7 @@ if __name__ == '__main__':
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
-    #The params are retrieved from conf/openstack_params.json & /opt/localip, these two files are generated in init.pp in site.pp.
+    #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_keystone'
     

@@ -190,8 +190,7 @@ class Network(object):
 #         FileUtil.replaceFileContent('/opt/openstack_conf/scripts/addExternalBridge.sh', 
 #                                     '<PHYSICAL_EXTERNAL_NETWORK_INTERFACE>', 
 #                                     physical_external_network_interface)
-#         output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-#         localIP = output.strip()
+#         localIP = YAMLUtil.getManagementIP() 
 #         FileUtil.replaceFileContent('/opt/addExternalBridge.sh', 
 #                                     '<LOCAL_IP>', 
 #                                     localIP)

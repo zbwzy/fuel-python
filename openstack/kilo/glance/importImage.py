@@ -38,6 +38,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 from openstack.kilo.glance.glance import Glance
 
@@ -93,8 +94,7 @@ if __name__ == '__main__':
             from openstack.common.serverSequence import ServerSequence
             glance_params_dict = JSONUtility.getRoleParamsDict('glance')
             glance_ip_list = glance_params_dict["mgmt_ips"]
-            output, exitcode = ShellCmdExecutor.execCmd('cat /opt/localip')
-            localIP = output.strip()
+            localIP = YAMLUtil.getManagementIP() 
             if Role.isGlanceRole() and ServerSequence.getIndex(glance_ip_list, localIP) == 0 :
                 imported_tag = False
                 retry = 1
