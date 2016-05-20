@@ -358,6 +358,8 @@ if __name__ == '__main__':
         NovaCompute.configConfFile()
 #         NovaCompute.start()
         #
+        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        AdminOpenrc.prepareAdminOpenrc()
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-icehouse:nova-compute#######'
