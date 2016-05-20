@@ -584,8 +584,11 @@ class ParamsProducer(object):
             
             print 'ha ip list=============='
             ha_ips_list = YAMLUtil.getRoleManagementIPList(role)
-            haParams['ha_ips'] = ha_ips_list
-#             paramsMap['ha_ips'] = ha_ips
+            ha_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            ha_ex_ips_list = YAMLUtil.getRoleExIPList(role)
+            haParams['mgmt_ips'] = ha_ips_list
+            haParams['storage_ips'] = ha_storage_ips_list
+            haParams['ex_ips'] = ha_ex_ips_list
             print 'ha ip list#####'
             
             #dispatch vip

@@ -60,7 +60,7 @@ class HA(object):
         keepalived_conf_2_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.2')
         
         keepalived_conf_dest_path = '/etc/keepalived/keepalived.conf'
-        haproxy_keepalived_ip_list = haParamsDict['ha_ips']
+        haproxy_keepalived_ip_list = haParamsDict['mgmt_ips']
         
         local_management_ip = YAMLUtil.getManagementIP()
         serverIndex = ServerSequence.getIndex(haproxy_keepalived_ip_list, local_management_ip)
@@ -199,7 +199,7 @@ class HA(object):
         
         ha_vip1 = haParamsDict['ha_vip1']
         ha_vip2 = haParamsDict['ha_vip2']
-        ha_ip_list = haParamsDict['ha_ips']
+        ha_ip_list = haParamsDict['mgmt_ips']
         
         mysqlBackendApiStringTemplate = '''
 listen rdb_mysql
