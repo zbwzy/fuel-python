@@ -243,9 +243,6 @@ class ParamsProducer(object):
             keystoneParams['storage_ips'] = keystone_storage_ips_list
             keystoneParams['ex_ips'] = keystone_ex_ips_list
             
-            #XXXXX 11111
-#             keystoneParams['keystone_ips'] = keystone_ips
-            
             if YAMLUtil.getManagementIP() in keystone_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
                 pass
@@ -427,8 +424,6 @@ class ParamsProducer(object):
             cinderParams["mgmt_ips"] = cinder_ips_list
             cinderParams["storage_ips"] = cinder_storage_ips_list
             cinderParams["ex_ips"] = cinder_ex_ips_list
-            #XXXXX
-#             paramsMap['cinder_ips'] = cinder_ips
             
             if YAMLUtil.getManagementIP() in cinder_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
@@ -628,8 +623,6 @@ class ParamsProducer(object):
         
         print 'produce role list done#######'
         
-        ###zgf add
-        YAMLUtil.setHosts()
     pass
 
 if __name__ == '__main__':

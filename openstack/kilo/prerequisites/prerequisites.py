@@ -27,6 +27,9 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 sys.path.append(PROJ_HOME_DIR)
 
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
+from common.yaml.YAMLUtil import YAMLUtil
+from common.file.FileUtil import FileUtil
+
 from openstack.kilo.ssh.SSH import SSH
 from common.yaml.ParamsProducer import ParamsProducer
 from openstack.kilo.iptables.iptables import IPTables
@@ -36,6 +39,10 @@ class Prerequisites(object):
     '''
     classdocs
     '''
+    useBCLinuxRepo = True
+    BCLinuxRepoIP = '10.254.3.71'
+    BCLinuxRepoDomainName = 'mirrors.bclinux.org'
+    
     def __init__(self):
         '''
         Constructor
@@ -43,20 +50,44 @@ class Prerequisites(object):
         pass
     
     @staticmethod
+    def setBCLinuxRepo():
+        hostsFilePath = '/etc/hosts'
+        hostsFileContent = FileUtil.readContent(hostsFilePath).strip()
+        
+        bclinuxRepoIPDNMappingString = Prerequisites.BCLinuxRepoIP + ' ' + Prerequisites.BCLinuxRepoDomainName
+        
+        content = hostsFileContent + '\n' + bclinuxRepoIPDNMappingString
+        FileUtil.writeContent(hostsFilePath, content)
+        
+        #remove original yum repo file
+        originalRepoFilePath = '/etc/yum.repos.d/nailgun.repo'
+        if os.path.exists(originalRepoFilePath) :
+            ShellCmdExecutor.execCmd('rm -rf %s' % originalRepoFilePath)
+            pass
+        
+        #prepare yum files
+        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', '*')
+        cpCmd = 'cp %s /etc/yum.repos.d/' % yumFilesPath
+        ShellCmdExecutor.execCmd(cpCmd)
+        pass
+    
+    @staticmethod
     def install():
         #######prerequisites
-        ###do bond: refactor later
         
-        #########################
+        ###each node's ip-hostname mapping of cluster
+        YAMLUtil.setHosts()
         
         ###set bclinux repo url
+        if Prerequisites.useBCLinuxRepo :
+            Prerequisites.setBCLinuxRepo()
+            pass
         
         ########################
         
         ShellCmdExecutor.execCmd('yum clean all && yum makecache')
         
         #ntp update
-        from common.yaml.YAMLUtil import YAMLUtil
         fuel_master_ip = str(YAMLUtil.getValue('global', 'fuel_master_ip'))
         os.system('/usr/sbin/ntpdate -u %s' % fuel_master_ip)
                 
