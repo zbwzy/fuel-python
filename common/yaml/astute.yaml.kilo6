@@ -356,8 +356,6 @@ network_scheme:
     properties:
     - bond_mode=active-backup
   - action: add-br
-    name: br-ex
-  - action: add-br
     name: br-mgmt
   - action: add-br
     name: br-storage
@@ -389,20 +387,10 @@ network_scheme:
     - br-fw-admin
     trunks:
     - 0
-  - action: add-patch
-    bridges:
-    - br-ovs-bond0
-    - br-ex
-    vlan_ids:
-    - 777
-    - 0
-    tags:
-    - 777
-    - 0
   roles:
     management: br-mgmt
     storage: br-storage
-    ex: br-ex
+    ex: br-data
     fw-admin: br-fw-admin
   interfaces:
     enp2s0f0:
@@ -441,7 +429,7 @@ network_scheme:
       IP:
       - 10.142.10.6/24
       other_nets: []
-    br-ex:
+    br-data:
       IP:
       - 10.142.9.6/24
       other_nets: []

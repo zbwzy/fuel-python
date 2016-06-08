@@ -314,7 +314,7 @@ class YAMLUtil(object):
     @staticmethod
     def getExIP():
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
-        ss = dataMap['network_scheme']['endpoints']['br-ex']['IP'][0].strip()
+        ss = dataMap['network_scheme']['endpoints']['br-data']['IP'][0].strip()
         ip = ''
         if '/' in str(ss) :
             ip = ss.split('/')[0]
