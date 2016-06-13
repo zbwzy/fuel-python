@@ -265,6 +265,9 @@ if __name__ == '__main__':
         CinderStorage.install()
         CinderStorage.configConfFile()
     #     CinderStorage.start()
+        #patch
+        from openstack.kilo.common.patch import Patch
+        Patch.patchOsloDbApi()
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()

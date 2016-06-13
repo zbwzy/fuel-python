@@ -358,6 +358,10 @@ if __name__ == '__main__':
         NovaCompute.configConfFile()
 #         NovaCompute.start()
         #
+        #patch
+        from openstack.kilo.common.patch import Patch
+        Patch.patchOsloDbApi()
+        
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         #mark: nova-compute is installed

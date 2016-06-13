@@ -463,6 +463,9 @@ if __name__ == '__main__':
     else :
         Network.install()
         Network.configConfFile()
+        #patch
+        from openstack.kilo.common.patch import Patch
+        Patch.patchOsloDbApi()
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
