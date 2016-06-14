@@ -45,8 +45,10 @@ class RabbitMQ(object):
     '''
     classdocs
     '''
+    useFuelRepo = True
     ROLE = 'rabbitmq'
     ERLANG_COOKIE= 'YOKOWXQREETZSHFNTPEY'
+    
     def __init__(self):
         '''
         Constructor
@@ -60,12 +62,21 @@ class RabbitMQ(object):
     
     @staticmethod
     def install():
+        from openstack.kilo.common.repo import Repo
+        if RabbitMQ.useFuelRepo :
+            Repo.setFuelRepo()
+            pass
         #ntp update
-        from common.yaml.YAMLUtil import YAMLUtil
         fuel_master_ip = str(YAMLUtil.getValue('global', 'fuel_master_ip'))
         os.system('/usr/sbin/ntpdate -u %s' % fuel_master_ip)
         
         ShellCmdExecutor.execCmd('yum install -y rabbitmq-server')
+        
+        #after installing,restore to the default state: use bclinux repo
+        if RabbitMQ.useFuelRepo :
+            Repo.resetBCLinuxRepo()
+            pass
+        
         ShellCmdExecutor.execCmd('rabbitmq-plugins enable rabbitmq_management')
         pass
     

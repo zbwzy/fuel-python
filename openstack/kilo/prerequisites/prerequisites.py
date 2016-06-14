@@ -39,36 +39,11 @@ class Prerequisites(object):
     '''
     classdocs
     '''
-    useBCLinuxRepo = True
-    BCLinuxRepoIP = '10.254.3.71'
-    BCLinuxRepoDomainName = 'mirrors.bclinux.org'
     
     def __init__(self):
         '''
         Constructor
         '''
-        pass
-    
-    @staticmethod
-    def setBCLinuxRepo():
-        hostsFilePath = '/etc/hosts'
-        hostsFileContent = FileUtil.readContent(hostsFilePath).strip()
-        
-        bclinuxRepoIPDNMappingString = Prerequisites.BCLinuxRepoIP + ' ' + Prerequisites.BCLinuxRepoDomainName
-        
-        content = hostsFileContent + '\n' + bclinuxRepoIPDNMappingString
-        FileUtil.writeContent(hostsFilePath, content)
-        
-        #remove original yum repo file
-        originalRepoFilePath = '/etc/yum.repos.d/nailgun.repo'
-        if os.path.exists(originalRepoFilePath) :
-            ShellCmdExecutor.execCmd('rm -rf %s' % originalRepoFilePath)
-            pass
-        
-        #prepare yum files
-        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', '*')
-        cpCmd = 'cp %s /etc/yum.repos.d/' % yumFilesPath
-        ShellCmdExecutor.execCmd(cpCmd)
         pass
     
     @staticmethod
@@ -79,13 +54,12 @@ class Prerequisites(object):
         YAMLUtil.setHosts()
         
         ###set bclinux repo url
-        if Prerequisites.useBCLinuxRepo :
-            Prerequisites.setBCLinuxRepo()
+        from openstack.kilo.common.repo import Repo
+        if Repo.useBCLinuxRepo :
+            Repo.setBCLinuxRepo()
             pass
         
         ########################
-        
-        ShellCmdExecutor.execCmd('yum clean all && yum makecache')
         
         #ntp update
         fuel_master_ip = str(YAMLUtil.getValue('global', 'fuel_master_ip'))
