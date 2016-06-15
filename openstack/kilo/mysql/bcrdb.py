@@ -66,6 +66,11 @@ class BCRDB(object):
     
     @staticmethod
     def config():
+        #rm /etc/my.cnf
+        if os.path.exists('/etc/my.cnf') :
+            ShellCmdExecutor.execCmd('rm -rf /etc/my.cnf')
+            pass
+        
         SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
         RDB_DEPLOY_DIR = '/opt/bcrdb'
         DEST_RDB_CONF_DIR = os.path.join(RDB_DEPLOY_DIR, 'conf')
