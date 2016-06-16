@@ -45,7 +45,7 @@ class RabbitMQ(object):
     '''
     classdocs
     '''
-    useFuelRepo = True
+    useFuelRepo = False
     ROLE = 'rabbitmq'
     ERLANG_COOKIE= 'YOKOWXQREETZSHFNTPEY'
     

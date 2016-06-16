@@ -44,6 +44,7 @@ class Patch(object):
     def patchOsloDbApi():
         osloDbApiTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'patch', 'oslo-db', 'api.py')
         if os.path.exists('/usr/lib/python2.7/site-packages/oslo_db/api.py') :
+            ShellCmdExecutor.execCmd("cp -r /usr/lib/python2.7/site-packages/oslo_db/api.py /tmp/")
             ShellCmdExecutor.execCmd("rm -rf /usr/lib/python2.7/site-packages/oslo_db/api.py")
             
             ShellCmdExecutor.execCmd("cp -r %s %s" % (osloDbApiTemplateFilePath, '/usr/lib/python2.7/site-packages/oslo_db/'))

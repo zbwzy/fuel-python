@@ -67,7 +67,7 @@ class Repo(object):
             pass
         
         #prepare yum files
-        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', '*')
+        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', 'BCLinux.repo')
         cpCmd = 'cp %s /etc/yum.repos.d/' % yumFilesPath
         ShellCmdExecutor.execCmd(cpCmd)
         
@@ -83,7 +83,7 @@ class Repo(object):
             pass
         
         #prepare yum files
-        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', '*')
+        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', 'BCLinux.repo')
         cpCmd = 'cp %s /etc/yum.repos.d/' % yumFilesPath
         ShellCmdExecutor.execCmd(cpCmd)
         

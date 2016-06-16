@@ -28,11 +28,25 @@ openstack service create --name cinder --description "OpenStack Block Storage" v
 
 openstack service create --name cinderv2 --description "OpenStack Block Storage" volumev2
 
-openstack endpoint create \
+#openstack endpoint create \
+#--publicurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
+#--internalurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
+#--adminurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
+#--region RegionOne \
+#volume
+
+keystone endpoint-create \
+--service-id $(keystone service-list | awk '/ volume / {print $2}') \
+--publicurl http://<CINDER_VIP>:8776/v1/%\(tenant_id\)s \
+--internalurl http://<CINDER_VIP>:8776/v1/%\(tenant_id\)s \
+--adminurl http://<CINDER_VIP>:8776/v1/%\(tenant_id\)s \
+--region RegionOne
+
+keystone endpoint-create \
+--service-id $(keystone service-list | awk '/ volumev2 / {print $2}') \
 --publicurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
 --internalurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
 --adminurl http://<CINDER_VIP>:8776/v2/%\(tenant_id\)s \
---region RegionOne \
-volume
+--region RegionOne
 
 echo 'done to init cinder in keystone####'

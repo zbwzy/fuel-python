@@ -117,7 +117,7 @@ class Nova(object):
         print 'Nova.install start===='
         yumCmd = "yum install openstack-nova-api openstack-nova-cert openstack-nova-conductor \
         openstack-nova-console openstack-nova-novncproxy openstack-nova-scheduler \
-        python-novaclient -y"
+        python-novaclient libvirt-python -y"
         ShellCmdExecutor.execCmd(yumCmd)
         print 'Nova.install done####'
         pass
