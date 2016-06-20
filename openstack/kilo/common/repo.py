@@ -40,7 +40,7 @@ class Repo(object):
     classdocs
     '''
     useBCLinuxRepo = True
-    BCLinuxRepoIP = '10.254.3.71'
+    BCLinuxRepoIP = '10.254.8.8'
     BCLinuxRepoDomainName = 'mirrors.bclinux.org'
     
     def __init__(self):
@@ -67,7 +67,7 @@ class Repo(object):
             pass
         
         #prepare yum files
-        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', 'BCLinux.repo')
+        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', '*.repo')
         cpCmd = 'cp %s /etc/yum.repos.d/' % yumFilesPath
         ShellCmdExecutor.execCmd(cpCmd)
         
@@ -83,7 +83,7 @@ class Repo(object):
             pass
         
         #prepare yum files
-        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', 'BCLinux.repo')
+        yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', '*.repo')
         cpCmd = 'cp %s /etc/yum.repos.d/' % yumFilesPath
         ShellCmdExecutor.execCmd(cpCmd)
         

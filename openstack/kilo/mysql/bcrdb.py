@@ -53,7 +53,10 @@ class BCRDB(object):
     @staticmethod
     def install():
         #dependency
+        from openstack.kilo.common.repo import Repo
+#         Repo.setFuelRepo()
         ShellCmdExecutor.execCmd('yum install perl-DBD-MySQL socat percona-xtrabackup -y')
+#         Repo.resetBCLinuxRepo()
         
         rdb_package_name = 'BC-RDB-2.2.0-el7.x86_64.tar.gz'
         bcrdb_source_dir = '/etc/puppet/modules/mysql/files/BC-RDB-2.2.0-el7.x86_64.tar.gz'

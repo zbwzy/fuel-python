@@ -338,6 +338,13 @@ class YAMLUtil(object):
         
         return ip
     
+    
+    @staticmethod
+    def getVlanRange():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        vlanRange = dataMap['quantum_settings']['L2']['phys_nets']['physnet2']['vlan_range'].strip()
+        return vlanRange
+    
     @staticmethod
     def getNodeNameByManagementIP(mgmt_ip):
         '''
@@ -386,6 +393,7 @@ nodes:
 if __name__ == "__main__":
     print 'test yaml========================'
     ###New Test codes
+    print 'vlan_range=%s--' % YAMLUtil.getVlanRange()
     mgmt_ip = YAMLUtil.getManagementIP()
     print 'mgmt_ip=%s---' % mgmt_ip
     

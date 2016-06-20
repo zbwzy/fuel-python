@@ -293,8 +293,8 @@ class ParamsProducer(object):
         role = 'neutron-server'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            key = 'vlan_id_range'
-            vlan_id_range = YAMLUtil.getValue(role, key)
+#             key = 'vlan_id_range'
+#             vlan_id_range = YAMLUtil.getValue(role, key)
             
             key = 'neutron_network_mode'
             neutron_network_mode = YAMLUtil.getValue(role, key)
@@ -309,7 +309,6 @@ class ParamsProducer(object):
             neutron_storage_ip_list = YAMLUtil.getRoleStorageIPList(role)
             neutron_ex_ip_list = YAMLUtil.getRoleExIPList(role)
             
-            print 'vlan_id_range=%s--' % vlan_id_range
             print 'neutron_network_mode=%s--' % neutron_network_mode
             
             print 'neutron_mysql_user=%s--' % neutron_mysql_user
@@ -317,7 +316,7 @@ class ParamsProducer(object):
             
             paramsMap['neutron-server'] = {}
             neutronServerParams = paramsMap['neutron-server']
-            neutronServerParams['vlan_id_range'] = vlan_id_range
+#             neutronServerParams['vlan_id_range'] = vlan_id_range
             neutronServerParams['neutron_mysql_user'] = neutron_mysql_user
             #neutronServerParams['neutron_mysql_password'] = neutron_mysql_password
             neutronServerParams['neutron_network_mode'] = neutron_network_mode
