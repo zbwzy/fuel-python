@@ -56,6 +56,11 @@ class HA(object):
         ha_vip1_interface = haParamsDict['ha_vip1_interface']
         ha_vip2_interface = haParamsDict['ha_vip2_interface']
         
+        virtual_router_id = haParamsDict['virtual_router_id']
+        auth_pass = haParamsDict['auth_pass']
+        virtual_router_id_1 = virtual_router_id
+        virtual_router_id_2 = virtual_router_id + 1
+    
         keepalived_conf_1_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.1')
         keepalived_conf_2_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.2')
         
@@ -76,6 +81,10 @@ class HA(object):
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP1_INTERFACE>', ha_vip1_interface)
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP2>', ha_vip2)
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP2_INTERFACE>', ha_vip2_interface)
+        
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<VIRTUAL_ROUTER_ID_1>', str(virtual_router_id_1))
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<VIRTUAL_ROUTER_ID_2>', str(virtual_router_id_2))
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<AUTH_PASS>', str(auth_pass))
         
         haproxy_check_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'haproxy_check.sh')
         ShellCmdExecutor.execCmd('cp -r %s /etc/keepalived/' % haproxy_check_script_path)

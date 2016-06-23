@@ -18,7 +18,7 @@ vrrp_script chk_haproxy {
 vrrp_instance VI_1 {
     state MASTER 
     interface <HA_VIP1_INTERFACE> 
-    virtual_router_id 11
+    virtual_router_id <VIRTUAL_ROUTER_ID_1>
     priority 100
     advert_int 1
     smtp alert
@@ -30,7 +30,7 @@ vrrp_instance VI_1 {
     }
     authentication {
         auth_type PASS
-        auth_pass 1111
+        auth_pass <AUTH_PASS>
     }
     virtual_ipaddress {
         <HA_VIP1>/24 dev <HA_VIP1_INTERFACE> 
@@ -41,7 +41,7 @@ vrrp_instance VI_1 {
 vrrp_instance VI_2 { 
     state BACKUP
     interface <HA_VIP1_INTERFACE>
-    virtual_router_id 202 
+    virtual_router_id <VIRTUAL_ROUTER_ID_2> 
     priority 99  
     advert_int 1
     track_interface {
@@ -52,7 +52,7 @@ vrrp_instance VI_2 {
     }
     authentication {
         auth_type PASS
-        auth_pass 1111
+        auth_pass <AUTH_PASS>
     }
     virtual_ipaddress {
         <HA_VIP2>/24 dev <HA_VIP2_INTERFACE> 

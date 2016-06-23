@@ -37,7 +37,6 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.neutronserver.neutronserver import NeutronServerHA
 from openstack.common.role import Role
 
 def foo(val1, val2):
@@ -69,6 +68,13 @@ if __name__ == '__main__':
     bb = '%d'% len(arr)
     print 'array num:%s' % bb
     print type(bb)
+    
+    print 'FFFFFFFFFFFFFFFFFFFFFF===================='
+    fileObj = open('testfile.txt', 'a')
+    fileObj.write('Hello world')
+    fileObj.close()
+    print 'FFFFFF#####'
+    
     exit()
     #TEST:wc -l ####
     #TEST:array===
@@ -76,7 +82,8 @@ if __name__ == '__main__':
     a = [1,2,3]
     b = a[1:]
     print b
-
+    
+   
     exit()
     #TEST:array####
     

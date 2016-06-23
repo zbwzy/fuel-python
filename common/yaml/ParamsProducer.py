@@ -569,12 +569,17 @@ class ParamsProducer(object):
             ha_vip1_interface = YAMLUtil.getValue(role, 'haproxy_vipinterface1')
             ha_vip2_interface = YAMLUtil.getValue(role, 'haproxy_vipinterface2')
             
+            virtual_router_id = YAMLUtil.getValue(role, 'virtual_router_id')
+            auth_pass = YAMLUtil.getValue(role, 'auth_pass')
+            
             paramsMap[role] = {}
             haParams = paramsMap[role]
             haParams['ha_vip1'] = ha_vip1
             haParams['ha_vip2'] = ha_vip2
             haParams['ha_vip1_interface'] = ha_vip1_interface
             haParams['ha_vip2_interface'] = ha_vip2_interface
+            haParams['virtual_router_id'] = virtual_router_id
+            haParams['auth_pass'] = auth_pass
             
             print 'ha ip list=============='
             ha_ips_list = YAMLUtil.getRoleManagementIPList(role)
