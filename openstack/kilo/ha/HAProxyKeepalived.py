@@ -58,6 +58,8 @@ class HA(object):
         
         virtual_router_id = haParamsDict['virtual_router_id']
         auth_pass = haParamsDict['auth_pass']
+        
+        #The id is generated on nailgun, and the range should be 0 ~ 255, we use 3-bits: e.g. 320,789.
         virtual_router_id_1 = virtual_router_id
         virtual_router_id_2 = virtual_router_id - 1
     
