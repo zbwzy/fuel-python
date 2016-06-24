@@ -59,7 +59,7 @@ class HA(object):
         virtual_router_id = haParamsDict['virtual_router_id']
         auth_pass = haParamsDict['auth_pass']
         virtual_router_id_1 = virtual_router_id
-        virtual_router_id_2 = virtual_router_id + 1
+        virtual_router_id_2 = virtual_router_id - 1
     
         keepalived_conf_1_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.1')
         keepalived_conf_2_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'keepalived.conf.2')
