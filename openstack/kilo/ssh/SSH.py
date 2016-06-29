@@ -90,7 +90,9 @@ class SSH(object):
             print 'Catch exception %s when send tag.' % OSError.strerror
             sys.exit(0)
             pass
-        
+
+        #backup sshd_config file 
+        ShellCmdExecutor.execCmd('cp -r /etc/ssh/sshd_config /tmp/')
         sshd_config_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'sshd_config')
         ShellCmdExecutor.execCmd('cp -r %s /etc/ssh/' % sshd_config_file_path)
         
