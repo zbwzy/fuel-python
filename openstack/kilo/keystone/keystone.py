@@ -406,7 +406,7 @@ class Keystone(object):
         keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
         keystone_ip_list = keystone_params_dict['mgmt_ips']
         
-        #scp ssl from first keystone
+        #scp fernet-keys from first keystone
         scpCmd = 'scp -r root@{keystone_0_ip}:/etc/keystone/fernet-keys /etc/keystone/'.format(keystone_0_ip=keystone_ip_list[0])
         try:
             import pexpect
@@ -469,7 +469,7 @@ if __name__ == '__main__':
             
             if len(keystone_ip_list) > 1 :
                 from openstack.kilo.ssh.SSH import SSH
-                #Mark /etc/keystone/ssl produced on first keystone
+                #Mark /etc/keystone/fernet-keys produced on first keystone
                 tag_file_name = 'keystone_0_fernet'
                 for keystone_ip in keystone_ip_list[1:] :
                     SSH.sendTagTo(keystone_ip, tag_file_name)
@@ -477,7 +477,7 @@ if __name__ == '__main__':
                 pass
             pass
         else :
-            ##scp /etc/keystone/ssl from first keystone.
+            ##scp /etc/keystone/fernet-keys from first keystone.
             pass
         
         ####only when rdb cluster is prepared, then import keystone db schema.

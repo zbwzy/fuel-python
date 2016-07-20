@@ -430,7 +430,7 @@ if __name__ == '__main__':
         else :
             ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')
             
-            #wait the file /etc/keystone/ssl produced on first keystone
+            #wait the file /etc/keystone/fernet-keys produced on first keystone
             '''
             /opt/openstack_conf/tag/keystone_0_fernet
             '''
@@ -443,8 +443,8 @@ if __name__ == '__main__':
 # #                 launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
 #                 cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_fernet | wc -l'
 #                 output, exitcode = ShellCmdExecutor.execCmd(cmd)
-#                 ssl_file_tag = output.strip()
-#                 if str(ssl_file_tag) == "1" :
+#                 fernet_file_tag = output.strip()
+#                 if str(fernet_file_tag) == "1" :
 #                     print 'wait time: %s second(s).' % time_count
 #                     Keystone.scpSSL()
 #                     time.sleep(5)
