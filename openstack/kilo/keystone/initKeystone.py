@@ -432,16 +432,16 @@ if __name__ == '__main__':
             
             #wait the file /etc/keystone/ssl produced on first keystone
             '''
-            /opt/openstack_conf/tag/keystone_0_ssl
+            /opt/openstack_conf/tag/keystone_0_fernet
             '''
-            Keystone.scpSSL()
+            Keystone.scpFernetKeys()
             time.sleep(5)
 #             TIMEOUT = 600
 #             timeout = TIMEOUT
 #             time_count = 0
 #             while True:
 # #                 launchedMysqlServerNum = Keystone.getLaunchedRDBServersNum()
-#                 cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_ssl | wc -l'
+#                 cmd = 'ls -lt /opt/openstack_conf/tag/ | grep keystone_0_fernet | wc -l'
 #                 output, exitcode = ShellCmdExecutor.execCmd(cmd)
 #                 ssl_file_tag = output.strip()
 #                 if str(ssl_file_tag) == "1" :
@@ -462,8 +462,8 @@ if __name__ == '__main__':
 #                 pass
             
             cmd1 = 'chown -R keystone:keystone /var/log/keystone'
-            cmd2 = 'chown -R keystone:keystone /etc/keystone/ssl'
-            cmd3 = 'chmod -R o-rwx /etc/keystone/ssl'
+            cmd2 = 'chown -R keystone:keystone /etc/keystone/fernet-keys'
+            cmd3 = 'chmod -R o-rwx /etc/keystone/fernet-keys'
             ShellCmdExecutor.execCmd(cmd1)
             ShellCmdExecutor.execCmd(cmd2)
             ShellCmdExecutor.execCmd(cmd3)

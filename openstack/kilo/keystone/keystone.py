@@ -187,9 +187,33 @@ class Keystone(object):
         pass
     
     @staticmethod
+    def supportFernet():
+        cmd0 = 'keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone'
+        ShellCmdExecutor.execCmd(cmd0)
+        
+        if not os.path.exists('/var/log/keystone') :
+            os.system('mkdir -p /var/log/keystone')
+            pass
+        
+        if not os.path.exists('/etc/keystone/fernet-keys') :
+            os.system('mkdir -p /etc/keystone/fernet-keys')
+            pass
+        
+        cmd1 = 'chown -R keystone:keystone /var/log/keystone'
+        cmd2 = 'chown -R keystone:keystone /etc/keystone/fernet-keys'
+        cmd3 = 'chmod -R o-rwx /etc/keystone/fernet-keys'
+        ShellCmdExecutor.execCmd(cmd1)
+        ShellCmdExecutor.execCmd(cmd2)
+        ShellCmdExecutor.execCmd(cmd3)
+        pass
+    
+    @staticmethod
     def httpConf():
         wsgi_keystone_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'wsgi-keystone.conf')
         ShellCmdExecutor.execCmd('cp -r %s /etc/httpd/conf.d/' % wsgi_keystone_conf_file_path)
+        
+        localIP = YAMLUtil.getManagementIP()
+        FileUtil.replaceFileContent('/etc/httpd/conf.d/wsgi-keystone.conf', '<LOCAL_IP>', localIP)
         pass
     
     @staticmethod
@@ -373,6 +397,49 @@ class Keystone(object):
             pass
         pass
     
+    @staticmethod
+    def scpFernetKeys():
+        '''
+        # scp -r root@{keystone_0_ip}:/etc/keystone/fernet-keys /etc/keystone/
+        # chown -R keystone:keystone /etc/keystone/
+        '''
+        keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+        keystone_ip_list = keystone_params_dict['mgmt_ips']
+        
+        #scp ssl from first keystone
+        scpCmd = 'scp -r root@{keystone_0_ip}:/etc/keystone/fernet-keys /etc/keystone/'.format(keystone_0_ip=keystone_ip_list[0])
+        try:
+            import pexpect
+            #To make the interact string: Are you sure you want to continue connecting.* always appear
+            if os.path.exists('/root/.ssh/known_hosts') :
+                os.system('rm -rf /root/.ssh/known_hosts')
+                pass
+    
+            child = pexpect.spawn(scpCmd)
+            
+            #When do the first shell cmd execution, this interact message is appeared on shell.
+            child.expect('Are you sure you want to continue connecting.*')
+            child.sendline('yes')
+    
+            while True :
+                regex = "[\\s\\S]*" #match any
+                index = child.expect([regex , pexpect.EOF, pexpect.TIMEOUT])
+                if index == 0:
+                    break
+                elif index == 1:
+                    pass   #continue to wait
+                elif index == 2:
+                    pass   #continue to wait
+    
+            child.sendline('exit')
+            child.sendcontrol('c')
+            #child.interact()
+        except OSError:
+            print 'Catch exception %s when send tag.' % OSError.strerror
+            sys.exit(0)
+            pass
+        pass
+    
 
 if __name__ == '__main__':
     
@@ -398,12 +465,12 @@ if __name__ == '__main__':
         keystone_ip_list = keystone_params_dict['mgmt_ips']
         
         if Keystone.getServerIndex() == 0 :
-            Keystone.supportPKIToken()
+            Keystone.supportFernet()
             
             if len(keystone_ip_list) > 1 :
                 from openstack.kilo.ssh.SSH import SSH
                 #Mark /etc/keystone/ssl produced on first keystone
-                tag_file_name = 'keystone_0_ssl'
+                tag_file_name = 'keystone_0_fernet'
                 for keystone_ip in keystone_ip_list[1:] :
                     SSH.sendTagTo(keystone_ip, tag_file_name)
                     pass

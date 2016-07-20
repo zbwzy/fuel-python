@@ -111,7 +111,7 @@ class NeutronServer(object):
     def install():
         print 'NeutronServer.install start===='
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 python-neutronclient which -y"
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 python-neutronclient which openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpn-agent -y"
         ShellCmdExecutor.execCmd(yumCmd)
         print 'NeutronServer.install done####'
         pass
