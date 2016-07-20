@@ -51,6 +51,11 @@ if __name__ == '__main__':
         pass
     else :
         NovaCompute.start()
+        
+        #add ssh mutual trust for nova user
+        if NovaCompute.getServerIndex() == 0 :
+            NovaCompute.sshMutualTrust()
+            pass
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello nova-compute kilo#######'

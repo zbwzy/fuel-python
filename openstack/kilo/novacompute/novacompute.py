@@ -110,6 +110,72 @@ class NovaCompute(object):
         pass
     
     @staticmethod
+    def sshMutualTrust():
+        print 'SSH mutual trust for user nova: start===='
+        if os.path.exists('/var/lib/nova/.ssh') :
+            os.system('rm -rf /var/lib/nova/.ssh')
+            pass
+        
+        os.system('mkdir -p /var/lib/nova/.ssh')
+        #On the first compute node: ssh-keygen -t rsa -f /var/lib/nova/.ssh/id_rsa -P ""
+        ShellCmdExecutor.execCmd('ssh-keygen -t rsa -f /var/lib/nova/.ssh/id_rsa -P ""')
+        ShellCmdExecutor.execCmd('cp -r /var/lib/nova/.ssh/id_rsa.pub /var/lib/nova/.ssh/authorized_keys')
+        ShellCmdExecutor.execCmd('chown -R nova:nova /var/lib/nova/.ssh')
+        
+        nova_compute_ips = YAMLUtil.getRoleManagementIPList('nova-compute')
+        print 'nova_compute_ips=%s--' % nova_compute_ips
+        if len(nova_compute_ips) > 1 :
+            for nova_compute_ip in nova_compute_ips[1:] :
+                scpCmd = 'scp -r /var/lib/nova/.ssh root@{dest_ip}:/var/lib/nova/'.format(dest_ip=nova_compute_ip)
+                try:
+                    import pexpect
+                    #To make the interact string: Are you sure you want to continue connecting.* always appear
+                    if os.path.exists('/root/.ssh/known_hosts') :
+                        os.system('rm -rf /root/.ssh/known_hosts')
+                        pass
+            
+                    child = pexpect.spawn(scpCmd)
+                    
+                    #When do the first shell cmd execution, this interact message is appeared on shell.
+                    child.expect('Are you sure you want to continue connecting.*')
+                    child.sendline('yes')
+            
+                    while True :
+                        regex = "[\\s\\S]*" #match any
+                        index = child.expect([regex , pexpect.EOF, pexpect.TIMEOUT])
+                        if index == 0:
+                            break
+                        elif index == 1:
+                            pass   #continue to wait
+                        elif index == 2:
+                            pass   #continue to wait
+            
+                    child.sendline('exit')
+                    child.sendcontrol('c')
+                    #child.interact()
+                except OSError:
+                    print 'Catch exception %s when send tag.' % OSError.strerror
+                    sys.exit(0)
+                    pass
+                
+                #assign rights
+                chownCmd = 'ssh root@{dest_ip} chown -R nova:nova /var/lib/nova/'.format(dest_ip=nova_compute_ip)
+                os.system(chownCmd)
+            print ''
+            
+        print 'SSH mutual trust for user nova: done####'
+        pass
+    
+    @staticmethod
+    def getServerIndex():
+        from openstack.common.serverSequence import ServerSequence
+        local_management_ip = YAMLUtil.getManagementIP() 
+        nova_compute_params_dict = JSONUtility.getRoleParamsDict('nova-compute')
+        nova_compute_ip_list = nova_compute_params_dict['mgmt_ips']
+        index = ServerSequence.getIndex(nova_compute_ip_list, local_management_ip)
+        return index
+    
+    @staticmethod
     def install():
         print 'Nova-compute.install start===='
         ShellCmdExecutor.execCmd('yum install sysfsutils qemu* libvirt* device-mapper* -y')
