@@ -171,6 +171,7 @@ class Cinder(object):
         
         FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<GLANCE_VIP>', glance_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_DBPASS>', cinder_dbpass)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_CINDER_PASSWORD>', keystone_cinder_password)

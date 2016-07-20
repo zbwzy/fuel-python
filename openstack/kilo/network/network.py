@@ -89,6 +89,8 @@ class Network(object):
     NEUTRON_ML2_CONF_FILE_PATH = "/etc/neutron/plugins/ml2/ml2_conf.ini"
     NEUTRON_L3_CONF_FILE_PATH = "/etc/neutron/l3_agent.ini"
     NEUTRON_DHCP_CONF_FILE_PATH = "/etc/neutron/dhcp_agent.ini"
+    NEUTRON_LB_CONF_FILE_PATH = "/etc/neutron/lbaas_agent.ini"
+    NEUTRON_VPN_CONF_FILE_PATH = "/etc/neutron/neutron_vpnaas.conf"
     NEUTRON_METADATA_CONF_FILE_PATH = "/etc/neutron/metadata_agent.ini"
     
     def __init__(self):
@@ -143,6 +145,32 @@ class Network(object):
         print 'neutron_dhcp_template_conf_file_path=%s--' % neutron_dhcp_template_conf_file_path
         ShellCmdExecutor.execCmd('cat %s > /tmp/dhcp_agent.ini' % neutron_dhcp_template_conf_file_path)
         ShellCmdExecutor.execCmd('mv /tmp/dhcp_agent.ini /etc/neutron/')
+        pass
+    
+    
+    @staticmethod
+    def configLBaaSAgent():
+        if os.path.exists(Network.NEUTRON_LB_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_LB_CONF_FILE_PATH)
+            pass
+        
+        neutron_lb_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'lbaas_agent.ini')
+        print 'neutron_lb_template_conf_file_path=%s--' % neutron_lb_template_conf_file_path
+        ShellCmdExecutor.execCmd('cat %s > /tmp/lbaas_agent.ini' % neutron_lb_template_conf_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/lbaas_agent.ini /etc/neutron/')
+        pass
+    
+    
+    @staticmethod
+    def configVPNaaSConf():
+        if os.path.exists(Network.NEUTRON_VPN_CONF_FILE_PATH) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_VPN_CONF_FILE_PATH)
+            pass
+        
+        neutron_vpn_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'neutron_vpnaas.conf')
+        print 'neutron_vpn_template_conf_file_path=%s--' % neutron_vpn_template_conf_file_path
+        ShellCmdExecutor.execCmd('cat %s > /tmp/neutron_vpnaas.conf' % neutron_vpn_template_conf_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/neutron_vpnaas.conf /etc/neutron/')
         pass
     
     @staticmethod
@@ -327,6 +355,8 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         Network.configML2()
         Network.configL3Agent()
         Network.configDHCPAgent()
+        Network.configLBaaSAgent()
+        Network.configVPNaaSConf()
         Network.configMetadataAgent()
         Network.configOVS()
         #######
