@@ -93,8 +93,13 @@ class SSH(object):
 
         #backup sshd_config file 
         ShellCmdExecutor.execCmd('cp -r /etc/ssh/sshd_config /tmp/')
+        ShellCmdExecutor.execCmd('cp -r /etc/ssh/ssh_config /tmp/')
+        
         sshd_config_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'sshd_config')
         ShellCmdExecutor.execCmd('cp -r %s /etc/ssh/' % sshd_config_file_path)
+        
+        ssh_config_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'ssh_config')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/ssh/' % ssh_config_file_path)
         
         ShellCmdExecutor.execCmd('chmod 700 /root/.ssh/')
         ShellCmdExecutor.execCmd('chmod 400 /root/.ssh/authorized_keys')

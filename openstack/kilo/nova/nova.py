@@ -189,6 +189,7 @@ vif_plugging_timeout=0
         cinder_vip = vipParamsDict["cinder_vip"]
         glance_vip = vipParamsDict["glance_vip"]
         neutron_vip = vipParamsDict["neutron_vip"]
+        nova_vip = vipParamsDict["nova_vip"]
        
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
@@ -259,6 +260,7 @@ vif_plugging_timeout=0
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_NOVA_PASSWORD>', keystone_nova_password)
         FileUtil.replaceFileContent(nova_conf_file_path, '<METADATA_SECRET>', metadata_secret)
         FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', neutron_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<MYSQL_VIP>', mysql_vip)

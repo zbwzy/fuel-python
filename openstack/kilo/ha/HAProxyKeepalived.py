@@ -415,23 +415,35 @@ listen nova_metadata_api
   <NOVA_METADATA_API_SERVER_LIST>
         '''
         
+        novaNovncproxyBackendStringTemplate = '''
+listen nova_novncproxy
+  bind 0.0.0.0:6080
+  balance  roundrobin
+  option  httplog
+  <NOVA_NOVNCPROXY_SERVER_LIST>
+        '''
+        
         nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
         nova_api_ip_list = nova_api_params_dict["mgmt_ips"]
         
         novaComputeApiBackendString = novaComputeApiBackendStringTemplate
         novaMetadataApiBackendString = novaMetadataApiBackendStringTemplate
+        novaNovncproxyBackendString = novaNovncproxyBackendStringTemplate
         ###############
         serverNovaMetadataAPIBackendTemplate = 'server coreapi<INDEX> <SERVER_IP>:8775 check inter 2000 rise 2 fall 3'
         serverNovaComputeAPIBackendTemplate  = 'server coreapi<INDEX> <SERVER_IP>:8774 check inter 2000 rise 2 fall 3'
+        serverNovaNovncproxyBackendTemplate  = 'server coreapi<INDEX> <SERVER_IP>:6080 check inter 2000 rise 2 fall 3'
         
         novaMetadataAPIServerListContent = ''
         novaComputeAPIServerListContent = ''
+        novaNovncproxyServerListContent = ''
         
         index = 1
         for nova_api_ip in nova_api_ip_list:
             print 'nova_api_ip=%s' % nova_api_ip
             novaMetadataAPIServerListContent += serverNovaMetadataAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_api_ip)
             novaComputeAPIServerListContent += serverNovaComputeAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_api_ip)
+            novaNovncproxyServerListContent += serverNovaNovncproxyBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', nova_api_ip)
             
             novaMetadataAPIServerListContent += '\n'
             novaMetadataAPIServerListContent += '  '
@@ -439,20 +451,28 @@ listen nova_metadata_api
             novaComputeAPIServerListContent += '\n'
             novaComputeAPIServerListContent += '  '
             
+            novaNovncproxyServerListContent += '\n'
+            novaNovncproxyServerListContent += '  '
+            
             index += 1
             pass
         
         novaMetadataAPIServerListContent = novaMetadataAPIServerListContent.strip()
         novaComputeAPIServerListContent = novaComputeAPIServerListContent.strip()
+        novaNovncproxyServerListContent = novaNovncproxyServerListContent.strip()
         print 'novaMetadataAPIServerListContent=%s--' % novaMetadataAPIServerListContent
         print 'novaComputeAPIServerListContent=%s--' % novaComputeAPIServerListContent
+        print 'novaNovncproxyServerListContent=%s--' % novaNovncproxyServerListContent
         
         novaMetadataApiBackendString = novaMetadataApiBackendString.replace('<NOVA_METADATA_API_SERVER_LIST>', novaMetadataAPIServerListContent)
         novaComputeApiBackendString = novaComputeApiBackendString.replace('<NOVA_COMPUTE_API_SERVER_LIST>', novaComputeAPIServerListContent)
+        novaNovncproxyBackendString = novaNovncproxyBackendString.replace('<NOVA_NOVNCPROXY_SERVER_LIST>', novaNovncproxyServerListContent)
         print 'novaMetadataApiBackendString=\n%s\n--' % novaMetadataApiBackendString
         print 'novaComputeApiBackendString=\n%s\n--' % novaComputeApiBackendString
+        print 'novaNovncproxyBackendString=\n%s\n--' % novaNovncproxyBackendString
         HA.appendBackendStringToHaproxyCfg(novaComputeApiBackendString)
         HA.appendBackendStringToHaproxyCfg(novaMetadataApiBackendString)
+        HA.appendBackendStringToHaproxyCfg(novaNovncproxyBackendString)
         pass
     
     @staticmethod
