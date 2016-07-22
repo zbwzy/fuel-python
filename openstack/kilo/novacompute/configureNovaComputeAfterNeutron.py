@@ -32,6 +32,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
+from openstack.kilo.common.net import Net
 
 
 class NovaCompute(object):
@@ -171,13 +172,21 @@ admin_password = <NEUTRON_PASS>
         ShellCmdExecutor.execCmd('ovs-vsctl add-br br-ex')
         
         #start bridges
-        ShellCmdExecutor.execCmd('ifconfig br-tun up')
         ShellCmdExecutor.execCmd('ifconfig br-int up')
         ShellCmdExecutor.execCmd('ifconfig br-ex up')
+        ShellCmdExecutor.execCmd('ifconfig br-tun up')
         
         print 'nova-compute.finalizeInstallation:restart neutron-openvswitch-agent.service====='
         ShellCmdExecutor.execCmd('systemctl restart neutron-openvswitch-agent.service')
         print 'nova-compute.finalizeInstallation:restart neutron-openvswitch-agent.service#####'
+        
+        print 'add br-ex to business net interface==========='
+        #ovs-vsctl add-port br-ex bond0
+        #br-data is business net
+        interfaceName = Net.getInterfaceNameByBridge('br-data')
+        ifNameWithoutVlanTag = interfaceName.split('.')[0]
+        addPortCmd = 'ovs-vsctl add-port br-ex %s' % ifNameWithoutVlanTag
+        ShellCmdExecutor.execCmd(addPortCmd)
         pass
     
     

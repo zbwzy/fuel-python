@@ -239,6 +239,13 @@ class Network(object):
         
         ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron')
         Network.startNeutron()
+        
+        ##add br-ex to business net
+        from openstack.kilo.common.net import Net
+        interfaceName = Net.getInterfaceNameByBridge('br-data')
+        ifNameWithoutVlanTag = interfaceName.split('.')[0]
+        addPortCmd = 'ovs-vsctl add-port br-ex %s' % ifNameWithoutVlanTag
+        ShellCmdExecutor.execCmd(addPortCmd)
         pass
     
     @staticmethod
@@ -257,6 +264,7 @@ class Network(object):
         #start bridges
         ShellCmdExecutor.execCmd('ifconfig br-ex up')
         ShellCmdExecutor.execCmd('ifconfig br-int up')
+        ShellCmdExecutor.execCmd('ifconfig br-tun up')
         pass
     
     @staticmethod
