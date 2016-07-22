@@ -114,11 +114,32 @@ if __name__ == '__main__':
                 keystone_vip = vipParamsDict["keystone_vip"]
                 admin_token = JSONUtility.getValue('admin_token')
                 keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-                 
-                ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/ostf_network_init.sh')
-                FileUtil.replaceFileContent('/opt/openstack_conf/scripts/ostf_network_init.sh', '<KEYSTONE_VIP>', keystone_vip)
-                FileUtil.replaceFileContent('/opt/openstack_conf/scripts/ostf_network_init.sh', '<ADMIN_TOKEN>', admin_token)
-                FileUtil.replaceFileContent('/opt/openstack_conf/scripts/ostf_network_init.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+                
+                from openstack.kilo.neutronserver.neutronserver import NeutronServer
+                floating_range = NeutronServer.getFloatingRange()
+                ips = floating_range.split(':')
+                print 'floating_ips=%s--' % ips
+                start_ip = ips[0]
+                end_ip = ips[1]
+                ex_cidr = '.'.join(end_ip.split('.')[0:3]) + '.0/24'
+                
+                net04_ext_l3_gateway = NeutronServer.getNet04ExtL3Gateway()
+                
+                net04_l3_subnet = NeutronServer.getNet04L3Subnet()
+                net04_l3_gateway = NeutronServer.getNet04L3Gateway()
+                
+                initScriptPath = '/opt/openstack_conf/scripts/ostf_network_init.sh'
+                ShellCmdExecutor.execCmd('chmod 777 %s' % initScriptPath)
+                FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+                FileUtil.replaceFileContent(initScriptPath, '<ADMIN_TOKEN>', admin_token)
+                FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+                
+                FileUtil.replaceFileContent(initScriptPath, '<START_IP>', start_ip)
+                FileUtil.replaceFileContent(initScriptPath, '<END_IP>', end_ip)
+                FileUtil.replaceFileContent(initScriptPath, '<EX_GATEWAY>', net04_ext_l3_gateway)
+                FileUtil.replaceFileContent(initScriptPath, '<EX_CIDR>', ex_cidr)
+                FileUtil.replaceFileContent(initScriptPath, '<INTERNAL_NETWORK_GATEWAY>', net04_l3_gateway)
+                FileUtil.replaceFileContent(initScriptPath, '<INTERNAL_NETWORK_CIDR>', net04_l3_subnet)
                  
                 ###########
                 ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/ostf_network_init.sh')

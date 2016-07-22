@@ -256,6 +256,7 @@ class Network(object):
         
         #start bridges
         ShellCmdExecutor.execCmd('ifconfig br-ex up')
+        ShellCmdExecutor.execCmd('ifconfig br-int up')
         pass
     
     @staticmethod

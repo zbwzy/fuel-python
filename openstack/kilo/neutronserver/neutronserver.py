@@ -235,9 +235,78 @@ class NeutronServer(object):
         neutron_server_ip_list = neutron_params_dict["mgmt_ips"]
         index = ServerSequence.getIndex(neutron_server_ip_list, local_management_ip)
         return index
+    
+    @staticmethod
+    def getPredefinedNetworks():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        predefinedNetworksDict = dataMap['quantum_settings']['predefined_networks']
+        return predefinedNetworksDict
+    
+    @staticmethod
+    def getFloatingRange():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        floatingRange = predefinedNetworksDict['net04_ext']['L3']['floating']
+        print 'floatingRange=%s--' % floatingRange
+        if floatingRange == '' or floatingRange == None :
+            floatingRange = '192.168.242.20:192.168.242.100'
+            pass
+        
+        return floatingRange
+    
+    
+    @staticmethod
+    def getNet04ExtL3Gateway():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        gateway = predefinedNetworksDict['net04_ext']['L3']['gateway']
+        print 'net04_ext_l3_gateway=%s--' % gateway
+        if gateway == '' or gateway == None :
+            gateway = '192.168.242.1'
+            pass
+        
+        return gateway
+    
+    @staticmethod
+    def getNet04L3Gateway():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        gateway = predefinedNetworksDict['net04']['L3']['gateway']
+        print 'net04_l3_gateway=%s--' % gateway
+        if gateway == '' or gateway == None :
+            gateway = '192.168.10.1'
+            pass
+        
+        return gateway
+    
+    @staticmethod
+    def getNet04L3Subnet():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        subnet = predefinedNetworksDict['net04']['L3']['subnet']
+        print 'net04_l3_subnet=%s--' % subnet
+        if subnet == '' or subnet == None :
+            subnet = '192.168.10.0/24'
+            pass
+        
+        return subnet
+    
+    
+    
+    
 
 
 if __name__ == '__main__':
+    ###TEST
+#     print 'floating_range=%s--' % NeutronServer.getFloatingRange()
+#     print 'net04_ext_l3_gateway=%s--' % NeutronServer.getNet04ExtL3Gateway()
+#     print NeutronServer.getNet04L3Gateway()
+#     print NeutronServer.getNet04L3Subnet()
+#     
+#     ips = NeutronServer.getFloatingRange().split(':')
+#     print 'splitted_ips=%s--' % ips
+#     print 'start_ip=%s--' % ips[0]
+#     print 'end_ip=%s--' % ips[1]
+#     
+#     print '.'.join(ips[1].split('.')[0:3]) + '.0/24'
+#     exit()
+    #####TEST
     print 'openstack-kilo:neutron-server start============'
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/neutronserver_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
