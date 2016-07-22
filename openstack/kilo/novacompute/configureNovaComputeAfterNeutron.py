@@ -170,6 +170,11 @@ admin_password = <NEUTRON_PASS>
         #add bridge
         ShellCmdExecutor.execCmd('ovs-vsctl add-br br-ex')
         
+        #start bridges
+        ShellCmdExecutor.execCmd('ifconfig br-tun up')
+        ShellCmdExecutor.execCmd('ifconfig br-int up')
+        ShellCmdExecutor.execCmd('ifconfig br-ex up')
+        
         print 'nova-compute.finalizeInstallation:restart neutron-openvswitch-agent.service====='
         ShellCmdExecutor.execCmd('systemctl restart neutron-openvswitch-agent.service')
         print 'nova-compute.finalizeInstallation:restart neutron-openvswitch-agent.service#####'

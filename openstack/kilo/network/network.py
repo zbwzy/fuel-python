@@ -253,6 +253,9 @@ class Network(object):
         ShellCmdExecutor.execCmd("systemctl start neutron-l3-agent.service")
         ShellCmdExecutor.execCmd("systemctl start neutron-dhcp-agent.service")
         ShellCmdExecutor.execCmd("systemctl start neutron-metadata-agent.service")
+        
+        #start bridges
+        ShellCmdExecutor.execCmd('ifconfig br-ex up')
         pass
     
     @staticmethod
