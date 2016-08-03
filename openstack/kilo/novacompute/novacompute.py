@@ -303,6 +303,7 @@ admin_password=123456
         KEYSTONE_NEUTRON_PASSWORD
         RABBIT_PASSWORD
         RABBIT_HOSTS
+        NOVA_VIP
         '''
         ####
         NovaCompute.reconfigLibvirtd()
@@ -316,6 +317,7 @@ admin_password=123456
         rabbit_userid = rabbit_params_dict["rabbit_userid"]
         
         glance_vip = vipParamsDict["glance_vip"]
+        nova_vip = vipParamsDict["nova_vip"]
         keystone_vip = vipParamsDict["keystone_vip"]
         neutron_vip = vipParamsDict["neutron_vip"]
 
@@ -332,7 +334,7 @@ admin_password=123456
         print 'rabbit_hosts=%s' % rabbit_hosts
         print 'rabbit_password=%s' % rabbit_password
         print 'keystone_vip=%s' % keystone_vip
-#         print 'nova_vip=%s' % nova_vip
+        print 'nova_vip=%s' % nova_vip
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -374,7 +376,7 @@ admin_password=123456
         FileUtil.replaceFileContent(nova_conf_file_path, '<GLANCE_VIP>', glance_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
         FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
-#         FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         
