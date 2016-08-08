@@ -206,11 +206,11 @@ if __name__ == '__main__':
                 
                 initInternalNetwork()
                 
-                if YAMLUtil.getEnabledExternalNetwork() == True or YAMLUtil.getEnabledExternalNetwork() == 'true' :
+                if YAMLUtil.getEnabledExternalNetwork() == True :
                     initExternalNetwork()
                     pass
                 
-                if YAMLUtil.getEnabledBasicNetwork() == True or YAMLUtil.getEnabledBasicNetwork() == 'true' :
+                if YAMLUtil.getEnabledBasicNetwork() == True :
                     initBasicNetwork()
                     pass
                 pass
