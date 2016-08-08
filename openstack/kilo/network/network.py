@@ -145,6 +145,9 @@ class Network(object):
         print 'neutron_dhcp_template_conf_file_path=%s--' % neutron_dhcp_template_conf_file_path
         ShellCmdExecutor.execCmd('cat %s > /tmp/dhcp_agent.ini' % neutron_dhcp_template_conf_file_path)
         ShellCmdExecutor.execCmd('mv /tmp/dhcp_agent.ini /etc/neutron/')
+        
+        dnsmasqConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'dnsmasq-neutron.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/neutron' % dnsmasqConfFileTemplatePath)
         pass
     
     
