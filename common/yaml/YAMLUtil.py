@@ -346,6 +346,18 @@ class YAMLUtil(object):
         return vlanRange
     
     @staticmethod
+    def getEnabledBasicNetwork():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        enabled = dataMap['quantum_settings']['predefined_networks']['basic_net']['L3']['enabled']
+        return enabled
+    
+    @staticmethod
+    def getEnabledExternalNetwork():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        enabled = dataMap['quantum_settings']['predefined_networks']['net04_ext']['L3']['enabled']
+        return enabled
+    
+    @staticmethod
     def getNodeNameByManagementIP(mgmt_ip):
         '''
 nodes:

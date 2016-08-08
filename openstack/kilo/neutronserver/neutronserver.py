@@ -287,6 +287,29 @@ class NeutronServer(object):
         
         return subnet
     
+    @staticmethod
+    def getBasicNetRange():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        ipRange = predefinedNetworksDict['basic_net']['L3']['range']
+        print 'basicNetworkRange=%s--' % ipRange
+        if ipRange == '' or ipRange == None :
+            ipRange = '192.168.242.20:192.168.242.100'
+            pass
+        
+        return ipRange
+    
+    
+    @staticmethod
+    def getBasicNetworkL3Gateway():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        gateway = predefinedNetworksDict['basic_net']['L3']['gateway']
+        print 'basic_network_l3_gateway=%s--' % gateway
+        if gateway == '' or gateway == None :
+            gateway = '192.168.242.1'
+            pass
+        
+        return gateway
+    
     
     
     

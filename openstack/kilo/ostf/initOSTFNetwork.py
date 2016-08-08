@@ -88,6 +88,102 @@ root@10.20.0.192's password:
         sys.exit(0)
         pass
     pass
+
+def initInternalNetwork():
+    network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'internal_network_init.sh')
+    ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % network_init_script_path)
+    ############
+    vipParamsDict = JSONUtility.getValue('vip')
+    keystone_vip = vipParamsDict["keystone_vip"]
+    admin_token = JSONUtility.getValue('admin_token')
+    keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+    
+    from openstack.kilo.neutronserver.neutronserver import NeutronServer
+    
+    net04_l3_subnet = NeutronServer.getNet04L3Subnet()
+    net04_l3_gateway = NeutronServer.getNet04L3Gateway()
+    
+    initScriptPath = '/opt/openstack_conf/scripts/internal_network_init.sh'
+    ShellCmdExecutor.execCmd('chmod 777 %s' % initScriptPath)
+    FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+    FileUtil.replaceFileContent(initScriptPath, '<ADMIN_TOKEN>', admin_token)
+    FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+    
+    FileUtil.replaceFileContent(initScriptPath, '<INTERNAL_NETWORK_GATEWAY>', net04_l3_gateway)
+    FileUtil.replaceFileContent(initScriptPath, '<INTERNAL_NETWORK_CIDR>', net04_l3_subnet)
+     
+    ###########
+    ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/internal_network_init.sh')
+    pass
+
+
+def initExternalNetwork():
+    network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'external_network_init.sh')
+    ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % network_init_script_path)
+    ############
+    vipParamsDict = JSONUtility.getValue('vip')
+    keystone_vip = vipParamsDict["keystone_vip"]
+    admin_token = JSONUtility.getValue('admin_token')
+    keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+    
+    from openstack.kilo.neutronserver.neutronserver import NeutronServer
+    floating_range = NeutronServer.getFloatingRange()
+    ips = floating_range.split(':')
+    print 'floating_ips=%s--' % ips
+    start_ip = ips[0]
+    end_ip = ips[1]
+    ex_cidr = '.'.join(end_ip.split('.')[0:3]) + '.0/24'
+    
+    net04_ext_l3_gateway = NeutronServer.getNet04ExtL3Gateway()
+    
+    initScriptPath = '/opt/openstack_conf/scripts/external_network_init.sh'
+    ShellCmdExecutor.execCmd('chmod 777 %s' % initScriptPath)
+    FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+    FileUtil.replaceFileContent(initScriptPath, '<ADMIN_TOKEN>', admin_token)
+    FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+    
+    FileUtil.replaceFileContent(initScriptPath, '<START_IP>', start_ip)
+    FileUtil.replaceFileContent(initScriptPath, '<END_IP>', end_ip)
+    FileUtil.replaceFileContent(initScriptPath, '<EX_GATEWAY>', net04_ext_l3_gateway)
+    FileUtil.replaceFileContent(initScriptPath, '<EX_CIDR>', ex_cidr)
+     
+    ###########
+    ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/external_network_init.sh')
+    pass
+
+
+def initBasicNetwork():
+    network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'basic_network_init.sh')
+    ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % network_init_script_path)
+    ############
+    vipParamsDict = JSONUtility.getValue('vip')
+    keystone_vip = vipParamsDict["keystone_vip"]
+    admin_token = JSONUtility.getValue('admin_token')
+    keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+    
+    from openstack.kilo.neutronserver.neutronserver import NeutronServer
+    basic_network_range = NeutronServer.getBasicNetRange()
+    ips = basic_network_range.split(':')
+    start_ip = ips[0]
+    end_ip = ips[1]
+    basic_cidr = '.'.join(end_ip.split('.')[0:3]) + '.0/24'
+    
+    basic_l3_gateway = NeutronServer.getBasicNetworkL3Gateway()
+    
+    initScriptPath = '/opt/openstack_conf/scripts/basic_network_init.sh'
+    ShellCmdExecutor.execCmd('chmod 777 %s' % initScriptPath)
+    FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+    FileUtil.replaceFileContent(initScriptPath, '<ADMIN_TOKEN>', admin_token)
+    FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+    
+    FileUtil.replaceFileContent(initScriptPath, '<START_IP>', start_ip)
+    FileUtil.replaceFileContent(initScriptPath, '<END_IP>', end_ip)
+    FileUtil.replaceFileContent(initScriptPath, '<BASIC_GATEWAY>', basic_l3_gateway)
+    FileUtil.replaceFileContent(initScriptPath, '<BASIC_CIDR>', basic_cidr)
+     
+    ###########
+    ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/basic_network_init.sh')
+    pass
     
 if __name__ == '__main__':
     print 'hello openstack-kilo:init ostf network============'
@@ -107,42 +203,16 @@ if __name__ == '__main__':
             neutron_ip_list = neutron_params_dict["mgmt_ips"]
             localIP = YAMLUtil.getManagementIP() 
             if ServerSequence.getIndex(neutron_ip_list, localIP) == 0:
-                network_init_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ostf_network_init.sh')
-                ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % network_init_script_path)
-                ############
-                vipParamsDict = JSONUtility.getValue('vip')
-                keystone_vip = vipParamsDict["keystone_vip"]
-                admin_token = JSONUtility.getValue('admin_token')
-                keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
                 
-                from openstack.kilo.neutronserver.neutronserver import NeutronServer
-                floating_range = NeutronServer.getFloatingRange()
-                ips = floating_range.split(':')
-                print 'floating_ips=%s--' % ips
-                start_ip = ips[0]
-                end_ip = ips[1]
-                ex_cidr = '.'.join(end_ip.split('.')[0:3]) + '.0/24'
+                initInternalNetwork()
                 
-                net04_ext_l3_gateway = NeutronServer.getNet04ExtL3Gateway()
+                if YAMLUtil.getEnabledExternalNetwork() == True or YAMLUtil.getEnabledExternalNetwork() == 'true' :
+                    initExternalNetwork()
+                    pass
                 
-                net04_l3_subnet = NeutronServer.getNet04L3Subnet()
-                net04_l3_gateway = NeutronServer.getNet04L3Gateway()
-                
-                initScriptPath = '/opt/openstack_conf/scripts/ostf_network_init.sh'
-                ShellCmdExecutor.execCmd('chmod 777 %s' % initScriptPath)
-                FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_VIP>', keystone_vip)
-                FileUtil.replaceFileContent(initScriptPath, '<ADMIN_TOKEN>', admin_token)
-                FileUtil.replaceFileContent(initScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
-                
-                FileUtil.replaceFileContent(initScriptPath, '<START_IP>', start_ip)
-                FileUtil.replaceFileContent(initScriptPath, '<END_IP>', end_ip)
-                FileUtil.replaceFileContent(initScriptPath, '<EX_GATEWAY>', net04_ext_l3_gateway)
-                FileUtil.replaceFileContent(initScriptPath, '<EX_CIDR>', ex_cidr)
-                FileUtil.replaceFileContent(initScriptPath, '<INTERNAL_NETWORK_GATEWAY>', net04_l3_gateway)
-                FileUtil.replaceFileContent(initScriptPath, '<INTERNAL_NETWORK_CIDR>', net04_l3_subnet)
-                 
-                ###########
-                ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/ostf_network_init.sh')
+                if YAMLUtil.getEnabledBasicNetwork() == True or YAMLUtil.getEnabledBasicNetwork() == 'true' :
+                    initBasicNetwork()
+                    pass
                 pass
             else :
                 print 'This is not the first neutron-server.Do not need to init OSTF network.'
