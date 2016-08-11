@@ -30,9 +30,11 @@ echo 'start to init ostf network==========='
 #neutron subnet-create ext-net-flat --name ext-subnet --allocation-pool start=192.168.242.20,end=192.168.242.30 --disable-dhcp --gateway 192.168.242.2 192.168.242.0/24
 
 #vlan mode
-neutron net-create external-vlan --provider:network_type vlan --provider:physical_network physnet1 --router:external
+neutron net-create external-vlan --provider:network_type vlan --provider:segmentation_id <VLAN_ID> --provider:physical_network physnet1 --router:external
 neutron subnet-create --name external-vlan-subnet --allocation-pool start=<START_IP>,end=<END_IP> --disable-dhcp --gateway <EX_GATEWAY> external-vlan <EX_CIDR>
 
+
+neutron router-create  testrouter1
 
 neutron router-gateway-set  testrouter1 external-vlan
 

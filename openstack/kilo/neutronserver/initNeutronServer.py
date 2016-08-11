@@ -63,6 +63,6 @@ if __name__ == '__main__':
         NeutronServer.start()
         #mark: neutron-server is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:neutron-server initted#######'
+    print 'hello openstack-kilo:neutron-server initted#######'
     pass
 

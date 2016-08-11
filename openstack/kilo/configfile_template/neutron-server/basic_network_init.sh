@@ -23,7 +23,7 @@ export OS_VOLUME_API_VERSION=2
 
 echo 'start to init basic network==========='
 
-neutron net-create basic-net --provider:network_type vlan --provider:physical_network physnet1 --shared
+neutron net-create basic-net --provider:network_type vlan --provider:segmentation_id <VLAN_ID> --provider:physical_network physnet1 --shared
 
 neutron subnet-create --name basic-subnet --allocation-pool start=<START_IP>,end=<END_IP> --enable-dhcp --gateway <BASIC_GATEWAY> basic-net <BASIC_CIDR>
 

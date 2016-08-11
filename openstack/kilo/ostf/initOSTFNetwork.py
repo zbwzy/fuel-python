@@ -135,6 +135,7 @@ def initExternalNetwork():
     ex_cidr = '.'.join(end_ip.split('.')[0:3]) + '.0/24'
     
     net04_ext_l3_gateway = NeutronServer.getNet04ExtL3Gateway()
+    net04_ext_l3_vlan_id = NeutronServer.getNet04ExtL3VlanID()
     
     initScriptPath = '/opt/openstack_conf/scripts/external_network_init.sh'
     ShellCmdExecutor.execCmd('chmod 777 %s' % initScriptPath)
@@ -145,6 +146,7 @@ def initExternalNetwork():
     FileUtil.replaceFileContent(initScriptPath, '<START_IP>', start_ip)
     FileUtil.replaceFileContent(initScriptPath, '<END_IP>', end_ip)
     FileUtil.replaceFileContent(initScriptPath, '<EX_GATEWAY>', net04_ext_l3_gateway)
+    FileUtil.replaceFileContent(initScriptPath, '<VLAN_ID>', net04_ext_l3_vlan_id)
     FileUtil.replaceFileContent(initScriptPath, '<EX_CIDR>', ex_cidr)
      
     ###########
@@ -169,6 +171,7 @@ def initBasicNetwork():
     basic_cidr = '.'.join(end_ip.split('.')[0:3]) + '.0/24'
     
     basic_l3_gateway = NeutronServer.getBasicNetworkL3Gateway()
+    basic_l3_vlan_id = NeutronServer.getBasicNetworkL3VlanID()
     
     initScriptPath = '/opt/openstack_conf/scripts/basic_network_init.sh'
     ShellCmdExecutor.execCmd('chmod 777 %s' % initScriptPath)
@@ -179,6 +182,7 @@ def initBasicNetwork():
     FileUtil.replaceFileContent(initScriptPath, '<START_IP>', start_ip)
     FileUtil.replaceFileContent(initScriptPath, '<END_IP>', end_ip)
     FileUtil.replaceFileContent(initScriptPath, '<BASIC_GATEWAY>', basic_l3_gateway)
+    FileUtil.replaceFileContent(initScriptPath, '<VLAN_ID>', basic_l3_vlan_id)
     FileUtil.replaceFileContent(initScriptPath, '<BASIC_CIDR>', basic_cidr)
      
     ###########

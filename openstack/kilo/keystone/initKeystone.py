@@ -142,6 +142,7 @@ Repeat User Password:
     @staticmethod
     def initGlanceUser():
         #to replace in template: KEYSTONE_ADMIN_PASSWORD KEYSTONE_VIP KEYSTONE_GLANCE_PASSWORD GLANCE_VIP
+        print 'to init glance user here==================='
         admin_token = JSONUtility.getValue('admin_token')
         vipParamsDict = JSONUtility.getValue('vip')
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
@@ -166,7 +167,9 @@ Repeat User Password:
         FileUtil.replaceFileContent(initGlanceScriptPath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(initGlanceScriptPath, '<GLANCE_VIP>', glance_vip)
 #         output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initGlanceScriptPath)
+        print 'to init glance user============'
         InitKeystone.initOpenstackComponentToKeystone(initGlanceScriptPath, keystone_glance_password)
+        print 'end to init glance user#####'
         pass
     
     @staticmethod

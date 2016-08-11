@@ -266,6 +266,17 @@ class NeutronServer(object):
         return gateway
     
     @staticmethod
+    def getNet04ExtL3VlanID():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        vlan_id = predefinedNetworksDict['net04_ext']['L3']['vlan_id']
+        print 'net04_ext_l3_vlanid=%s--' % vlan_id
+        if vlan_id == '' or vlan_id == None :
+            vlan_id = '100'
+            pass
+        
+        return vlan_id
+    
+    @staticmethod
     def getNet04L3Gateway():
         predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
         gateway = predefinedNetworksDict['net04']['L3']['gateway']
@@ -309,6 +320,17 @@ class NeutronServer(object):
             pass
         
         return gateway
+    
+    @staticmethod
+    def getBasicNetworkL3VlanID():
+        predefinedNetworksDict = NeutronServer.getPredefinedNetworks()
+        vlan_id = predefinedNetworksDict['basic_net']['L3']['vlan_id']
+        print 'basic_network_l3_vlanid=%s--' % vlan_id
+        if vlan_id == '' or vlan_id == None :
+            vlan_id = '101'
+            pass
+        
+        return vlan_id
     
     
     
