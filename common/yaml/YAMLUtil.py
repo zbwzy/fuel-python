@@ -340,6 +340,17 @@ class YAMLUtil(object):
     
     
     @staticmethod
+    def getPXEGateway():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        ss = dataMap['network_scheme']['endpoints']['br-fw-admin']['gateway']
+        gw = ''
+        if ss != None and ss != '' :
+            gw = ss
+            pass
+        
+        return gw
+    
+    @staticmethod
     def getVlanRange():
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
         vlanRange = dataMap['quantum_settings']['L2']['phys_nets']['physnet2']['vlan_range'].strip()

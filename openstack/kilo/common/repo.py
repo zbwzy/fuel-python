@@ -40,7 +40,8 @@ class Repo(object):
     classdocs
     '''
     useBCLinuxRepo = True
-    BCLinuxRepoIP = '10.254.8.8'
+    BCLinuxRepoIP = '10.142.18.8'
+    BCLinuxRepoCIDR = '10.142.18.0/24'
     BCLinuxRepoDomainName = 'mirrors.bclinux.org'
     
     def __init__(self):
@@ -70,6 +71,9 @@ class Repo(object):
         yumFilesPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'yum', '*.repo')
         cpCmd = 'cp %s /etc/yum.repos.d/' % yumFilesPath
         ShellCmdExecutor.execCmd(cpCmd)
+        
+        #add bclinux repo route
+        Repo.addRoute()
         
         ShellCmdExecutor.execCmd('yum clean all && yum makecache')
         pass
@@ -101,6 +105,20 @@ class Repo(object):
         ShellCmdExecutor.execCmd('yum clean all && yum makecache')
         pass
     
+    @staticmethod
+    def addRoute():
+        '''
+        route add -net 10.142.18.0/24 gw 10.142.29.254
+        '''
+        from common.yaml.YAMLUtil import YAMLUtil
+        pxeGateway = YAMLUtil.getPXEGateway()
+        cmd = 'route add -net {bclinux_repo_cidr} gw {pxe_gw}'.format(bclinux_repo_cidr=Repo.BCLinuxRepoCIDR, pxe_gw=pxeGateway)
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        print 'output=%s,exitcode=%s' % (output, exitcode)
+        pass
+    pass
+
+
     
     
     
