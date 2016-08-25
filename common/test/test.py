@@ -42,13 +42,41 @@ from openstack.common.role import Role
 def foo(val1, val2):
     print 'value1=%s' % val1
     print 'value2=%s' % val2
+    return val1,val2
     pass
+
+
+def testYumPackage():
+    f = open('yum.txt','r')  
+    result = list()  
+    for line in open('yum.txt'):  
+        line = f.readline()  
+        print 'line==%s--' % line
+        rpmPackageArray = line.strip().split(' ')
+        for e in rpmPackageArray :
+            result.append('yum search %s >> /tmp/yum_search.log' % e)  
+            pass
+        pass
+    
+    print 'result=\n%s\n--' %  result  
+    f.close()                  
+    open('result-readline.txt', 'w').write('%s' % '\n'.join(result)) 
 
 if __name__ == '__main__':
     print 'hello pexpect test============'
     print 'start time: %s' % time.ctime()
+    
     #when execute script,exec: python <this file absolute path>
     ###############################
+    
+    ####TEST yum package
+    testYumPackage()
+    
+    ####TEST 
+    
+    exit()
+    
+    
     #TEST:wc -l ====
     output, exitcode = ShellCmdExecutor.execCmd('ls -lt /opt/openstack_conf/tag/ | grep bcrdb_ | wc -l')
     bcrdb_mark_num = output.strip()
@@ -74,6 +102,116 @@ if __name__ == '__main__':
     fileObj.write('Hello world')
     fileObj.close()
     print 'FFFFFF#####'
+    
+    
+    print 'databases=================='
+    
+    databaseNamesString = '''
+| dns_domains                                |
+| fixed_ips                                  |
+| floating_ips                               |
+| instance_actions                           |
+| instance_actions_events                    |
+| instance_extra                             |
+| instance_faults                            |
+| instance_group_member                      |
+| instance_group_policy                      |
+| instance_groups                            |
+| instance_id_mappings                       |
+| instance_info_caches                       |
+| instance_metadata                          |
+| instance_system_metadata                   |
+| instance_type_extra_specs                  |
+| instance_type_projects                     |
+| instance_types                             |
+| instances                                  |
+| iscsi_targets                              |
+| key_pairs                                  |
+| migrate_version                            |
+| migrations                                 |
+| networks                                   |
+| pci_devices                                |
+| project_user_quotas                        |
+| provider_fw_rules                          |
+| quota_classes                              |
+| quota_usages                               |
+| quotas                                     |
+| reservations                               |
+| s3_images                                  |
+| security_group_default_rules               |
+| security_group_instance_association        |
+| security_group_rules                       |
+| security_groups                            |
+| services                                   |
+| shadow_agent_builds                        |
+| shadow_aggregate_hosts                     |
+| shadow_aggregate_metadata                  |
+| shadow_aggregates                          |
+| shadow_block_device_mapping                |
+| shadow_bw_usage_cache                      |
+| shadow_cells                               |
+| shadow_certificates                        |
+| shadow_compute_nodes                       |
+| shadow_console_pools                       |
+| shadow_consoles                            |
+| shadow_dns_domains                         |
+| shadow_fixed_ips                           |
+| shadow_floating_ips                        |
+| shadow_instance_actions                    |
+| shadow_instance_actions_events             |
+| shadow_instance_extra                      |
+| shadow_instance_faults                     |
+| shadow_instance_group_member               |
+| shadow_instance_group_policy               |
+| shadow_instance_groups                     |
+| shadow_instance_id_mappings                |
+| shadow_instance_info_caches                |
+| shadow_instance_metadata                   |
+| shadow_instance_system_metadata            |
+'''
+    sqlString = ''
+    print databaseNamesString.strip().split('|')
+    for e in  databaseNamesString.strip().split('|') :
+        print e.strip()
+        if e.strip() != '' :
+            sqlString += 'select * from %s;' % e.strip()
+            pass
+        
+        pass
+    
+    print 'sqlString=%s' % sqlString
+    
+    databaseNamesString = '''
+| artifact_blob_locations          |
+| artifact_blobs                   |
+| artifact_dependencies            |
+| artifact_properties              |
+| artifact_tags                    |
+| artifacts                        |
+| image_locations                  |
+| image_members                    |
+| image_properties                 |
+| image_tags                       |
+| images                           |
+| metadef_namespace_resource_types |
+| metadef_namespaces               |
+| metadef_objects                  |
+| metadef_properties               |
+| metadef_resource_types           |
+| metadef_tags                     |
+| migrate_version                  |
+| task_info                        |
+| tasks                            |
+    '''
+    sqlString = ''
+    print databaseNamesString.strip().split('|')
+    for e in  databaseNamesString.strip().split('|') :
+        print e.strip()
+        if e.strip() != '' :
+            sqlString += 'select * from %s;' % e.strip()
+            pass
+    print 'sqlString=%s' % sqlString
+    print 'databases#################'
     
     exit()
     #TEST:wc -l ####
