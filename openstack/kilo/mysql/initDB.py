@@ -128,6 +128,128 @@ class MySQL(object):
         myqlCmd = 'mysql -u%s -p%s -e "%s"' % (user, passwd, cmds)
         output, exitcode = ShellCmdExecutor.execCmd(myqlCmd)
         print 'output=%s--' % output
+        return (output,exitcode)
+    
+    
+    @staticmethod
+    def dropDb(user, passwd, database_name):
+        myqlCmd = 'mysql -u%s -p%s -e "%s"' % (user, passwd, 'drop database %s;' % database_name)
+        output, exitcode = ShellCmdExecutor.execCmd(myqlCmd)
+#         print 'output=%s--' % output
+        return (output,exitcode)
+    
+    @staticmethod
+    def showTables(user, passwd, database_name):
+        myqlCmd = 'mysql -u%s -p%s -e "%s"' % (user, passwd, 'select table_name from information_schema.tables where table_schema=\'%s\' and table_type=\'base table\';' % database_name)
+        output, exitcode = ShellCmdExecutor.execCmd(myqlCmd)
+#         print 'output=%s--' % output
+        return (output,exitcode)
+    
+    @staticmethod
+    def deleteAllTables(user, passwd, database_name):
+        myqlCmd = 'mysql -u%s -p%s -e "%s"' % (user, passwd, 'delete * from %s;' % database_name)
+        output, exitcode = ShellCmdExecutor.execCmd(myqlCmd)
+#         print 'output=%s--' % output
+        return (output,exitcode)
+    
+    @staticmethod
+    def checkKeystoneDB(user, passwd):
+        output, exitcode = MySQL.showTables(user, passwd, 'keystone')
+        
+        if exitcode != 0 :
+            print 'checkDB.keystone.exitcode=%s' % str(exitcode)
+            return False
+        
+        if output == None or output == '' :
+            print 'checkDB.keystone.output is None.'
+            return False
+        
+        tableNamesList = output.strip().split('\n')
+        print 'checkDB.keystone.len=%s' % len(tableNamesList)
+        if len(tableNamesList) >= 32 :
+            return True
+        else:
+            return False
+        pass
+    
+    @staticmethod
+    def checkGlanceDB(user, passwd):
+        output, exitcode = MySQL.showTables(user, passwd, 'glance')
+        
+        if exitcode != 0 :
+            print 'checkDB.glance.exitcode=%s' % str(exitcode)
+            return False
+        
+        if output == None or output == '' :
+            print 'checkDB.glance.output is None.'
+            return False
+        
+        tableNamesList = output.strip().split('\n')
+        print 'checkDB.glance.len=%s' % len(tableNamesList)
+        if len(tableNamesList) >= 20 :
+            return True
+        else:
+            return False
+        pass
+    
+    @staticmethod
+    def checkNovaDB(user, passwd):
+        output, exitcode = MySQL.showTables(user, passwd, 'nova')
+        
+        if exitcode != 0 :
+            print 'checkDB.nova.exitcode=%s' % str(exitcode)
+            return False
+        
+        if output == None or output == '' :
+            print 'checkDB.nova.output is None.'
+            return False
+        
+        tableNamesList = output.strip().split('\n')
+        print 'checkDB.nova.len=%s' % len(tableNamesList)
+        if len(tableNamesList) >= 108 :
+            return True
+        else:
+            return False
+        pass
+    
+    @staticmethod
+    def checkCinderDB(user, passwd):
+        output, exitcode = MySQL.showTables(user, passwd, 'cinder')
+        
+        if exitcode != 0 :
+            print 'checkDB.cinder.exitcode=%s' % str(exitcode)
+            return False
+        
+        if output == None or output == '' :
+            print 'checkDB.cinder.output is None.'
+            return False
+        
+        tableNamesList = output.strip().split('\n')
+        print 'checkDB.cinder.len=%s' % len(tableNamesList)
+        if len(tableNamesList) >= 24 :
+            return True
+        else:
+            return False
+        pass
+    
+    @staticmethod
+    def checkNeutronDB(user, passwd):
+        output, exitcode = MySQL.showTables(user, passwd, 'neutron')
+        
+        if exitcode != 0 :
+            print 'checkDB.neutron.exitcode=%s' % str(exitcode)
+            return False
+        
+        if output == None or output == '' :
+            print 'checkDB.neutron.output is None.'
+            return False
+        
+        tableNamesList = output.strip().split('\n')
+        print 'checkDB.neutron.len=%s' % len(tableNamesList)
+        if len(tableNamesList) >= 150 :
+            return True
+        else:
+            return False
         pass
     
     @staticmethod
@@ -350,13 +472,20 @@ if __name__ == '__main__':
     print 'hello openstack-kilo:initDB============'
     
     print 'start time: %s' % time.ctime()
+    
     if debug :
         print 'debug====================='
         print 'debug#########'
         exit()
         pass
+    #####
+#     MySQL.execMySQLCmd('root', 'dc95a64df31a8a82e4a8', 'create database pova;')
+#     output, exitcode = MySQL.showTables('root', 'dc95a64df31a8a82e4a8', 'pova')
+#     print 'output=%s--' % output
+    ####
     
     MySQL.init()
+    pass
     
     
     

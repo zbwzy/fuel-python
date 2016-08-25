@@ -289,8 +289,32 @@ vif_plugging_timeout=0
     
     @staticmethod
     def importNovaDBSchema():
+        ####patch
+        if not os.path.exists('/var/log/nova') :
+            os.system('mkdir -p /var/log/nova')
+            pass
+        
+        nova_manage_log_file = '/var/log/nova/nova-manage.log'
+        if not os.path.exists(nova_manage_log_file) :
+            os.system('touch %s' % nova_manage_log_file)
+            pass
+        
+        os.system('chown -R nova:nova %s' % nova_manage_log_file)
+        ##
         importCmd = 'su -s /bin/sh -c "nova-manage db sync" nova'
+        print 'importNovaDBSchema.startTime=%s' % time.time()
         ShellCmdExecutor.execCmd(importCmd)
+        print 'importNovaDBSchema.endTime=%s' % time.time()
+        
+#         user = 'root'
+#         mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
+#         passwd = mysql_params_dict['mysql_password']
+#         
+#         from openstack.kilo.mysql.initDB import MySQL
+#         if MySQL.checkKeystoneDB(user, passwd) == False:
+#             print 'importNovaDBSchema second time==========='
+#             ShellCmdExecutor.execCmd(importCmd)
+#             pass
         pass
     
     @staticmethod
