@@ -112,7 +112,7 @@ class Repo(object):
         '''
         from common.yaml.YAMLUtil import YAMLUtil
         pxeGateway = YAMLUtil.getPXEGateway()
-        cmd = 'route add -net {bclinux_repo_cidr} gw {pxe_gw}'.format(bclinux_repo_cidr=Repo.BCLinuxRepoCIDR, pxe_gw=pxeGateway)
+        cmd = 'route add -net {bclinux_repo_cidr} gw {pxe_gw}'.format(bclinux_repo_cidr=YAMLUtil.getBCLinuxRepoCidr(), pxe_gw=pxeGateway)
         output, exitcode = ShellCmdExecutor.execCmd(cmd)
         print 'output=%s,exitcode=%s' % (output, exitcode)
         pass

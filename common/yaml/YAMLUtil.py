@@ -350,6 +350,24 @@ class YAMLUtil(object):
         
         return gw
     
+    
+    @staticmethod
+    def getBCLinuxRepoIP():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        ss = dataMap['global']['bclinux_repo_ip']
+        bclinux_repo_ip = ''
+        if ss != None and ss != '' :
+            bclinux_repo_ip = ss
+            pass
+        
+        return bclinux_repo_ip
+    
+    @staticmethod
+    def getBCLinuxRepoCidr():
+        ip = YAMLUtil.getBCLinuxRepoIP()
+        cidr = '.'.join(ip.split('.')[0:3]) + '.0/24'
+        return cidr
+    
     @staticmethod
     def getVlanRange():
         dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
