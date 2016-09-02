@@ -760,6 +760,14 @@ if __name__ == '__main__':
                 pass
             pass
         
+        if 'nova-api' in activeRoles:
+            nova_ip_list = activeRoleIPMap['nova-api']
+            initSecgroupRulesCmd = 'python /etc/puppet/fuel-python/openstack/kilo/nova/initSecgroupRules.py'
+            for ip in nova_ip_list:
+                execRemoteCmd(ip, initSecgroupRulesCmd, timeout=300)
+                pass
+            pass
+        
         #sync glance image
         if 'glance' in activeRoles:
             glance_ip_list = activeRoleIPMap['glance']
