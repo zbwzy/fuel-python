@@ -45,8 +45,74 @@ def foo(val1, val2):
     return val1,val2
     pass
 
+def getPackage():
+    f = open('1.txt','r')  
+    result = list()  
+    for line in open('1.txt'):  
+        line = f.readline()  
+        rpmPackageArray = line.strip().split(':')
+        yumCmd = rpmPackageArray[1].strip()
+        print 'yumCmd=%s--------' % yumCmd
+        result.append(yumCmd)
+        pass
+    
+    print 'result=\n%s\n--' %  result  
+    f.close()                  
+    open('result-readline.txt', 'w').write('%s' % '\n'.join(result))
+    pass
 
-def testYumPackage():
+def getPackage2():
+    f = open('2.txt','r')  
+    result = list()  
+    for line in open('2.txt'):  
+        line = f.readline()  
+        rpmPackageArray = line.strip().split('=')
+        yumCmd = rpmPackageArray[1].strip()
+        print 'yumCmd=%s--------' % yumCmd
+        result.append(yumCmd)
+        pass
+    
+    print 'result=\n%s\n--' %  result  
+    f.close()                  
+    open('result-readline.txt', 'w').write('%s' % '\n'.join(result))
+    pass
+
+def getPackage3():
+    f = open('3.txt','r')  
+    result = list()  
+    for line in open('3.txt'):  
+        line = f.readline()  
+        rpmPackageArray = line.strip().split('install')
+        yumCmd = rpmPackageArray[1].strip()
+        print 'yumCmd=%s--------' % yumCmd
+        rpmList = yumCmd.split(' ')
+        result.append(yumCmd)
+        pass
+    
+    print 'result=\n%s\n--' %  result  
+    f.close()                  
+    open('result-readline.txt', 'w').write('%s' % '\n'.join(result))
+    pass
+
+
+def getPackage4():
+    f = open('4.txt','r')  
+    result = list()  
+    for line in open('4.txt'):  
+        line = f.readline()  
+        rpmPackageArray = line.strip().split(' ')
+        for e in rpmPackageArray :
+            result.append('yum search %s >> /tmp/yum_search.log' % e)
+            pass
+        pass
+    
+    print 'result=\n%s\n--' %  result  
+    f.close()                  
+    open('result-readline.txt', 'w').write('%s' % '\n'.join(result))
+    pass
+
+
+def getAllPackage():
     f = open('yum.txt','r')  
     result = list()  
     for line in open('yum.txt'):  
@@ -70,7 +136,13 @@ if __name__ == '__main__':
     ###############################
     
     ####TEST yum package
-    testYumPackage()
+    getPackage4()
+#     getPackage3()
+    
+#     getPackage2()
+    
+#     getPackage()
+#     getAllPackage()
     
     ####TEST 
     

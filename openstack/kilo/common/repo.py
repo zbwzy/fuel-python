@@ -39,7 +39,7 @@ class Repo(object):
     '''
     classdocs
     '''
-    useBCLinuxRepo = True
+    useBCLinuxRepo = False
     BCLinuxRepoIP = '10.142.18.8'
     BCLinuxRepoCIDR = '10.142.18.0/24'
     BCLinuxRepoDomainName = 'mirrors.bclinux.org'
