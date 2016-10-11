@@ -293,23 +293,28 @@ listen rdb_mysql
     
     @staticmethod
     def setKeystoneHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         keystoneBackendPublicApiStringTemplate = '''
 listen keystone_common
-  bind 0.0.0.0:5000
+  bind <HA_VIP1>:5000
   balance  roundrobin
   option  httplog
   <KEYSTONE_PUBLIC_API_SERVER_LIST>
   '''
         keystoneBackendAdminApiStringTemplate = '''
 listen keystone_admin
-  bind 0.0.0.0:35357
+  bind <HA_VIP1>:35357
   balance  roundrobin
   option  httplog
   <KEYSTONE_ADMIN_API_SERVER_LIST>
   '''
         
-        keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate
-        keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate
+        keystoneBackendAdminApiString = keystoneBackendAdminApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
+        keystoneBackendPublicApiString = keystoneBackendPublicApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
         
         keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
         keystone_ip_list = keystone_params_dict['mgmt_ips']
@@ -351,9 +356,14 @@ listen keystone_admin
     
     @staticmethod
     def setGlanceHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         glanceBackendApiStringTemplate = '''
 listen glance_api
-  bind 0.0.0.0:9292
+  bind <HA_VIP1>:9292
   balance  roundrobin
   option  httplog
   <GLANCE_API_SERVER_LIST>
@@ -361,15 +371,15 @@ listen glance_api
         
         glanceBackendRegistryApiStringTemplate = '''
 listen glance_registry
-  bind 0.0.0.0:9191
+  bind <HA_VIP1>:9191
   balance  roundrobin
   option  httplog
   <GLANCE_REGISTRY_API_SERVER_LIST>
   '''
         glance_params_dict = JSONUtility.getRoleParamsDict('glance')
         glance_ip_list = glance_params_dict["mgmt_ips"]
-        glanceBackendApiString = glanceBackendApiStringTemplate
-        glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate
+        glanceBackendApiString = glanceBackendApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
+        glanceBackendRegistryApiString = glanceBackendRegistryApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
         ###############
         serverGlanceRegistryAPIBackendTemplate = 'server glance<INDEX> <SERVER_IP>:9191 check inter 2000 rise 2 fall 3'
         serverGlanceAPIBackendTemplate         = 'server glance<INDEX> <SERVER_IP>:9292 check inter 2000 rise 2 fall 3'
@@ -406,9 +416,14 @@ listen glance_registry
     
     @staticmethod
     def setNovaHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         novaComputeApiBackendStringTemplate = '''
 listen nova_compute_api
-  bind 0.0.0.0:8774
+  bind <HA_VIP1>:8774
   balance  roundrobin
   option  httplog
   <NOVA_COMPUTE_API_SERVER_LIST>
@@ -416,7 +431,7 @@ listen nova_compute_api
         
         novaMetadataApiBackendStringTemplate = '''
 listen nova_metadata_api
-  bind 0.0.0.0:8775
+  bind <HA_VIP1>:8775
   balance  roundrobin
   option  httplog
   <NOVA_METADATA_API_SERVER_LIST>
@@ -424,7 +439,7 @@ listen nova_metadata_api
         
         novaNovncproxyBackendStringTemplate = '''
 listen nova_novncproxy
-  bind 0.0.0.0:6080
+  bind <HA_VIP1>:6080
   balance  roundrobin
   option  httplog
   <NOVA_NOVNCPROXY_SERVER_LIST>
@@ -433,9 +448,9 @@ listen nova_novncproxy
         nova_api_params_dict = JSONUtility.getRoleParamsDict('nova-api')
         nova_api_ip_list = nova_api_params_dict["mgmt_ips"]
         
-        novaComputeApiBackendString = novaComputeApiBackendStringTemplate
-        novaMetadataApiBackendString = novaMetadataApiBackendStringTemplate
-        novaNovncproxyBackendString = novaNovncproxyBackendStringTemplate
+        novaComputeApiBackendString = novaComputeApiBackendStringTemplate.replace('<HA_VIP1>', ha_vip1)
+        novaMetadataApiBackendString = novaMetadataApiBackendStringTemplate.replace('<HA_VIP1>', ha_vip1)
+        novaNovncproxyBackendString = novaNovncproxyBackendStringTemplate.replace('<HA_VIP1>', ha_vip1)
         ###############
         serverNovaMetadataAPIBackendTemplate = 'server coreapi<INDEX> <SERVER_IP>:8775 check inter 2000 rise 2 fall 3'
         serverNovaComputeAPIBackendTemplate  = 'server coreapi<INDEX> <SERVER_IP>:8774 check inter 2000 rise 2 fall 3'
@@ -484,14 +499,19 @@ listen nova_novncproxy
     
     @staticmethod
     def setNeutronHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         neutronServerBackendApiStringTemplate = '''
 listen neutron_api
-  bind 0.0.0.0:9696
+  bind <HA_VIP1>:9696
   balance  roundrobin
   option  httplog
   <NEUTRON_SERVER_LIST>
         '''
-        neutronServerBackendString = neutronServerBackendApiStringTemplate
+        neutronServerBackendString = neutronServerBackendApiStringTemplate.replace('<HA_VIP1>', ha_vip1)
         
         neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
         neutron_ip_list = neutron_params_dict["mgmt_ips"]
@@ -519,9 +539,14 @@ listen neutron_api
     
     @staticmethod
     def setHorizonHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         horizonServerBackendString = '''
 listen horizon
-  bind 0.0.0.0:80
+  bind <HA_VIP1>:80
   balance  source
   capture  cookie vgnvisitor= len 32
   cookie  SERVERID insert indirect nocache
@@ -535,6 +560,8 @@ listen horizon
   timeout  server 3h
   <HORIZON_SERVER_LIST>
         '''
+        horizonServerBackendString = horizonServerBackendString.replace('<HA_VIP1>', ha_vip1)
+        
         horizon_params_dict = JSONUtility.getRoleParamsDict('horizon')
         horizon_ip_list = horizon_params_dict["mgmt_ips"]
 
@@ -559,13 +586,19 @@ listen horizon
     
     @staticmethod
     def setCinderHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         cinderServerBackendString = '''
 listen cinder_api
-  bind 0.0.0.0:8776
+  bind <HA_VIP1>:8776
   balance  roundrobin
   option  httplog
   <CINDER_SERVER_LIST>
         '''
+        cinderServerBackendString = cinderServerBackendString.replace('<HA_VIP1>', ha_vip1)
         cinder_params_dict = JSONUtility.getRoleParamsDict('cinder-api')
         cinder_ip_list = cinder_params_dict["mgmt_ips"]
 
@@ -590,13 +623,19 @@ listen cinder_api
     
     @staticmethod
     def setCeilometerHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         ceilometerServerBackendString = '''
 listen ceilometer_api
-  bind 0.0.0.0:8777
+  bind <HA_VIP2>:8777
   balance  roundrobin
   option  httplog
   <CEILOMETER_SERVER_LIST>
         '''
+        ceilometerServerBackendString = ceilometerServerBackendString.replace('<HA_VIP2>', ha_vip2)
         ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
         ceilometer_ip_list = ceilometer_params_dict["mgmt_ips"]
 
@@ -621,9 +660,14 @@ listen ceilometer_api
     
     @staticmethod
     def setRabbitHaproxyString():
+        haParamsDict = JSONUtility.getRoleParamsDict('haproxy-keepalived')
+        
+        ha_vip1 = haParamsDict['ha_vip1']
+        ha_vip2 = haParamsDict['ha_vip2']
+        
         rabbitmqServerBackendString = '''
 listen rabbitmq
-  bind 0.0.0.0:5672
+  bind <HA_VIP1>:5672
   balance  roundrobin
   mode  tcp
   option  tcpka
@@ -631,6 +675,7 @@ listen rabbitmq
   timeout server  48h
   <RABBITMQ_SERVER_LIST>
         '''
+        rabbitmqServerBackendString = rabbitmqServerBackendString.replace('<HA_VIP1>', ha_vip1)
         rabbitmq_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
         rabbitmq_ip_list = rabbitmq_params_dict['mgmt_ips'] 
 
