@@ -760,6 +760,7 @@ if __name__ == '__main__':
                 pass
             pass
         
+        #init default secgroup rules
         if 'nova-api' in activeRoles:
             nova_ip_list = activeRoleIPMap['nova-api']
             initSecgroupRulesCmd = 'python /etc/puppet/fuel-python/openstack/kilo/nova/initSecgroupRules.py'
