@@ -261,8 +261,8 @@ listen rdb_mysql
             pass
         
         #mysql master
-        serverMysqlBacendString1 = 'server mysql1 %s:3306 check inter 2000 rise 2 fall 3' % mysql_ip_list[0]
-        serverMysqlBackendTemplate   = 'server mysql<INDEX> <SERVER_IP>:3306 backup check inter 2000 rise 2 fall 3'
+        serverMysqlBacendString1 = 'server mysql1 %s:3305 check inter 2000 rise 2 fall 3' % mysql_ip_list[0]
+        serverMysqlBackendTemplate   = 'server mysql<INDEX> <SERVER_IP>:3305 backup check inter 2000 rise 2 fall 3'
         
         mysqlServerListContent = ''
         mysqlServerListContent += serverMysqlBacendString1

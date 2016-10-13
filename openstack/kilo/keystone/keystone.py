@@ -212,8 +212,12 @@ class Keystone(object):
         wsgi_keystone_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'wsgi-keystone.conf')
         ShellCmdExecutor.execCmd('cp -r %s /etc/httpd/conf.d/' % wsgi_keystone_conf_file_path)
         
+        httpd_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'httpd.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/httpd/conf/' % httpd_conf_file_path)
+        
         localIP = YAMLUtil.getManagementIP()
         FileUtil.replaceFileContent('/etc/httpd/conf.d/wsgi-keystone.conf', '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent('/etc/httpd/conf/httpd.conf', '<LOCAL_IP>', localIP)
         pass
     
     @staticmethod
