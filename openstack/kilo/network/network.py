@@ -114,13 +114,24 @@ class Network(object):
         if os.path.exists(Network.NEUTRON_ML2_CONF_FILE_PATH) :
             ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_ML2_CONF_FILE_PATH)
             pass
+        if Network.isNeutronServerNode() :
+            #Network node is also neutron-server node
+            ml2_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini.merge')
+            pass
+        else :
+            ml2_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'ml2_conf.ini') 
+            pass
         
-        ml2_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'ml2_conf.ini') 
         ShellCmdExecutor.execCmd('cat %s > /tmp/ml2_conf.ini' % ml2_template_conf_file_path)
         ShellCmdExecutor.execCmd('mv /tmp/ml2_conf.ini /etc/neutron/plugins/ml2/')
         
         localExIP = YAMLUtil.getExIP()
         FileUtil.replaceFileContent(Network.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localExIP)
+        
+        if Network.isNeutronServerNode() :
+            vlan_range = YAMLUtil.getVlanRange()
+            FileUtil.replaceFileContent(Network.NEUTRON_ML2_CONF_FILE_PATH, '<VLAN_RANGE>', vlan_range)
+            pass
         pass
     
     @staticmethod
@@ -347,7 +358,14 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
             ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_CONF_FILE_PATH)
             pass
         
-        neutron_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'neutron.conf')
+        if Network.isNeutronServerNode() :
+            #Network node is also neutron-server node
+            neutron_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'neutron.conf.merge')
+            pass
+        else :
+            neutron_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'neutron.conf')
+            pass
+        
         ShellCmdExecutor.execCmd("cat %s > /tmp/neutron.conf" % neutron_template_conf_file_path)
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
@@ -366,6 +384,21 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
         
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
+        
+        if Network.isNeutronServerNode() :
+            nova_vip = vipParamsDict["nova_vip"]
+            localIP = YAMLUtil.getManagementIP()
+            neutron_dbpass = JSONUtility.getValue("neutron_dbpass")
+            mysql_vip = vipParamsDict["mysql_vip"]
+            keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
+            
+            FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<NOVA_VIP>', nova_vip)
+            FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<LOCAL_MANAGEMENT_VIP>', localIP)
+            FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<NEUTRON_DBPASS>', neutron_dbpass)
+            FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<MYSQL_VIP>', mysql_vip)
+            FileUtil.replaceFileContent(Network.NEUTRON_CONF_FILE_PATH, '<KEYSTONE_NOVA_PASSWORD>', keystone_nova_password)
+            pass
+        
         #configure agent
         Network.configML2()
         Network.configL3Agent()
@@ -413,6 +446,18 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
     @staticmethod
     def getEth0IPAddr():
         print 'To be implemented===='
+        pass
+    
+    @staticmethod
+    def isNeutronServerNode():
+        neutronServerNodeMgmtIPList = YAMLUtil.getRoleManagementIPList('neutron-server')
+        localMgmtIP = YAMLUtil.getManagementIP()
+        print 'neutronServerNodeMgmtIPList=%s--' % neutronServerNodeMgmtIPList
+        print 'localMgmtIP=%s--' % localMgmtIP
+        if localMgmtIP in neutronServerNodeMgmtIPList :
+            return True
+        else :
+            return False
         pass
     pass
 

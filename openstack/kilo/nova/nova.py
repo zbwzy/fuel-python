@@ -208,9 +208,7 @@ vif_plugging_timeout=0
         print 'memcached_service_string=%s--' % memcached_service_string
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH') 
-        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
-        localIP = output.strip()
+        localIP = YAMLUtil.getManagementIP().strip()
         
         print 'mysql_vip=%s' % mysql_vip
         print 'rabbit_hosts=%s' % rabbit_hosts
@@ -220,7 +218,6 @@ vif_plugging_timeout=0
         print 'glance_vip=%s' % glance_vip
         print 'locaIP=%s' % localIP
         
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         nova_api_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-api', 'nova.conf')
         print 'nova_api_conf_template_file_path=%s' % nova_api_conf_template_file_path
         

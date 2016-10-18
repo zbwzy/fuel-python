@@ -39,6 +39,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 class Prerequisites(object):
     '''
@@ -198,7 +199,14 @@ class CinderStorage(object):
         localIP = output.strip()
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder-storage', 'cinder.conf')
+        
+        if CinderStorage.isCinderControllerNode() :
+            cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf.merge')
+            pass
+        else :
+            cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder-storage', 'cinder.conf')
+            pass
+        
         print 'cinder_conf_template_file_path=%s' % cinder_conf_template_file_path
         tgtd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder-storage', 'tgtd.conf')
         ShellCmdExecutor.execCmd('cp -r %s /etc/tgt/' % tgtd_conf_template_file_path)
@@ -247,6 +255,18 @@ class CinderStorage(object):
         '''
         filter = [ "a/sda/", "a/sdb/", "r/.*/"]
         '''
+        pass
+    
+    @staticmethod
+    def isCinderControllerNode():
+        cinderControllerNodeMgmtIPList = YAMLUtil.getRoleManagementIPList('cinder-api')
+        localMgmtIP = YAMLUtil.getManagementIP()
+        print 'cinderControllerNodeMgmtIPList=%s--' % cinderControllerNodeMgmtIPList
+        print 'localMgmtIP=%s--' % localMgmtIP
+        if localMgmtIP in cinderControllerNodeMgmtIPList :
+            return True
+        else :
+            return False
         pass
 
     

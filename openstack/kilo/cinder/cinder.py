@@ -141,7 +141,13 @@ class Cinder(object):
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
+        
+        if Cinder.isCinderStorageNode() :
+            cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf.merge')
+        else :
+            cinder_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'cinder.conf')
+            pass
+        
         print 'cinder_conf_template_file_path=%s' % cinder_conf_template_file_path
         
         cinderConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'CINDER_CONF_DIR')
@@ -198,6 +204,19 @@ class Cinder(object):
         cinder_ip_list = cinder_params_dict["mgmt_ips"]
         index = ServerSequence.getIndex(cinder_ip_list, local_management_ip)
         return index
+    
+    
+    @staticmethod
+    def isCinderStorageNode():
+        cinderStorageNodeMgmtIPList = YAMLUtil.getRoleManagementIPList('cinder-storage')
+        localMgmtIP = YAMLUtil.getManagementIP()
+        print 'cinderStorageNodeMgmtIPList=%s--' % cinderStorageNodeMgmtIPList
+        print 'localMgmtIP=%s--' % localMgmtIP
+        if localMgmtIP in cinderStorageNodeMgmtIPList :
+            return True
+        else :
+            return False
+        pass
     pass
 
     

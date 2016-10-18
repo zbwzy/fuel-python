@@ -166,6 +166,7 @@ class NeutronServer(object):
         keystone_vip = vipParamsDict["keystone_vip"]
         nova_vip = vipParamsDict["nova_vip"]
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
+        keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         
         localIP = YAMLUtil.getManagementIP() 
         print 'mysql_vip=%s' % mysql_vip
@@ -176,7 +177,13 @@ class NeutronServer(object):
         print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        neutron_server_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'neutron.conf')
+        if NeutronServer.isNetworkNode() :
+            neutron_server_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'neutron.conf.merge')
+            pass
+        else :
+            neutron_server_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'neutron.conf')
+            pass
+        
         print 'neutron_server_conf_template_file_path=%s' % neutron_server_conf_template_file_path
         
         neutronConfDir = '/etc/neutron'
@@ -194,15 +201,17 @@ class NeutronServer(object):
         ShellCmdExecutor.execCmd("cat %s > /tmp/neutron.conf" % neutron_server_conf_template_file_path)
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<LOCAL_MANAGEMENT_VIP>', localIP)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
 #         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
         FileUtil.replaceFileContent(neutron_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-#         FileUtil.replaceFileContent(neutron_conf_file_path, '<NOVA_VIP>', nova_vip)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<NOVA_VIP>', nova_vip)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<NEUTRON_DBPASS>', neutron_dbpass)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<KEYSTONE_NEUTRON_PASSWORD>', keystone_neutron_password)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<KEYSTONE_NOVA_PASSWORD>', keystone_nova_password)
         
 #         FileUtil.replaceFileContent(neutron_conf_file_path, '<LOCAL_IP>', localIP)
         
@@ -221,11 +230,25 @@ class NeutronServer(object):
             os.system("mkdir -p %s" % NEUTRON_ML2_CONF_DIR)
             pass
         
-        neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini')
-        ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_server_ml2_template_file_path, NEUTRON_ML2_CONF_DIR))
+        if NeutronServer.isNetworkNode() :
+            neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini.merge')
+            pass
+        else :
+            neutron_server_ml2_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'ml2_conf.ini')
+            pass
+        
+        ShellCmdExecutor.execCmd('cat %s > /tmp/ml2_conf.ini' % neutron_server_ml2_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/ml2_conf.ini /etc/neutron/plugins/ml2/')
+        
+#         ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_server_ml2_template_file_path, NEUTRON_ML2_CONF_DIR))
         
         vlan_range = YAMLUtil.getVlanRange()
-        FileUtil.replaceFileContent('/etc/neutron/plugins/ml2/ml2_conf.ini', '<VLAN_RANGE>', vlan_range)
+        FileUtil.replaceFileContent(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH, '<VLAN_RANGE>', vlan_range)
+        
+        if NeutronServer.isNetworkNode() :
+            localIP = YAMLUtil.getManagementIP()
+            FileUtil.replaceFileContent(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localIP)
+            pass
         pass
     
     @staticmethod
@@ -331,6 +354,18 @@ class NeutronServer(object):
             pass
         
         return vlan_id
+    
+    @staticmethod
+    def isNetworkNode():
+        networkNodeMgmtIPList = YAMLUtil.getRoleManagementIPList('neutron-agent')
+        localMgmtIP = YAMLUtil.getManagementIP()
+        print 'networkNodeMgmtIPList=%s--' % networkNodeMgmtIPList
+        print 'localMgmtIP=%s--' % localMgmtIP
+        if localMgmtIP in networkNodeMgmtIPList :
+            return True
+        else :
+            return False
+        pass
     
     
     
