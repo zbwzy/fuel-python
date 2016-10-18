@@ -346,13 +346,6 @@ admin_password=123456
 nova_metadata_ip=192.168.XX.XX    # controller node ip
 metadata_proxy_shared_secret=123456    #The same with nova.conf
         '''
-        
-        '''
-        <RABBIT_HOSTS>
-        <RABBIT_PASSWORD>
-        <KEYSTONE_VIP>
-        <KEYSTONE_NEUTRON_PASSWORD>
-        '''
         #configure /etc/neutron/neutron.conf
         if os.path.exists(Network.NEUTRON_CONF_FILE_PATH) :
             ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_CONF_FILE_PATH)
