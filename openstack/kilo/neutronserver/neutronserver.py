@@ -246,7 +246,8 @@ class NeutronServer(object):
         FileUtil.replaceFileContent(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH, '<VLAN_RANGE>', vlan_range)
         
         if NeutronServer.isNetworkNode() :
-            localIP = YAMLUtil.getManagementIP()
+            #The string INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS should be replaced by business ip
+            localIP = YAMLUtil.getExIP()
             FileUtil.replaceFileContent(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localIP)
             pass
         pass

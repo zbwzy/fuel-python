@@ -183,8 +183,16 @@ admin_password = <NEUTRON_PASS>
         print 'add br-ex to business net interface==========='
         #ovs-vsctl add-port br-ex bond0
         #br-data is business net
-        interfaceName = Net.getInterfaceNameByBridge('br-data')
-        ifNameWithoutVlanTag = interfaceName.split('.')[0]
+        pxeInterfaceName = Net.getInterfaceNameByBridge('br-fw-admin')
+        exInterfaceName = Net.getInterfaceNameByBridge('br-data')
+        
+        if pxeInterfaceName in exInterfaceName :
+            #remove the pxe bridge from business network interface
+            delCmd = 'brctl delif br-fw-admin %s' % pxeInterfaceName
+            ShellCmdExecutor.execCmd(delCmd)
+            pass
+        
+        ifNameWithoutVlanTag = exInterfaceName.split('.')[0]
         addPortCmd = 'ovs-vsctl add-port br-ex %s' % ifNameWithoutVlanTag
         ShellCmdExecutor.execCmd(addPortCmd)
         pass
