@@ -261,8 +261,8 @@ class Network(object):
         
         if pxeInterfaceName in exInterfaceName :
             #remove the pxe bridge from business network interface
-            delCmd = 'brctl delif br-fw-admin %s' % pxeInterfaceName
-            ShellCmdExecutor.execCmd(delCmd)
+#             delCmd = 'brctl delif br-fw-admin %s' % pxeInterfaceName
+#             ShellCmdExecutor.execCmd(delCmd)
             pass
         
         ifNameWithoutVlanTag = exInterfaceName.split('.')[0]

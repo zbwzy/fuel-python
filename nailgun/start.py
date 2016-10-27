@@ -797,75 +797,21 @@ if __name__ == '__main__':
 #             pass
                     
         os.system('touch %s' % TAG)
+        
+        if 'neutron-agent' in activeRoles:
+            network_ip_list = activeRoleIPMap['neutron-agent']
+            removePXECmd = 'python /etc/puppet/fuel-python/openstack/kilo/network/removePXE.py'
+            for ip in network_ip_list:
+                execRemoteCmd(ip, removePXECmd, timeout=600)
+                pass
+
+        if 'nova-compute' in activeRoles:
+            network_ip_list = activeRoleIPMap['nova-compute']
+            removePXECmd = 'python /etc/puppet/fuel-python/openstack/kilo/network/removePXE.py'
+            for ip in network_ip_list:
+                execRemoteCmd(ip, removePXECmd, timeout=600)
+                pass
+            pass
         pass
     pass
-
-#     
-#     role = 'glance'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'neutron-server'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     
-#     role = 'neutron'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     
-#     role = 'nova-api'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'nova-compute'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass
-#     
-#     role = 'cinder-api'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass   
-#     
-#     role = 'cinder-storage'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass  
-#     
-#     role = 'heat'
-#     if role in activeRoles :
-#         ip_list = activeRoleIPMap[role]
-#         for ip in ip_list :
-#             ######Do something
-#             pass
-#         pass 
-#     pass
-
-
-
 
