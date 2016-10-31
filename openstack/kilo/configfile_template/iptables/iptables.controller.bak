@@ -9,8 +9,6 @@
 -A INPUT -p icmp -j ACCEPT
 -A INPUT -i lo -j ACCEPT
 -A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
--A INPUT -p tcp --dport 16509 -j ACCEPT -m comment --comment "libvirtd"
--A INPUT -p tcp --dport 5900:6100 -j ACCEPT -m comment --comment "vncproxy"
 -A INPUT -p tcp -m multiport --dports 4505,4506 -m comment --comment saltsack -j ACCEPT
 -A INPUT -p tcp -m multiport --dports 3306,4567,4444,9200 -m comment --comment rdb -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 80 -m comment --comment httpd -j ACCEPT
