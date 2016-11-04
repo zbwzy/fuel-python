@@ -54,19 +54,8 @@ class BCRDB(object):
     
     @staticmethod
     def install():
-        #dependency
-        from openstack.kilo.common.repo import Repo
-#         Repo.setFuelRepo()
-        ShellCmdExecutor.execCmd('yum install perl-DBD-MySQL socat percona-xtrabackup -y')
-#         Repo.resetBCLinuxRepo()
-
-        rdb_package_name = 'BC-RDB-2.2.0-el7.x86_64.tar.gz'
-        bcrdb_source_dir = '/etc/puppet/modules/mysql/files/BC-RDB-2.2.0-el7.x86_64.tar.gz'
-        cp_cmd = 'cp -r %s /opt/' % bcrdb_source_dir
-        ShellCmdExecutor.execCmd(cp_cmd)
-        
-        extract_cmd = 'cd /opt/; tar zvxf %s' % rdb_package_name
-        ShellCmdExecutor.execCmd(extract_cmd)
+        installCmd = 'yum install bcrdb* -y'
+        ShellCmdExecutor.execCmd(installCmd)
         pass
     
     @staticmethod
@@ -77,11 +66,12 @@ class BCRDB(object):
             pass
         
         SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
-        RDB_DEPLOY_DIR = '/opt/bcrdb'
-        DEST_RDB_CONF_DIR = os.path.join(RDB_DEPLOY_DIR, 'conf')
+#         RDB_DEPLOY_DIR = '/opt/bcrdb'
+#         DEST_RDB_CONF_DIR = os.path.join(RDB_DEPLOY_DIR, 'conf')
+        DEST_RDB_CONF_DIR = '/etc/bcrdb'
         RDB_CONF_FILE_PATH = os.path.join(DEST_RDB_CONF_DIR, 'my.cnf')
-        EXECUTE_MYSQL_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysql')
-        MYSQLADMIN_BIN_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysqladmin')
+#         EXECUTE_MYSQL_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysql')
+#         MYSQLADMIN_BIN_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysqladmin')
         
         ShellCmdExecutor.execCmd('cp -r %s %s' % (SOURCE_RDB_CONF_FILE_TEMPLATE_PATH, DEST_RDB_CONF_DIR))
         
@@ -103,17 +93,17 @@ class BCRDB(object):
         
         FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<MYSQL_IP_LIST>', mysql_ip_list_string)
         
-        mysql_dir_rights_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'mysql_dir_rights.sh')
-        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % mysql_dir_rights_script_path)
-        ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/mysql_dir_rights.sh')
+#         mysql_dir_rights_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'mysql_dir_rights.sh')
+#         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % mysql_dir_rights_script_path)
+#         ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/mysql_dir_rights.sh')
         
         #cp mysql to /usr/bin
-        ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % EXECUTE_MYSQL_PATH)
+#         ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % EXECUTE_MYSQL_PATH)
         
-        ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % MYSQLADMIN_BIN_PATH)
+#         ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % MYSQLADMIN_BIN_PATH)
         
-        ShellCmdExecutor.execCmd('useradd bcrdb')
-        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /opt/bcrdb')
+#         ShellCmdExecutor.execCmd('useradd bcrdb')
+#         ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /opt/bcrdb')
         pass
     
     @staticmethod
@@ -157,7 +147,7 @@ class BCRDB(object):
             pass
         
         start_cmd = ''
-        start_cmd_template = '/opt/bcrdb/support-files/mysql.server {action}'
+        start_cmd_template = '/usr/lib/bcrdb/support-files/mysql.server {action}'
         if index == 0 :
             start_cmd = start_cmd_template.format(action='bootstrap')
             ShellCmdExecutor.execCmd(start_cmd)
@@ -195,7 +185,7 @@ class BCRDB(object):
                     pass
                 pass
                         
-            time.sleep(15)
+            time.sleep(10)
             check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep' % BCRDB.PORT
             process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
             if process_num != '0' :
@@ -359,7 +349,7 @@ class BCRDB(object):
             while retry > 0 :
                 print 'retry=%d' % retry
                 
-                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep'
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep' % BCRDB.PORT
                 process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                 process_num = process_num.strip()
                 if process_num != '0' :
@@ -404,7 +394,7 @@ class BCRDB(object):
                     
                     retry = 3
                     while retry > 0:
-                        check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep | wc -l'
+                        check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
                         process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                         process_num = process_num.strip()
                         if process_num == '0' :
