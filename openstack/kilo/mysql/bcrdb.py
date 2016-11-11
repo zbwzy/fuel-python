@@ -44,6 +44,8 @@ class BCRDB(object):
     '''
     ROLE = 'mysql'
     TIMEOUT = 600 #unit:second
+    PORT = '3305'
+
     def __init__(self):
         '''
         Constructor
@@ -165,7 +167,7 @@ class BCRDB(object):
             while retry > 0 :
                 print 'retry=%d' % retry
                 
-                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep'
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep' % BCRDB.PORT
                 process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                 process_num = process_num.strip()
                 if process_num != '0' :
@@ -194,7 +196,7 @@ class BCRDB(object):
                 pass
                         
             time.sleep(15)
-            check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep'
+            check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep' % BCRDB.PORT
             process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
             if process_num != '0' :
                 print 'to init db===='
@@ -222,7 +224,7 @@ class BCRDB(object):
                      
                     ShellCmdExecutor.execCmd(start_cmd)
                      
-                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep | wc -l'
+                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
                     process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                     process_num = process_num.strip()
                     if process_num == '0' :
@@ -357,7 +359,7 @@ class BCRDB(object):
             while retry > 0 :
                 print 'retry=%d' % retry
                 
-                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep'
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep' % BCRDB.PORT
                 process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                 process_num = process_num.strip()
                 if process_num != '0' :
@@ -402,7 +404,7 @@ class BCRDB(object):
                     
                     retry = 3
                     while retry > 0:
-                        check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep 3306 | grep -v grep | wc -l'
+                        check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
                         process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                         process_num = process_num.strip()
                         if process_num == '0' :

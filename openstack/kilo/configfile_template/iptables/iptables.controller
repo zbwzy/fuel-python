@@ -14,6 +14,7 @@
 -A INPUT -p tcp -m tcp --dport 80 -m comment --comment httpd -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 10050 -m comment --comment zabbix -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 3306 -m comment --comment mysql -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 3305 -m comment --comment mysql -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 5007 -m comment --comment mysql -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 5008 -m comment --comment mysql -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 4369 -m comment --comment "rabbitmq cluster" -j ACCEPT
