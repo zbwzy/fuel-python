@@ -1,7 +1,5 @@
 #!/bin/bash
 
-echo 'ulimit -n 102400' > /etc/default/rabbitmq-server
-
 /usr/sbin/rabbitmqctl stop_app
 
 sleep 3

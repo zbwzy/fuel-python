@@ -62,28 +62,24 @@ class RabbitMQ(object):
     
     @staticmethod
     def install():
-        from openstack.kilo.common.repo import Repo
-        if RabbitMQ.useFuelRepo :
-            Repo.setFuelRepo()
-            pass
         #ntp update
         fuel_master_ip = str(YAMLUtil.getValue('global', 'fuel_master_ip'))
         os.system('/usr/sbin/ntpdate -u %s' % fuel_master_ip)
         
         ShellCmdExecutor.execCmd('yum install -y rabbitmq-server')
         
-        #after installing,restore to the default state: use bclinux repo
-        if RabbitMQ.useFuelRepo :
-            Repo.resetBCLinuxRepo()
-            pass
-        
         ShellCmdExecutor.execCmd('rabbitmq-plugins enable rabbitmq_management')
         pass
     
     @staticmethod
     def config():
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_userid = rabbit_params_dict["rabbit_userid"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
+        
         rabbitmq_config_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'rabbitmq.config')
         rabbitmq_env_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'rabbitmq-env.conf')
+        rabbitmq_service_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'rabbitmq-server.service')
         
         rabbitmq_config_file_path = '/etc/rabbitmq/rabbitmq.config'
 #         if os.path.exists(rabbitmq_config_file_path) :
@@ -95,35 +91,36 @@ class RabbitMQ(object):
 #             os.system("rm -rf %s" % rabbitmq_env_conf_file_path)
 #             pass
         
+        rabbitmq_service_conf_file_path = '/usr/lib/systemd/system/rabbitmq-server.service'
+        
         ShellCmdExecutor.execCmd('cp -r %s /etc/rabbitmq/' % rabbitmq_config_template_file_path)
         ShellCmdExecutor.execCmd('cp -r %s /etc/rabbitmq/' % rabbitmq_env_conf_template_file_path)
         
         management_ip = YAMLUtil.getManagementIP()
         print 'management_ip=%s--' % management_ip
         print ''
-        FileUtil.replaceFileContent(rabbitmq_config_file_path, '<MANAGEMENT_IP>', management_ip)
+        FileUtil.replaceFileContent(rabbitmq_env_conf_file_path, '<MANAGEMENT_IP>', management_ip)
+        FileUtil.replaceFileContent(rabbitmq_config_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(rabbitmq_config_file_path, '<RABBIT_PASS>', rabbit_password)
 
-        rabbitmq_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
-        rabbitmq_ip_list = rabbitmq_params_dict['mgmt_ips']
-
-        rabbit_at_ip_list = []
-        for ip in rabbitmq_ip_list:
-            rabbit_at_ip_list.append("'"+'rabbit@'+ip+"'")
-            pass
-         
-        rabbitmq_cluster_string = ','.join(rabbit_at_ip_list)
-        FileUtil.replaceFileContent(rabbitmq_config_file_path, '<RABBITMQ_CLUSTER>', rabbitmq_cluster_string)
-        ShellCmdExecutor.execCmd('chown -R root:root /etc/rabbitmq')
-         
+        ShellCmdExecutor.execCmd('chown -R rabbitmq:rabbitmq /etc/rabbitmq')
+        ShellCmdExecutor.execCmd('chown -R rabbitmq:rabbitmq %s' % rabbitmq_config_file_path)
+        ShellCmdExecutor.execCmd('chown -R rabbitmq:rabbitmq %s' % rabbitmq_env_conf_template_file_path)
         #rabbitmq cookie
         erlang_cookie_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'rabbitmq', 'erlang.cookie')
         erlang_cookie_dest_file_path = '/var/lib/rabbitmq/.erlang.cookie'
         if os.path.exists(erlang_cookie_dest_file_path) :
             os.system('rm -rf %s' % erlang_cookie_dest_file_path)
             pass
-         
+        
+        if os.path.exists(rabbitmq_service_conf_file_path) :
+            os.system('rm -rf %s' % rabbitmq_service_conf_file_path)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s /usr/lib/systemd/system/' % rabbitmq_service_conf_template_file_path)
         ShellCmdExecutor.execCmd('cp -r %s /var/lib/rabbitmq/' % erlang_cookie_template_file_path)
         ShellCmdExecutor.execCmd('mv /var/lib/rabbitmq/erlang.cookie %s' % erlang_cookie_dest_file_path)
+        
         ShellCmdExecutor.execCmd('chown -R rabbitmq:rabbitmq /var/lib/rabbitmq/')
         ShellCmdExecutor.execCmd('chmod 400 %s' % erlang_cookie_dest_file_path)
         pass
@@ -221,6 +218,7 @@ class RabbitMQ(object):
                 output, exitcode = ShellCmdExecutor.execCmd(cmd)
                 file_tag = output.strip()
                 if str(file_tag) == "1" :
+                    time.sleep(2)
                     print 'wait time: %s second(s).' % time_count
                     print 'xxxxxxxxxx==='
                     print 'cd /opt/openstack_conf/scripts/; bash reInitRabbitmqCluster.sh'
