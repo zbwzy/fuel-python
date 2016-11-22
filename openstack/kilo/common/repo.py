@@ -39,9 +39,9 @@ class Repo(object):
     '''
     classdocs
     '''
-    useBCLinuxRepo = False
-    BCLinuxRepoIP = '10.142.18.8'
-    BCLinuxRepoCIDR = '10.142.18.0/24'
+    useBCLinuxRepo = True
+    BCLinuxRepoIP = '10.11.137.60'
+    BCLinuxRepoCIDR = '10.11.137.0/24'
     BCLinuxRepoDomainName = 'mirrors.bclinux.org'
     
     def __init__(self):
@@ -73,7 +73,7 @@ class Repo(object):
         ShellCmdExecutor.execCmd(cpCmd)
         
         #add bclinux repo route
-        Repo.addRoute()
+#         Repo.addRoute()
         
         ShellCmdExecutor.execCmd('yum clean all && yum makecache')
         pass

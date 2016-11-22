@@ -1,4 +1,4 @@
-# BCLinux-Base.repo
+# BCLinux-Sources.repo
 #
 # The mirror system uses the connecting IP address of the client and the
 # update status of each mirror to pick mirrors that are updated to and
@@ -10,23 +10,23 @@
 #
 #
 
-[base] 
-name=BCLinux-$releasever - Base 
-baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/os/$basearch/
+[base-source]
+name=BCLinux-$releasever - Base Sources
+baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/os/Source/
 gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-BCLinux-7
 
-[updates] 
-name=BCLinux-$releasever - Updates 
-baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/updates/$basearch/
-gpgcheck=0 
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7 
+[updates-source]
+name=BCLinux-$releasever - Updates Sources
+baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/updates/Source/
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-BCLinux-7
 
-[extras] 
-name=BCLinux-$releasever - Extras 
-baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/extras/$basearch/  
-gpgcheck=0  
+[extras-source]
+name=BCLinux-$releasever - Extras Sources
+baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/extras/Source/
+gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-BCLinux-7

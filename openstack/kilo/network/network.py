@@ -103,7 +103,7 @@ class Network(object):
     def install():
         print 'Network.install start===='
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpn-agent -y"
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpnaas -y"
         ShellCmdExecutor.execCmd(yumCmd)
 #         Network.configConfFile()
         print 'Network.install done####'

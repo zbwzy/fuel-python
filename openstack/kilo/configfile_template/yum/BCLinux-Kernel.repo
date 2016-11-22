@@ -9,14 +9,15 @@
 # remarked out baseurl= line instead.
 #
 #
-[product] 
-name=BCLinux-$releasever - Product
-baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/product/$basearch/
-gpgcheck=0 
+
+[kernel] 
+name=BCLinux-$releasever - Kernel
+baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/kernel/$basearch/
+gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-BCLinux-7
 
-[product-source] 
-name=BCLinux-$releasever - Product Sources
-baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/product/Source/
-gpgcheck=0 
+[kernel-source] 
+name=BCLinux-$releasever - Kernel Sources
+baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/kernel/Source/
+gpgcheck=0
 gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-BCLinux-7
