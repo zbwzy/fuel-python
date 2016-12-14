@@ -178,7 +178,7 @@ class NovaCompute(object):
     @staticmethod
     def install():
         print 'Nova-compute.install start===='
-        ShellCmdExecutor.execCmd('yum install sysfsutils libvirt* device-mapper* -y')
+        ShellCmdExecutor.execCmd('yum install sysfsutils libvirt* device-mapper* boost* qemu* -y')
         
         yumCmd = 'yum install openstack-nova-compute sysfsutils -y'
         ShellCmdExecutor.execCmd(yumCmd)
