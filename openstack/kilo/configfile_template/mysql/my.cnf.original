@@ -29,8 +29,8 @@ thread_cache_size                      = 1024
 query_cache_type                       = 0
 query_cache_size                       = 0
 back_log                               = 1024
-max_connections                        = 100000
-max_user_connections                   = 20000
+max_connections                        = 2000
+max_user_connections                   = 2000
 performance_schema                     = 0 
 
 character-set-server                   = utf8
@@ -60,7 +60,7 @@ log_slave_updates                      = 1
 gtid_mode                              = on
 enforce_gtid_consistency               = 1
 
-innodb_buffer_pool_size                = 16G
+innodb_buffer_pool_size                = 128M
 innodb_data_file_path                  = ibdata1:16M:autoextend
 innodb_buffer_pool_load_at_startup     = 1
 innodb_buffer_pool_dump_at_shutdown    = 1
@@ -92,8 +92,8 @@ innodb_doublewrite                     = 0
 innodb_autoinc_lock_mode               = 2
 innodb_locks_unsafe_for_binlog         = 1
 wsrep_provider                         = /opt/bcrdb/lib/mysql/plugin/libgalera_smm.so
-wsrep_node_name                        =  node<HOST_INDEX>
-wsrep_node_address                     = <LOCAL_MANAGEMENT_IP> 
+wsrep_node_name                        = node1
+#wsrep_node_address                     = 0.0.0.0
 wsrep_cluster_name                     = "bc_rdb"
 wsrep_cluster_address                  = "gcomm://<MYSQL_IP_LIST>"
 wsrep_slave_threads                    = 16
@@ -108,7 +108,7 @@ wsrep_retry_autocommit                 = 1
 wsrep_auto_increment_control           = 1
 wsrep_drupal_282555_workaround         = 0
 wsrep_causal_reads                     = 0
-wsrep_provider_options                 = "pc.ignore_sb=no; gcache.size=16G; evs.suspect_timeout=PT1M; evs.inactive_timeout=PT2M; "
+wsrep_provider_options                 = "pc.ignore_sb=no; gcache.size=1G; evs.suspect_timeout=PT1M; evs.inactive_timeout=PT2M; "
 
 skip_external_locking
 skip_name_resolve

@@ -5,7 +5,7 @@ systemctl restart openvswitch.service
 sleep 2
 
 ovs-vsctl add-br br-int
-ovs-vsctl add-br br-ex
+#ovs-vsctl add-br br-ex
 #
 #ovs-vsctl add-br br-eth0
 #ovs-vsctl add-port br-eth0 eth0

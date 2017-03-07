@@ -148,6 +148,27 @@ class SSH(object):
             sys.exit(0)
             pass
         pass
+    
+    @staticmethod
+    def sshNovaUserTrust():
+        novaUserKeyFilesTemplateDirPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'nova')
+        novaSSHDirPath = '/var/lib/nova/.ssh'
+        if not os.path.exists(novaSSHDirPath) :
+            os.system('mkdir -p %s' % novaSSHDirPath)
+            pass
+        else :
+            os.system('rm -rf %s' % novaSSHDirPath)
+            os.system('mkdir -p %s' % novaSSHDirPath)
+            pass
+        
+        authorizedKeysFilePath = os.path.join(novaUserKeyFilesTemplateDirPath, 'authorized_keys')
+        idRsaKeysFilePath = os.path.join(novaUserKeyFilesTemplateDirPath, 'id_rsa*')
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (authorizedKeysFilePath, novaSSHDirPath))
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (idRsaKeysFilePath, novaSSHDirPath))
+        
+        ShellCmdExecutor.execCmd('chown -R nova:nova %s' %  novaSSHDirPath)
+        ShellCmdExecutor.execCmd('chmod 777 %s' % novaSSHDirPath)
+        pass
     pass
     
     

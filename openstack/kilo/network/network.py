@@ -41,46 +41,6 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 
-class Prerequisites(object):
-    '''
-    classdocs
-    '''
-    SYS_CTL_FILE_PATH = "/etc/sysctl.conf"
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def configSysCtlConfFile():
-        #Use sysctl conf file template to replace original conf file
-        '''
-1.modify sysctl.conf
-net.ipv4.ip_forward=1
-net.ipv4.conf.all.rp_filter=0
-net.ipv4.conf.default.rp_filter=0
-        '''
-        if os.path.exists('/etc/sysctl.conf') :
-            ShellCmdExecutor.execCmd("rm -rf /etc/sysctl.conf")
-            pass
-        
-        sysctl_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'sysctl.conf')
-        ShellCmdExecutor.execCmd('cat %s > /tmp/sysctl.conf' % sysctl_template_file_path)
-        ShellCmdExecutor.execCmd('mv /tmp/sysctl.conf /etc/')
-        #reload sys configuration
-        output, exitcode = ShellCmdExecutor.execCmd("sysctl -p")
-        print 'configSysCtlConfFile.output=%s--' % output
-        pass
-    
-    @staticmethod
-    def install():
-        print 'Prerequisites.install start====='
-        Prerequisites.configSysCtlConfFile()
-        print 'Prerequisites.install done####'
-        pass
-    
-
 class Network(object):
     '''
     classdocs
@@ -90,6 +50,7 @@ class Network(object):
     NEUTRON_L3_CONF_FILE_PATH = "/etc/neutron/l3_agent.ini"
     NEUTRON_DHCP_CONF_FILE_PATH = "/etc/neutron/dhcp_agent.ini"
     NEUTRON_LB_CONF_FILE_PATH = "/etc/neutron/lbaas_agent.ini"
+    NEUTRON_LB_CONF_FILE_PATH1 = "/etc/neutron/neutron_lbaas.conf"
     NEUTRON_VPN_CONF_FILE_PATH = "/etc/neutron/neutron_vpnaas.conf"
     NEUTRON_METADATA_CONF_FILE_PATH = "/etc/neutron/metadata_agent.ini"
     
@@ -103,7 +64,7 @@ class Network(object):
     def install():
         print 'Network.install start===='
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpnaas -y"
+        yumCmd = "yum install haproxy lsof openstack-neutron openstack-neutron-ml2 openstack-neutron-openvswitch openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpnaas openswan -y"
         ShellCmdExecutor.execCmd(yumCmd)
 #         Network.configConfFile()
         print 'Network.install done####'
@@ -168,10 +129,17 @@ class Network(object):
             ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_LB_CONF_FILE_PATH)
             pass
         
+        if os.path.exists(Network.NEUTRON_LB_CONF_FILE_PATH1) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % Network.NEUTRON_LB_CONF_FILE_PATH1)
+            pass
+        
         neutron_lb_template_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'lbaas_agent.ini')
+        neutron_lb_template_conf_file_path1 = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'neutron_lbaas.conf')
         print 'neutron_lb_template_conf_file_path=%s--' % neutron_lb_template_conf_file_path
         ShellCmdExecutor.execCmd('cat %s > /tmp/lbaas_agent.ini' % neutron_lb_template_conf_file_path)
         ShellCmdExecutor.execCmd('mv /tmp/lbaas_agent.ini /etc/neutron/')
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_lb_template_conf_file_path1, '/etc/neutron/'))
         pass
     
     
@@ -252,6 +220,11 @@ class Network(object):
         ShellCmdExecutor.execCmd('sed -i \'s,plugins/openvswitch/ovs_neutron_plugin.ini,plugin.ini,g\' /usr/lib/systemd/system/neutron-openvswitch-agent.service')
         
         ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron')
+        
+        ########
+        ShellCmdExecutor.execCmd('ipsec initnss --configdir /etc/ipsec.d')
+        ShellCmdExecutor.execCmd('ipsec newhostkey --output /etc/ipsec.secrets --random /dev/urandom')
+        
         Network.startNeutron()
         
         ##add br-ex to business net
@@ -267,24 +240,26 @@ class Network(object):
         
         ifNameWithoutVlanTag = exInterfaceName.split('.')[0]
         addPortCmd = 'ovs-vsctl add-port br-ex %s' % ifNameWithoutVlanTag
-        ShellCmdExecutor.execCmd(addPortCmd)
+        #ShellCmdExecutor.execCmd(addPortCmd)
         pass
     
     @staticmethod
     def startNeutron():
+        ShellCmdExecutor.execCmd("systemctl enable ipsec.service")
         ShellCmdExecutor.execCmd("systemctl enable neutron-openvswitch-agent.service")
         ShellCmdExecutor.execCmd("systemctl enable neutron-l3-agent.service")
         ShellCmdExecutor.execCmd("systemctl enable neutron-dhcp-agent.service")
         ShellCmdExecutor.execCmd("systemctl enable neutron-metadata-agent.service")
         ShellCmdExecutor.execCmd("systemctl enable neutron-ovs-cleanup.service")
         
+        ShellCmdExecutor.execCmd("systemctl start ipsec.service")
         ShellCmdExecutor.execCmd("systemctl start neutron-openvswitch-agent.service")
         ShellCmdExecutor.execCmd("systemctl start neutron-l3-agent.service")
         ShellCmdExecutor.execCmd("systemctl start neutron-dhcp-agent.service")
         ShellCmdExecutor.execCmd("systemctl start neutron-metadata-agent.service")
         
         #start bridges
-        ShellCmdExecutor.execCmd('ifconfig br-ex up')
+        #ShellCmdExecutor.execCmd('ifconfig br-ex up')
         ShellCmdExecutor.execCmd('ifconfig br-int up')
         ShellCmdExecutor.execCmd('ifconfig br-tun up')
         pass
@@ -436,7 +411,7 @@ metadata_proxy_shared_secret=123456    #The same with nova.conf
 #ifconfig br-eth0  xxx.xxx.xxx.xxx    ----eth0 ip address
         '''
         ShellCmdExecutor.execCmd("ovs-vsctl add-br br-int")
-        ShellCmdExecutor.execCmd("ovs-vsctl add-br br-ex")
+        #ShellCmdExecutor.execCmd("ovs-vsctl add-br br-ex")
         ShellCmdExecutor.execCmd("ovs-vsctl add-br br-eth0")
         ShellCmdExecutor.execCmd("ovs-vsctl add-port br-eth0 eth0")
         ShellCmdExecutor.execCmd("ifconfig eth0 0.0.0.0")
@@ -496,51 +471,6 @@ enabled = True
         pass
     
 
-class LoadBalance(object):
-    '''
-    classdocs
-    '''
-    NEUTRON_CONF_FILE_PATH = "/etc/neutron/neutron.conf"
-    NEUTRON_ML2_CONF_FILE_PATH = "/etc/neutron/plugins/ml2/ml2_conf.ini"
-    
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def install():
-        '''
-1)    on Neutron-Controller and Network: neutron.conf
-
-[DEFAULT]
-service_plugins= router,firewall,lbaas
-
-2)    on lbaas.ini
-[DEFAULT]
-interface_driver = neutron.agent.linux.interface.OVSInterfaceDriver
-ovs_use_veth = True
-device_driver = neutron.services.loadbalancer.drivers.haproxy.namespace_driver.HaproxyNSDriver
-    '''
-        ShellCmdExecutor.execCmd("yum install haproxy -y")
-        ShellCmdExecutor.execCmd("groupadd nogroup")
-        ShellCmdExecutor.execCmd("useradd -g nogroup nobody")
-        
-        #restart neutron-lbaas-agent
-        ShellCmdExecutor.execCmd("/etc/init.d/neutron-lbaas-agent restart")
-        ShellCmdExecutor.execCmd("chkconfig neutron-lbaas-agent on")
-        pass
-    
-    @staticmethod
-    def start():
-        ShellCmdExecutor.execCmd("/etc/init.d/neutron-lbaas-agent start")
-        pass
-    
-    @staticmethod
-    def restart():
-        ShellCmdExecutor.execCmd("/etc/init.d/neutron-lbaas-agent restart")
-        pass
     
 
 if __name__ == '__main__':

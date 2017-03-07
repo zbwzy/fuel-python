@@ -178,9 +178,11 @@ class NovaCompute(object):
     @staticmethod
     def install():
         print 'Nova-compute.install start===='
-        ShellCmdExecutor.execCmd('yum install sysfsutils libvirt* device-mapper* boost* qemu* -y')
+        ShellCmdExecutor.execCmd('yum install sysfsutils libvirt* device-mapper* boost* -y')
         
-        yumCmd = 'yum install openstack-nova-compute sysfsutils -y'
+        ShellCmdExecutor.execCmd('yum reinstall qemu* -y')
+        
+        yumCmd = 'yum install openstack-nova-compute -y'
         ShellCmdExecutor.execCmd(yumCmd)
 #         NovaCompute.configConfFile()
         
@@ -428,6 +430,10 @@ if __name__ == '__main__':
         #patch
         from openstack.kilo.common.patch import Patch
         Patch.patchOsloDbApi()
+        
+        #do ssh trust for nova user
+        from openstack.kilo.ssh.SSH import SSH
+        SSH.sshNovaUserTrust()
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()

@@ -42,6 +42,7 @@ class BCRDB(object):
     '''
     classdocs
     '''
+    BCRDB_HOME_DIR = '/opt'
     ROLE = 'mysql'
     TIMEOUT = 600 #unit:second
     PORT = '3305'
@@ -62,10 +63,10 @@ class BCRDB(object):
 
         rdb_package_name = 'BC-RDB-2.2.0-el7.x86_64.tar.gz'
         bcrdb_source_dir = '/etc/puppet/modules/mysql/files/BC-RDB-2.2.0-el7.x86_64.tar.gz'
-        cp_cmd = 'cp -r %s /opt/' % bcrdb_source_dir
+        cp_cmd = 'cp -r %s %s' % (bcrdb_source_dir, BCRDB.BCRDB_HOME_DIR)
         ShellCmdExecutor.execCmd(cp_cmd)
         
-        extract_cmd = 'cd /opt/; tar zvxf %s' % rdb_package_name
+        extract_cmd = 'cd %s; tar zvxf %s' % (BCRDB.BCRDB_HOME_DIR, rdb_package_name)
         ShellCmdExecutor.execCmd(extract_cmd)
         pass
     
@@ -77,7 +78,7 @@ class BCRDB(object):
             pass
         
         SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
-        RDB_DEPLOY_DIR = '/opt/bcrdb'
+        RDB_DEPLOY_DIR = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
         DEST_RDB_CONF_DIR = os.path.join(RDB_DEPLOY_DIR, 'conf')
         RDB_CONF_FILE_PATH = os.path.join(DEST_RDB_CONF_DIR, 'my.cnf')
         EXECUTE_MYSQL_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysql')
@@ -89,6 +90,7 @@ class BCRDB(object):
         mysql_ip_list = mysql_params_dict['mgmt_ips']
         print 'mysql_ip_list=%s--' % mysql_ip_list
         local_management_ip = YAMLUtil.getManagementIP()
+        host_index = mysql_ip_list.index(local_management_ip) + 1
         
         mysql_ip_list1 = [] #The rest mysql except itself
         for ip in mysql_ip_list :
@@ -102,6 +104,8 @@ class BCRDB(object):
         print 'mysql_ip_list_string=%s--' % mysql_ip_list_string
         
         FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<MYSQL_IP_LIST>', mysql_ip_list_string)
+        FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<LOCAL_MANAGEMENT_IP>', local_management_ip)
+        FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<HOST_INDEX>', str(host_index))
         
         mysql_dir_rights_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'mysql_dir_rights.sh')
         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % mysql_dir_rights_script_path)
@@ -113,26 +117,28 @@ class BCRDB(object):
         ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % MYSQLADMIN_BIN_PATH)
         
         ShellCmdExecutor.execCmd('useradd bcrdb')
-        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /opt/bcrdb')
+        bcrdb_deploy_dir = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
+        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb %s' % bcrdb_deploy_dir)
         pass
     
     @staticmethod
     def reDeploy():
-        if os.path.exists('/opt/bcrdb') :
-            ShellCmdExecutor.execCmd('rm -rf /opt/bcrdb')
+        bcrdb_deploy_dir = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
+        if os.path.exists(bcrdb_deploy_dir) :
+            ShellCmdExecutor.execCmd('rm -rf %s' % bcrdb_deploy_dir)
             pass
         
         rdb_package_name = 'BC-RDB-2.2.0-el7.x86_64.tar.gz'
-        destTarFilePath = os.path.join('/opt', rdb_package_name) 
+        destTarFilePath = os.path.join(BCRDB.BCRDB_HOME_DIR, rdb_package_name) 
         if os.path.exists(destTarFilePath) :
             ShellCmdExecutor.execCmd('rm -rf %s' % destTarFilePath)
             pass
         
         bcrdb_source_dir = '/etc/puppet/modules/mysql/files/BC-RDB-2.2.0-el7.x86_64.tar.gz'
-        cp_cmd = 'cp -r %s /opt/' % bcrdb_source_dir
+        cp_cmd = 'cp -r %s %s' % (bcrdb_source_dir, BCRDB.BCRDB_HOME_DIR)
         ShellCmdExecutor.execCmd(cp_cmd)
         
-        extract_cmd = 'cd /opt/; tar zvxf %s' % rdb_package_name
+        extract_cmd = 'cd %s; tar zvxf %s' % (BCRDB.BCRDB_HOME_DIR, rdb_package_name)
         ShellCmdExecutor.execCmd(extract_cmd)
         
         ######re-config
@@ -167,7 +173,7 @@ class BCRDB(object):
             while retry > 0 :
                 print 'retry=%d' % retry
                 
-                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep' % BCRDB.PORT
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
                 process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
                 process_num = process_num.strip()
                 if process_num != '0' :
@@ -196,7 +202,7 @@ class BCRDB(object):
                 pass
                         
             time.sleep(15)
-            check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep' % BCRDB.PORT
+            check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
             process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
             if process_num != '0' :
                 print 'to init db===='
@@ -437,7 +443,6 @@ class BCRDB(object):
     
 
 if __name__ == '__main__':
-        
     print 'hello openstack-kilo:rdb======='
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initBCRDB'
     if os.path.exists(INSTALL_TAG_FILE) :

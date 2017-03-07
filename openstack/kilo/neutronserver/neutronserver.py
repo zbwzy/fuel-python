@@ -133,6 +133,8 @@ class NeutronServer(object):
         
         NeutronServer.configML2()
         
+        NeutronServer.configLBaaSAgent()
+        
         ShellCmdExecutor.execCmd('ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini')
         pass
     
@@ -143,7 +145,23 @@ class NeutronServer(object):
         --config-file /etc/neutron/plugins/ml2/ml2_conf.ini upgrade head" neutron'
         output, exitcode = ShellCmdExecutor.execCmd(importNeutronDBSchemaCmd)
         print 'importNeutronSchemaOutput=%s--' % output
+        
+        importFwaasCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service fwaas upgrade head'
+        importLbaasCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service lbaas upgrade head'
+        importVpnCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service vpnaas upgrade head'
+        
+        ShellCmdExecutor.execCmd(importFwaasCmd)
+        ShellCmdExecutor.execCmd(importLbaasCmd)
+        ShellCmdExecutor.execCmd(importVpnCmd)
         ########
+    
+    @staticmethod
+    def upgradeLBDBSchema():
+        upgradeCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service lbaas upgrade head'
+        output, exitcode = ShellCmdExecutor.execCmd(upgradeCmd)
+        print 'upgradeCmdOutput=%s--' % output
+        pass
+        
         
     @staticmethod
     def configNeutronConfFile():
@@ -250,6 +268,18 @@ class NeutronServer(object):
             localIP = YAMLUtil.getExIP()
             FileUtil.replaceFileContent(NeutronServer.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localIP)
             pass
+        pass
+    
+    @staticmethod
+    def configLBaaSAgent():
+        NEUTRON_LB_CONF_FILE_PATH1 = '/etc/neutron/neutron_lbaas.conf'
+        if os.path.exists(NEUTRON_LB_CONF_FILE_PATH1) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % NEUTRON_LB_CONF_FILE_PATH1)
+            pass
+        
+        neutron_lb_template_conf_file_path1 = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'neutron_lbaas.conf')
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_lb_template_conf_file_path1, '/etc/neutron/'))
         pass
     
     @staticmethod

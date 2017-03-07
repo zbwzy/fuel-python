@@ -33,7 +33,7 @@ vrrp_instance VI_1 {
         auth_pass <AUTH_PASS>
     }
     virtual_ipaddress {
-        <HA_VIP1>/24 dev <HA_VIP1_INTERFACE> 
+        <HA_VIP1>/<MASK_BITS> dev <HA_VIP1_INTERFACE> 
     }
     notify_fault "systemctl stop keepalived"
 }
@@ -55,7 +55,7 @@ vrrp_instance VI_2 {
         auth_pass <AUTH_PASS>
     }
     virtual_ipaddress {
-        <HA_VIP2>/24 dev <HA_VIP2_INTERFACE> 
+        <HA_VIP2>/<MASK_BITS> dev <HA_VIP2_INTERFACE> 
     }
     notify_fault "systemctl stop keepalived"
 }

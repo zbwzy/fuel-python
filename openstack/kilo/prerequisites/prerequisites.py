@@ -105,8 +105,22 @@ class Prerequisites(object):
          
         #sysctl
         print 'do sysctl============='
+        if os.path.exists('/etc/sysctl.conf') :
+            ShellCmdExecutor.execCmd('rm -rf /etc/sysctl.conf')
+            pass
         sysctlConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'sysctl', 'sysctl.conf')
-        ShellCmdExecutor.execCmd('cp -r %s /etc/' % sysctlConfFileTemplatePath)
+        novaComputeSysctlConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'sysctl', 'sysctl.conf.compute')
+        controllerSysctlConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'sysctl', 'sysctl.conf.ctl')
+        from openstack.common.role import Role
+        if Role.isNovaComputeRole4Prerequisites() :
+            ShellCmdExecutor.execCmd('cp -r %s /etc/' % novaComputeSysctlConfFileTemplatePath)
+            ShellCmdExecutor.execCmd('mv /etc/sysctl.conf.compute /etc/sysctl.conf')
+            pass
+        else :
+            ShellCmdExecutor.execCmd('cp -r %s /etc/' % controllerSysctlConfFileTemplatePath)
+            ShellCmdExecutor.execCmd('mv /etc/sysctl.conf.ctl /etc/sysctl.conf')
+            pass
+        
         ShellCmdExecutor.execCmd('sysctl -p')
         print 'do sysctl####'
         

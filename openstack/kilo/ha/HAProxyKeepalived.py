@@ -56,6 +56,8 @@ class HA(object):
         ha_vip1_interface = haParamsDict['ha_vip1_interface']
         ha_vip2_interface = haParamsDict['ha_vip2_interface']
         
+        mask_bits = haParamsDict['mgmt_network_mask_bits']
+        
         virtual_router_id = haParamsDict['virtual_router_id']
         auth_pass = haParamsDict['auth_pass']
         
@@ -83,6 +85,8 @@ class HA(object):
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP1_INTERFACE>', ha_vip1_interface)
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP2>', ha_vip2)
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<HA_VIP2_INTERFACE>', ha_vip2_interface)
+        
+        FileUtil.replaceFileContent(keepalived_conf_dest_path, '<MASK_BITS>', mask_bits)
         
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<VIRTUAL_ROUTER_ID_1>', str(virtual_router_id_1))
         FileUtil.replaceFileContent(keepalived_conf_dest_path, '<VIRTUAL_ROUTER_ID_2>', str(virtual_router_id_2))

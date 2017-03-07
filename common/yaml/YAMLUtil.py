@@ -415,6 +415,21 @@ nodes:
         return nodeName
     
     @staticmethod
+    def getMgmtMaskBits():
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        mgmt_net_range = dataMap['management_network_range']
+        print 'mgmt_net_range=%s------' % mgmt_net_range
+        
+        maskBits = ''
+        if mgmt_net_range == '' or mgmt_net_range == None :
+            maskBits = '24'  #default
+        else :
+            maskBits = mgmt_net_range.split('/')[1]
+            pass
+        
+        return maskBits
+    
+    @staticmethod
     def setHosts():
         nodes_dict = {}
         host="127.0.0.1 localhost\n"
@@ -422,13 +437,16 @@ nodes:
         for node in nodesMap:
             if nodes_dict.has_key(node['internal_address']) == False:
                 nodes_dict[node['internal_address']] = node['name']
-                host = host + node['internal_address'] + " " + node['name'] + "\n"
+                nodeName = node['name']
+                nodeNameWithDomain = nodeName + '.domain.tld'
+                host = host + node['internal_address'] + " " + nodeName + " " + nodeNameWithDomain + "\n"
                 pass
             pass
          
         print host
         FileUtil.writeContent("/etc/hosts",host)
-        pass    
+        pass
+    
         
     
 if __name__ == "__main__":

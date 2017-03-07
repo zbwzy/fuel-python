@@ -658,8 +658,8 @@ if __name__ == '__main__':
     #     Ceilometer.start()
     #     
     #     ## Ceilometer HA
-    #     CeilometerHA.install()
-    #     CeilometerHA.configure()
+#         CeilometerHA.install()
+#         CeilometerHA.configure()
     #     CeilometerHA.start()
         #
         #mark: ceilometer is installed

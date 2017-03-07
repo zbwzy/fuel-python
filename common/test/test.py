@@ -132,6 +132,10 @@ if __name__ == '__main__':
     print 'hello pexpect test============'
     print 'start time: %s' % time.ctime()
     
+    sum = 240+220+280+220+250+415+290+200+345+300+270+258+230+245+220+280+200+200+335.02+200
+    print sum+166
+    exit()
+    
     #when execute script,exec: python <this file absolute path>
     ###############################
     

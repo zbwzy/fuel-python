@@ -58,6 +58,8 @@ if __name__ == '__main__':
     else :
         if NeutronServer.getServerIndex() == 0 :
             NeutronServer.importNeutronDBSchema()
+            time.sleep(2)
+            NeutronServer.upgradeLBDBSchema()
             pass
         
         NeutronServer.start()

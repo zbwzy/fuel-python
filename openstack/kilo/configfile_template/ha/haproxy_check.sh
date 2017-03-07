@@ -1,10 +1,9 @@
 #!/bin/bash
-A=`ps -C haproxy --no-header | wc -l`
-
-if [ $A -eq 0 ];then
-  echo "haproxy is down!"
-  systemctl stop keepalived
-  exit 1
+#count=`ps -ef|grep -v grep|grep haproxy|wc -l`
+count=`netstat -nlp|grep -i haproxy|wc -l`
+if [ $count -gt 1 ]; then
+exit 0
 else
-  exit 0
+systemctl stop keepalived
+exit 1
 fi

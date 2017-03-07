@@ -5,38 +5,7 @@ Created on Aug 27, 2015
 '''
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
 
-class Prerequisites(object):
-    '''
-    classdocs
-    '''
-    SYS_CTL_FILE_PATH = "/etc/sysctl.conf"
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def configSysCtlConfFile():
-        #Use sysctl conf file template to replace original conf file
-        '''
-1.modify sysctl.conf
-net.ipv4.ip_forward=1
-net.ipv4.conf.all.rp_filter=0
-net.ipv4.conf.default.rp_filter=0
-        '''
-        
-        #reload sys configuration
-        ShellCmdExecutor.execCmd("sysctl -p")
-        pass
-    
-    @staticmethod
-    def install():
-        print 'Prerequisites.install start====='
-        Prerequisites.configSysCtlConfFile()
-        print 'Prerequisites.install done####'
-        pass
-    
+
 class HAProxy(object):
     '''
     classdocs

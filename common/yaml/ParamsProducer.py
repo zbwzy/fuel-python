@@ -528,7 +528,25 @@ class ParamsProducer(object):
         role = 'ceilometer'
         is_role_file_path = '/opt/is_{rolename}_role'.format(rolename=role).replace('-', '_')
         if YAMLUtil.hasRoleInNodes(role):
-            print 'Do nothing currently======='
+            ceilometer_ips_list = YAMLUtil.getRoleManagementIPList(role)
+            ceilometer_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
+            ceilometer_ex_ips_list = YAMLUtil.getRoleExIPList(role)
+            
+            ceilometer_mysql_user = "ceilometer"
+            paramsMap[role] = {}
+            ceilometerParams = paramsMap[role]
+            ceilometerParams["mgmt_ips"] = ceilometer_ips_list
+            ceilometerParams["storage_ips"] = ceilometer_storage_ips_list
+            ceilometerParams["ex_ips"] = ceilometer_ex_ips_list
+            ceilometerParams['ceilometer_mysql_user'] = ceilometer_mysql_user
+            
+            ceilometer_metering_secret = '7c1edcdfc1b2841c21ff'
+            ceilometerParams['ceilometer_metering_secret'] = ceilometer_metering_secret
+            
+            if YAMLUtil.getManagementIP() in ceilometer_ips_list :
+                FileUtil.writeContent(is_role_file_path, 'true')
+                pass
+            pass
 #             key = 'ceilometer_mongo_user'
 #             ceilometer_mongo_user = YAMLUtil.getValue(role, key)
 #             
@@ -572,6 +590,8 @@ class ParamsProducer(object):
             virtual_router_id = YAMLUtil.getValue(role, 'virtual_router_id')
             auth_pass = YAMLUtil.getValue(role, 'auth_pass')
             
+            mgmt_network_mask_bits = YAMLUtil.getMgmtMaskBits()
+            
             paramsMap[role] = {}
             haParams = paramsMap[role]
             haParams['ha_vip1'] = ha_vip1
@@ -585,6 +605,8 @@ class ParamsProducer(object):
             ha_ips_list = YAMLUtil.getRoleManagementIPList(role)
             ha_storage_ips_list = YAMLUtil.getRoleStorageIPList(role)
             ha_ex_ips_list = YAMLUtil.getRoleExIPList(role)
+            
+            haParams['mgmt_network_mask_bits'] = mgmt_network_mask_bits
             haParams['mgmt_ips'] = ha_ips_list
             haParams['storage_ips'] = ha_storage_ips_list
             haParams['ex_ips'] = ha_ex_ips_list

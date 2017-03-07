@@ -49,6 +49,17 @@ class Role(object):
         pass
     
     @staticmethod
+    def isNovaComputeRole4Prerequisites():
+        from common.yaml.YAMLUtil import YAMLUtil
+        mgmtIPList = YAMLUtil.getRoleManagementIPList('nova-compute')
+        localMgmtIP = YAMLUtil.getManagementIP()
+        if localMgmtIP in mgmtIPList :
+            return True
+        else :
+            return False
+        pass
+    
+    @staticmethod
     def isGlanceRole():
         if os.path.exists('/opt/is_glance_role'):
             return True
