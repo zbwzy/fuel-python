@@ -38,6 +38,8 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
 from openstack.kilo.novacompute.novacompute import NovaCompute
+from common.yaml.YAMLUtil import YAMLUtil
+from openstack.kilo.ntp.ntp import NTP
     
 if __name__ == '__main__':
     print 'hello openstack-kilo:nova-compute============'
@@ -56,6 +58,10 @@ if __name__ == '__main__':
         if NovaCompute.getServerIndex() == 0 :
             NovaCompute.sshMutualTrust()
             pass
+        
+        #ntp server is the first keystone
+        ntpServerIP = YAMLUtil.getIPList('keystone')[0]
+        NTP.ntpClient(ntpServerIP)
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello nova-compute kilo#######'

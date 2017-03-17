@@ -40,8 +40,10 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
 from openstack.kilo.glance.glance import Glance
+from openstack.kilo.ntp.ntp import NTP
 
     
 if __name__ == '__main__':
@@ -65,6 +67,10 @@ if __name__ == '__main__':
             pass
         
         Glance.start()
+        
+        #ntp server is the first keystone
+        ntpServerIP = YAMLUtil.getIPList('keystone')[0]
+        NTP.ntpClient(ntpServerIP)
         
     #     os.system("service openstack-glance-api restart")
     #     os.system("service openstack-glance-registry restart")

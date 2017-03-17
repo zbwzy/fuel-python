@@ -37,9 +37,8 @@ sys.path.append(PROJ_HOME_DIR)
 
 
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
-from common.json.JSONUtil import JSONUtility
-from common.properties.PropertiesUtil import PropertiesUtility
-from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
+from openstack.kilo.ntp.ntp import NTP
 
 from openstack.kilo.neutronserver.neutronserver import NeutronServer
 
@@ -63,6 +62,12 @@ if __name__ == '__main__':
             pass
         
         NeutronServer.start()
+        time.sleep(2)
+        NeutronServer.restart()
+        
+        #ntp server is the first keystone
+        ntpServerIP = YAMLUtil.getIPList('keystone')[0]
+        NTP.ntpClient(ntpServerIP)
         #mark: neutron-server is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:neutron-server initted#######'

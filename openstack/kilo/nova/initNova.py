@@ -32,6 +32,8 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 sys.path.append(PROJ_HOME_DIR)
 
 from openstack.kilo.nova.nova import Nova
+from common.yaml.YAMLUtil import YAMLUtil
+from openstack.kilo.ntp.ntp import NTP
     
 if __name__ == '__main__':
     print 'hello openstack-kilo:nova-api============'
@@ -50,6 +52,10 @@ if __name__ == '__main__':
             pass
 
         Nova.start()
+        
+        #ntp server is the first keystone
+        ntpServerIP = YAMLUtil.getIPList('keystone')[0]
+        NTP.ntpClient(ntpServerIP)
         #mark: nova-api is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello nova-api initted#######'

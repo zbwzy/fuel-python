@@ -42,6 +42,7 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 
+from openstack.kilo.ntp.ntp import NTP
 from openstack.kilo.keystone.keystone import Keystone
 
 class InitKeystone(object):
@@ -429,6 +430,9 @@ if __name__ == '__main__':
             Keystone.start()
             time.sleep(10)
             InitKeystone.init()
+            
+            #use first keystone server as ntp server
+            NTP.ntpServer()
             pass
         else :
             ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')
@@ -472,6 +476,10 @@ if __name__ == '__main__':
             ShellCmdExecutor.execCmd(cmd3)
             
             Keystone.start()
+            
+            #ntp server is the first keystone
+            ntpServerIP = YAMLUtil.getIPList('keystone')[0]
+            NTP.ntpClient(ntpServerIP)
             pass
         
         #mark: keystone is installed

@@ -1,0 +1,61 @@
+[DEFAULT]
+verbose = True 
+auth_strategy=keystone
+rpc_backend = rabbit
+core_plugin = ml2
+service_plugins = router,firewall,lbaasv2,vpnaas 
+allow_overlapping_ips = True 
+notify_nova_on_port_status_changes = True 
+notify_nova_on_port_data_changes = True 
+nova_url = http://<NOVA_VIP>:8774/v2
+bind_host = <LOCAL_MANAGEMENT_VIP> 
+bind_port = 9696
+dhcp_lease_duration = -1
+agent_down_time = 60 
+router_scheduler_driver = neutron.scheduler.l3_agent_scheduler.LeastRoutersScheduler
+router_auto_schedule = true
+allow_automatic_l3agent_failover=true
+allow_automatic_dhcp_failover = true
+dhcp_agents_per_network = 3
+api_workers = 16 
+rpc_workers = 16 
+[matchmaker_redis]
+[matchmaker_ring]
+[quotas]
+[agent]
+report_interval = 15
+[keystone_authtoken]
+identity_uri = http://<KEYSTONE_VIP>:5000 
+auth_url = http://<KEYSTONE_VIP>:35357 
+auth_plugin = password 
+project_domain_id = default 
+user_domain_id = default 
+project_name = service
+username = neutron
+password = <KEYSTONE_NEUTRON_PASSWORD> 
+[database]
+connection = mysql://neutron:<NEUTRON_DBPASS>@<MYSQL_VIP>:3306/neutron?read_timeout=60
+max_pool_size = 100
+max_overflow = 50
+[nova]
+auth_url = http://<KEYSTONE_VIP>:35357
+auth_plugin = password
+project_domain_id = default
+user_domain_id = default
+region_name = RegionOne
+project_name = service
+username = nova
+password = <KEYSTONE_NOVA_PASSWORD> 
+[oslo_concurrency]
+lock_path = $state_path/lock
+[oslo_policy]
+[oslo_messaging_amqp]
+[oslo_messaging_qpid]
+[oslo_messaging_rabbit]
+kombu_reconnect_delay = 5.0
+rabbit_hosts = <RABBIT_HOSTS> 
+rabbit_use_ssl = False
+rabbit_userid = nova 
+rabbit_password = <RABBIT_PASSWORD> 
+rabbit_virtual_host = /
+rabbit_ha_queues = True 

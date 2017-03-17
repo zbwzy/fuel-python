@@ -1,0 +1,50 @@
+[base]                                                          
+name=BCLinux-el7.2-Base                                         
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/os/x86_64/     
+enabled=1                                                       
+gpgcheck=0                                                      
+[updates]                                                       
+name=BCLinux-el7.2-Updates                                      
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/updates/x86_64 
+enabled=1                                                       
+gpgcheck=0                                                      
+[extras]                                                        
+name=BCLinux-el7.2-Extras                                       
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/extras/x86_64  
+enabled=1                                                       
+gpgcheck=0                                                      
+[base-source]                                                   
+name=BCLinux-el7.2-Base Sources                                 
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/os/Source/     
+enabled=1                                                       
+gpgcheck=0                                                      
+[updates-source]                                                
+name=BCLinux-el7.2-Updates Sources                              
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/updates/Source/
+enabled=1                                                       
+gpgcheck=0                                                      
+[el7.2-source]                                                  
+name=BCLinux-el7.2-Extras Sources                               
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/extras/Source/ 
+enabled=1                                                       
+gpgcheck=0                                                      
+[kernel]                                                        
+name=BCLinux-el7.2-Kernel                                       
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/kernel/x86_64  
+enabled=1                                                       
+gpgcheck=0                                                      
+[product]                                                       
+name=BCLinux-el7.2-Product                                      
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/product/x86_64 
+enabled=1                                                       
+gpgcheck=0                                                      
+[kernel-source]                                                 
+name=BCLinux-el7.2-Kernel Sources                               
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/kernel/Source/ 
+enabled=1                                                       
+gpgcheck=0                                                      
+[product-source]                                                
+name=BCLinux-el7.2-Product Sources                              
+baseurl=http://10.254.5.59:8080/bclinux/el7.2/product/Source/
+enabled=1                                                       
+gpgcheck=0

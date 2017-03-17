@@ -1,0 +1,6 @@
+[bcec-openstack]
+name=EC 3.5 - x86_64
+baseurl=http://mirrors.bclinux.org/zhangbai_rpm
+gpgcheck=0
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
+

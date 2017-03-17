@@ -1,0 +1,15 @@
+
+
+
+yum install openstack-heat-api openstack-heat-api-cfn openstack-heat-engine python-heatclient
+
+
+#####configuration
+service openstack-heat-api restart
+service openstack-heat-api-cfn restart
+service  openstack-heat-engine  restart
+
+
+
+su -s /bin/sh -c "heat-manage db_sync" heat
+

@@ -1,0 +1,4 @@
+/etc/nova/nova.conf
+/etc/sysctl.conf
+/etc/neutron/neutron.conf
+/etc/neutron/plugins/ml2/ml2_conf.ini

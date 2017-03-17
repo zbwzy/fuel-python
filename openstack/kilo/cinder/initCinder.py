@@ -31,8 +31,10 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 
 sys.path.append(PROJ_HOME_DIR)
 
+from common.yaml.YAMLUtil import YAMLUtil
 
 from openstack.kilo.cinder.cinder import Cinder
+from openstack.kilo.ntp.ntp import NTP
     
 if __name__ == '__main__':
     print 'hello openstack-kilo:cinder============'
@@ -70,6 +72,10 @@ if __name__ == '__main__':
             pass
         
         Cinder.start()
+        
+        #ntp server is the first keystone
+        ntpServerIP = YAMLUtil.getIPList('keystone')[0]
+        NTP.ntpClient(ntpServerIP)
     #     os.system("service openstack-cinder-api start")
     #     os.system("service openstack-cinder-scheduler start")
     #     os.system("service haproxy restart")

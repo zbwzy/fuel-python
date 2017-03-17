@@ -38,6 +38,8 @@ SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPL
 sys.path.append(PROJ_HOME_DIR)
 
 from openstack.kilo.dashboard.dashboard import Dashboard
+from common.yaml.YAMLUtil import YAMLUtil
+from openstack.kilo.ntp.ntp import NTP
     
 if __name__ == '__main__':
     
@@ -55,6 +57,10 @@ if __name__ == '__main__':
     else :
         Dashboard.start()
         #mark: dashboard is started
+        
+        #ntp server is the first keystone
+        ntpServerIP = YAMLUtil.getIPList('keystone')[0]
+        NTP.ntpClient(ntpServerIP)
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:dashboard installed#######'
     pass
