@@ -119,6 +119,13 @@ class BCRDB(object):
         ShellCmdExecutor.execCmd('useradd bcrdb')
         bcrdb_deploy_dir = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
         ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb %s' % bcrdb_deploy_dir)
+        
+        if not os.path.exists('/apps/bcrdb/data') :
+            ShellCmdExecutor.execCmd('mkdir -p /apps/bcrdb/data')
+            ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb /apps/bcrdb/data')
+            pass
+        else :
+            pass
         pass
     
     @staticmethod

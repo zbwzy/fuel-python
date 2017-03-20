@@ -127,8 +127,10 @@ class MariaDB(object):
             ShellCmdExecutor.execCmd('systemctl start mariadb')
             #init mariadb password
             from openstack.newton.mysql.initDB import MySQL
+            #init root password
             MySQL.initMariaDB()
             
+            MySQL.init()
             ShellCmdExecutor.execCmd('systemctl stop mariadb')
             #start cluster
             ShellCmdExecutor.execCmd('/usr/libexec/mysqld --wsrep-new-cluster --user=root &')
@@ -138,6 +140,7 @@ class MariaDB(object):
             #####
             ShellCmdExecutor.execCmd('systemctl start mariadb')
             pass
+        print 'start mariadb done######'
         pass
     
     @staticmethod

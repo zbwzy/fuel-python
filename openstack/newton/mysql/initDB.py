@@ -69,11 +69,11 @@ class MySQL(object):
             child = pexpect.spawn('mysql_secure_installation')
     
             child.expect('Enter current password for root.*')
-            child.sendline('zhagnbai')
+            child.sendline('')
 #             child.sendline('')
     
-#             child.expect('Set root password.*')
-            child.expect('Change the root password.*')
+            child.expect('Set root password.*')
+#             child.expect('Change the root password.*')
             child.sendline('Y')
             
             child.expect('New password:')
@@ -336,6 +336,10 @@ class MySQL(object):
             hostname = output.strip()
             print 'init============================================'
             if YAMLUtil.hasRoleInNodes('haproxy-keepalived') :
+                createHaproxyUserCmd = 'use mysql;CREATE USER \'haproxy\'@\'%\';update user set plugin=\'mysql_native_password\' where user=\'haproxy\';'
+                MySQL.execMySQLCmd(user, initPasswd, createHaproxyUserCmd)
+                MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+                
                 grantHaproxyUserUsage = 'grant usage on *.* to haproxy@\'%\''
                 MySQL.execMySQLCmd(user, initPasswd, grantHaproxyUserUsage)
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)

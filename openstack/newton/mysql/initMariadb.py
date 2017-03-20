@@ -25,20 +25,19 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
 
 sys.path.append(PROJ_HOME_DIR)
 
-from openstack.kilo.mysql.bcrdb import BCRDB
+from openstack.newton.mysql.mariadb import MariaDB
 
 if __name__ == '__main__':
         
-    print 'hello openstack-kilo:start rdb======='
-    BCRDB.start2()
+    print 'hello openstack-newton:start mariadb======='
     #init db
-    
-    print 'hello openstack-kilo:rdb started#######'
+    MariaDB.start()
+    print 'hello openstack-newton:mariadb started#######'
     pass
 

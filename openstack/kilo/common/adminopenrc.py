@@ -62,6 +62,8 @@ class AdminOpenrc(object):
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
+        
+        ShellCmdExecutor.execCmd('cp -r /opt/openstack_conf/admin-openrc.sh /root/')
         pass
     
     

@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
 
@@ -62,6 +62,8 @@ class AdminOpenrc(object):
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent('/opt/openstack_conf/admin-openrc.sh', '<KEYSTONE_VIP>', keystone_vip)
+        
+        ShellCmdExecutor.execCmd('cp -r /opt/openstack_conf/admin-openrc.sh /root/')
         pass
     
     
