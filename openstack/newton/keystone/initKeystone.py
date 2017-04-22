@@ -29,7 +29,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone.conf')
 
@@ -42,7 +42,7 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 
-from openstack.kilo.keystone.keystone import Keystone
+from openstack.newton.keystone.keystone import Keystone
 
 class InitKeystone(object):
     '''
@@ -120,7 +120,8 @@ Repeat User Password:
         vipParamsDict = JSONUtility.getValue('vip')
         keystone_vip = vipParamsDict["keystone_vip"]
  
-        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+#         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_admin_password = '123456'
         keystone_ip = YAMLUtil.getManagementIP() 
         if Keystone.getServerIndex() == 0 :
             initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystoneUser.sh')
@@ -133,7 +134,6 @@ Repeat User Password:
             initKeystoneDestFilePath = '/opt/openstack_conf/scripts/initKeystoneUser.sh'
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_VIP>', keystone_vip)
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<ADMIN_TOKEN>', admin_token)
-            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_IP>', keystone_ip)
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
             time.sleep(3)
 #             output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
@@ -148,6 +148,7 @@ Repeat User Password:
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         keystone_vip = vipParamsDict["keystone_vip"]
         keystone_glance_password = JSONUtility.getValue('keystone_glance_password')
+        keystone_glance_password = '123456'
         
         glance_vip = vipParamsDict["glance_vip"]
         
@@ -269,8 +270,9 @@ Repeat User Password:
         vipParamsDict = JSONUtility.getValue('vip')
         
         keystone_vip = vipParamsDict['keystone_vip']
-        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_ip = YAMLUtil.getManagementIP() 
+#         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_admin_password = '123456'
+#         keystone_ip = YAMLUtil.getManagementIP() 
         if Keystone.getServerIndex() == 0 :
             initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystone.sh')
             if not os.path.exists('/opt/openstack_conf/scripts') :
@@ -281,8 +283,7 @@ Repeat User Password:
             
             initKeystoneDestFilePath = '/opt/openstack_conf/scripts/initKeystone.sh'
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_VIP>', keystone_vip)
-            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<ADMIN_TOKEN>', admin_token)
-            FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_IP>', keystone_ip)
+#             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<ADMIN_TOKEN>', admin_token)
             FileUtil.replaceFileContent(initKeystoneDestFilePath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
             time.sleep(1)
             output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initKeystoneDestFilePath)
@@ -296,9 +297,9 @@ Repeat User Password:
         admin_token = JSONUtility.getValue('admin_token')
         vipParamsDict = JSONUtility.getValue('vip')
         
-        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+#         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_admin_password = '123456'
         keystone_vip = vipParamsDict["keystone_vip"]
-        keystone_glance_password = JSONUtility.getValue('keystone_glance_password')
         glance_vip = vipParamsDict['glance_vip']
         
         initGlanceScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'initGlance.sh')
@@ -411,7 +412,7 @@ Repeat User Password:
 
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:keystone============'
+    print 'hello openstack-newton:keystone============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -423,9 +424,10 @@ if __name__ == '__main__':
         print 'keystone initted####'
         print 'exit===='
     else :
-        from openstack.kilo.keystone.keystone import Keystone
+        from openstack.newton.keystone.keystone import Keystone
         if Keystone.getServerIndex() == 0 :
             Keystone.importKeystoneDBSchema()
+            
             Keystone.start()
             time.sleep(10)
             InitKeystone.init()
@@ -476,6 +478,6 @@ if __name__ == '__main__':
         
         #mark: keystone is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-kilo:keystone#######'
+    print 'hello openstack-newton:keystone#######'
     pass
 

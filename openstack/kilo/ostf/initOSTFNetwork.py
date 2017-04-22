@@ -41,6 +41,7 @@ from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 
 from openstack.common.role import Role
+from openstack.kilo.neutronserver.neutronserver import NeutronServer
 
 #install pexpect package
 # pexpectPackagePath = os.path.join(PROJ_HOME_DIR, 'externals', 'pexpect-3.3')
@@ -207,6 +208,7 @@ if __name__ == '__main__':
             neutron_ip_list = neutron_params_dict["mgmt_ips"]
             localIP = YAMLUtil.getManagementIP() 
             if ServerSequence.getIndex(neutron_ip_list, localIP) == 0:
+                NeutronServer.restart()
                 
                 initInternalNetwork()
                 
@@ -219,6 +221,7 @@ if __name__ == '__main__':
                     pass
                 pass
             else :
+                NeutronServer.restart()
                 print 'This is not the first neutron-server.Do not need to init OSTF network.'
                 pass
      

@@ -326,6 +326,7 @@ class MySQL(object):
             
             mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
             initPasswd = mysql_params_dict['mysql_password']
+            initPasswd = '123456'
             oldPasswd = 'bcrdb'
             print 'initPasswd=%s--' % initPasswd
             MySQL.initPassword(user, oldPasswd, initPasswd)
@@ -352,6 +353,7 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
                 keystone_dbpass = JSONUtility.getValue('keystone_dbpass')
+                keystone_dbpass = '123456'
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON keystone.* TO \'keystone\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
                 .format(init_passwd=keystone_dbpass)
                 print 'grantCmd1=%s--' % grantCmd1
@@ -401,6 +403,7 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
                 glance_dbpass= JSONUtility.getValue('glance_dbpass')
+                glance_dbpass = '123456'
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON glance.* TO \'glance\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
                 .format(init_passwd=glance_dbpass)
                 
@@ -424,6 +427,7 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
                 nova_dbpass= JSONUtility.getValue('nova_dbpass')
+                nova_dbpass = '123456'
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON nova.* TO \'nova\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
                 .format(init_passwd=nova_dbpass)
                 
@@ -453,6 +457,7 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
                 neutron_dbpass= JSONUtility.getValue('neutron_dbpass')
+                neutron_dbpass = '123456'
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON neutron.* TO \'neutron\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
                 .format(init_passwd=neutron_dbpass)
                 
@@ -473,6 +478,7 @@ class MySQL(object):
                 MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 
                 cinder_dbpass= JSONUtility.getValue('cinder_dbpass')
+                cinder_dbpass = '123456'
                 grantCmd1 = 'GRANT ALL PRIVILEGES ON cinder.* TO \'cinder\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
                 .format(init_passwd=cinder_dbpass)
                 

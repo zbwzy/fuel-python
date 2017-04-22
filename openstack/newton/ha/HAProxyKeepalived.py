@@ -634,12 +634,13 @@ listen cinder_api
         
         ceilometerServerBackendString = '''
 listen ceilometer_api
-  bind <HA_VIP2>:8777
+  bind <HA_VIP1>:8777
   balance  roundrobin
   option  httplog
   <CEILOMETER_SERVER_LIST>
         '''
-        ceilometerServerBackendString = ceilometerServerBackendString.replace('<HA_VIP2>', ha_vip2)
+        ceilometerServerBackendString = ceilometerServerBackendString.replace('<HA_VIP1>', ha_vip1)
+#         ceilometerServerBackendString = ceilometerServerBackendString.replace('<HA_VIP2>', ha_vip2)
         ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
         ceilometer_ip_list = ceilometer_params_dict["mgmt_ips"]
 
