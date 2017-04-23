@@ -120,8 +120,7 @@ Repeat User Password:
         vipParamsDict = JSONUtility.getValue('vip')
         keystone_vip = vipParamsDict["keystone_vip"]
  
-#         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_admin_password = '123456'
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         keystone_ip = YAMLUtil.getManagementIP() 
         if Keystone.getServerIndex() == 0 :
             initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystoneUser.sh')
@@ -148,7 +147,6 @@ Repeat User Password:
         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         keystone_vip = vipParamsDict["keystone_vip"]
         keystone_glance_password = JSONUtility.getValue('keystone_glance_password')
-        keystone_glance_password = '123456'
         
         glance_vip = vipParamsDict["glance_vip"]
         
@@ -270,8 +268,7 @@ Repeat User Password:
         vipParamsDict = JSONUtility.getValue('vip')
         
         keystone_vip = vipParamsDict['keystone_vip']
-#         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_admin_password = '123456'
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
 #         keystone_ip = YAMLUtil.getManagementIP() 
         if Keystone.getServerIndex() == 0 :
             initKeystoneScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'initKeystone.sh')
@@ -297,8 +294,7 @@ Repeat User Password:
         admin_token = JSONUtility.getValue('admin_token')
         vipParamsDict = JSONUtility.getValue('vip')
         
-#         keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
-        keystone_admin_password = '123456'
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         keystone_vip = vipParamsDict["keystone_vip"]
         glance_vip = vipParamsDict['glance_vip']
         

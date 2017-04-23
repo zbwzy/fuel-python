@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -37,7 +37,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
-from openstack.kilo.ssh.SSH import SSH 
+from openstack.newton.ssh.SSH import SSH 
 from openstack.common.serverSequence import ServerSequence
 
 class Prerequisites(object):
@@ -81,7 +81,7 @@ class Cinder(object):
     @staticmethod
     def install():
         print 'Cinder.install start===='
-        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db python-oslo-log -y'
+        yumCmd = 'yum install openstack-cinder python-cinderclient -y'
         ShellCmdExecutor.execCmd(yumCmd)
         print 'Cinder.install done####'
         pass
@@ -129,6 +129,7 @@ class Cinder(object):
         
         keystone_vip = vipParamsDict["keystone_vip"]
         glance_vip = vipParamsDict["glance_vip"]
+        rabbit_vip = vipParamsDict["rabbit_vip"]
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
@@ -183,6 +184,7 @@ class Cinder(object):
         FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_CINDER_PASSWORD>', keystone_cinder_password)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_VIP>', rabbit_vip)
         
         ShellCmdExecutor.execCmd("chmod 644 %s" % cinder_conf_file_path)
         ShellCmdExecutor.execCmd("chown -R cinder:cinder /etc/cinder/")
@@ -222,7 +224,7 @@ class Cinder(object):
     
     
 if __name__ == '__main__':
-    print 'hello openstack-kilo:cinder============'
+    print 'hello openstack-newton:cinder============'
     print 'start time: %s' % time.ctime()
     
     debug = False
@@ -243,76 +245,11 @@ if __name__ == '__main__':
         Cinder.configConfFile()
         
         #import cinder db schema
-#         localIP = YAMLUtil.getManagementIP() 
-#         cinder_params_dict = JSONUtility.getRoleParamsDict('cinder-api')
-#         cinder_ip_list = cinder_params_dict["mgmt_ips"]
-#         
-#         first_cinder_launched_mark_file = '/opt/openstack_conf/tag/cinder0_launched'
-#         
-#         TIMEOUT = 1800 #0.5 hour for test
-#         if ServerSequence.getIndex(cinder_ip_list, localIP) == 0:
-#             firstKeystoneLaunchedTag = '/opt/openstack_conf/tag/keystone0_launched'
-#             timeout = TIMEOUT
-#             time_count = 0
-#             print 'test timeout==='
-#             while True:
-#                 #all mysql are launched.
-#                 flag = os.path.exists(firstKeystoneLaunchedTag)
-#                 if flag == True :
-#                     print 'wait time: %s second(s).' % time_count
-#                     Cinder.importCinderDBSchema()
-#                     break
-#                 else :
-#                     step = 1
-#         #             print 'wait %s second(s)......' % step
-#                     time_count += step
-#                     time.sleep(1)
-#                     pass
-#                 
-#                 if time_count == timeout :
-#                     print 'Do nothing!timeout=%s.' % timeout
-#                     break
-#                 pass
-#             
-#             if len(cinder_ip_list) > 1 :
-#                 for cinder_ip in cinder_ip_list[1:] :
-#                     SSH.sendTagTo(cinder_ip, first_cinder_launched_mark_file)
-#                     pass
-#                 pass
-#             
-#             Cinder.start()
-#             pass
-#         else :
-#             timeout = TIMEOUT
-#             time_count = 0
-#             print 'test timeout==='
-#             while True:
-#                 #first neutron server is launched
-#                 flag = os.path.exists(first_cinder_launched_mark_file)
-#                 if flag == True :
-#                     print 'wait time: %s second(s).' % time_count
-#                     Cinder.start()
-#                     
-#                     break
-#                 else :
-#                     step = 1
-#         #             print 'wait %s second(s)......' % step
-#                     time_count += step
-#                     time.sleep(1)
-#                     pass
-#                 
-#                 if time_count == timeout :
-#                     print 'Do nothing!timeout=%s.' % timeout
-#                     break
-#                 pass
-#             
-#             Cinder.start()
-#             pass
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         #mark: cinder is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-kilo:cinder#######'
+    print 'hello openstack-newton:cinder#######'
     pass
 

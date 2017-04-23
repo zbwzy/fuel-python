@@ -137,7 +137,6 @@ class Glance(object):
             pass
         
         if os.path.exists(glance_registry_conf_file_path) :
-            print 'tttttttt====='
             print 'glance_registry_conf_file_path=%s' % glance_registry_conf_file_path
             os.system("sudo cp -r %s /etc/glance/glance-registry.conf.bak" % glance_registry_conf_file_path)
             os.system("sudo rm -rf %s" % glance_registry_conf_file_path)

@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -141,7 +141,7 @@ class CinderStorage(object):
 #         createCmd = 'vgcreate cinder-volumes /dev/sdb1'
 #         ShellCmdExecutor.execCmd(createCmd)
        
-        yumCmd = 'yum install openstack-cinder targetcli python-oslo-db python-oslo-log MySQL-python scsi-target-utils -y'
+        yumCmd = 'yum install openstack-cinder targetcli MySQL-python scsi-target-utils -y'
         ShellCmdExecutor.execCmd(yumCmd)
         
         print 'Cinder-storage.install done####'
@@ -191,6 +191,7 @@ class CinderStorage(object):
         
         keystone_vip = vipParamsDict["keystone_vip"]
         glance_vip = vipParamsDict["glance_vip"]
+        rabbit_vip = vipParamsDict["rabbit_vip"]
         keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -237,6 +238,7 @@ class CinderStorage(object):
         FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_CINDER_PASSWORD>', keystone_cinder_password)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_VIP>', rabbit_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<GLANCE_VIP>', glance_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
@@ -252,9 +254,6 @@ class CinderStorage(object):
         ShellCmdExecutor.execCmd("chown -R cinder:cinder /var/lock/cinder/")
         
         #If add filter, if necessary, modify /etc/lvm/lvm.conf
-        '''
-        filter = [ "a/sda/", "a/sdb/", "r/.*/"]
-        '''
         pass
     
     @staticmethod
@@ -271,7 +270,7 @@ class CinderStorage(object):
 
     
 if __name__ == '__main__':
-    print 'hello openstack-kilo:cinder-storage============'
+    print 'hello openstack-newton:cinder-storage============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
@@ -281,18 +280,17 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-#         Prerequisites.prepare()
         CinderStorage.install()
         CinderStorage.configConfFile()
     #     CinderStorage.start()
         #patch
-        from openstack.kilo.common.patch import Patch
-        Patch.patchOsloDbApi()
+#         from openstack.newton.common.patch import Patch
+#         Patch.patchOsloDbApi()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         #mark: cinder is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-kilo:cinder-storage#######'
+    print 'hello openstack-newton:cinder-storage#######'
     pass
 

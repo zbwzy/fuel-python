@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-api.conf')
 SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-registry.conf')
@@ -41,12 +41,12 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.kilo.glance.glance import Glance
+from openstack.newton.glance.glance import Glance
 
     
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:glance============'
+    print 'hello openstack-newton:glance============'
     
     print 'start time: %s' % time.ctime()
     
@@ -73,6 +73,6 @@ if __name__ == '__main__':
         #mark: glance is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     
-    print 'hello openstack-kilo:glance#######'
+    print 'hello openstack-newton:glance#######'
     pass
 

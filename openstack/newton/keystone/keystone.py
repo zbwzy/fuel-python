@@ -212,11 +212,13 @@ class Keystone(object):
     
     @staticmethod
     def bootstrapIdentityService():
-        bootsrap_cmd_template = 'keystone-manage bootstrap --bootstrap-password 123456 --bootstrap-admin-url http://{keystone_vip}:35357/v3/ --bootstrap-internal-url http://{keystone_vip}:35357/v3/ --bootstrap-public-url http://{keystone_vip}:5000/v3/ --bootstrap-region-id RegionOne'
+        bootsrap_cmd_template = 'keystone-manage bootstrap --bootstrap-password {keystone_admin_password} --bootstrap-admin-url http://{keystone_vip}:35357/v3/ --bootstrap-internal-url http://{keystone_vip}:35357/v3/ --bootstrap-public-url http://{keystone_vip}:5000/v3/ --bootstrap-region-id RegionOne'
+        
         
         vipParamsDict = JSONUtility.getValue('vip')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
         keystone_vip = vipParamsDict['keystone_vip']
-        cmd = bootsrap_cmd_template.format(keystone_vip=keystone_vip)
+        cmd = bootsrap_cmd_template.format(keystone_admin_password=keystone_admin_password,keystone_vip=keystone_vip)
         print 'bootsrap identity service cmd=%s--' % cmd
         ShellCmdExecutor.execCmd(cmd)
         pass
@@ -307,7 +309,6 @@ class Keystone(object):
         mysql_vip = vipParamsDict["mysql_vip"]
         keystone_vip = vipParamsDict['keystone_vip']
  
-        admin_token = JSONUtility.getValue("admin_token")
         #memcache service list
         keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
         keystone_ip_list = keystone_params_dict['mgmt_ips']
@@ -352,6 +353,8 @@ class Keystone(object):
 #         FileUtil.replaceFileContent(keystone_conf_file_path, '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
+        FileUtil.replaceFileContent(keystone_conf_file_path, '<MEMCACHED_LIST>', memcached_service_string)
+        FileUtil.replaceFileContent(keystone_conf_file_path,'<KEYSTONE_DBPASS>', keystoneDbPass)
         
         ShellCmdExecutor.execCmd("chmod 644 %s" % keystone_conf_file_path)
         
@@ -486,7 +489,7 @@ if __name__ == '__main__':
             Keystone.supportFernet()
             
             if len(keystone_ip_list) > 1 :
-                from openstack.kilo.ssh.SSH import SSH
+                from openstack.newton.ssh.SSH import SSH
                 #Mark /etc/keystone/fernet-keys produced on first keystone
                 tag_file_name = 'keystone_0_fernet'
                 for keystone_ip in keystone_ip_list[1:] :

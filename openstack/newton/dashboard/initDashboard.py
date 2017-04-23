@@ -31,17 +31,17 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
 sys.path.append(PROJ_HOME_DIR)
 
-from openstack.kilo.dashboard.dashboard import Dashboard
+from openstack.newton.dashboard.dashboard import Dashboard
     
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:dashboard============'
+    print 'hello openstack-newton:dashboard============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -56,6 +56,6 @@ if __name__ == '__main__':
         Dashboard.start()
         #mark: dashboard is started
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-kilo:dashboard installed#######'
+    print 'hello openstack-newton:dashboard installed#######'
     pass
 

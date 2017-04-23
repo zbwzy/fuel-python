@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'newton'
+OPENSTACK_VERSION_TAG = 'kilo'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
 
@@ -38,12 +38,11 @@ from common.json.JSONUtil import JSONUtility
 from common.file.FileUtil import FileUtil
 from openstack.common.serverSequence import ServerSequence
 
-class MariaDB(object):
+class BCRDB(object):
     '''
     classdocs
     '''
-    MARIADB_CONF_FILE_PATH = '/etc/my.cnf'
-    GALERA_CONF_FILE_PATH = '/etc/my.cnf.d/galera.cnf'
+    BCRDB_HOME_DIR = '/opt'
     ROLE = 'mysql'
     TIMEOUT = 600 #unit:second
     PORT = '3305'
@@ -57,8 +56,18 @@ class MariaDB(object):
     @staticmethod
     def install():
         #dependency
-        from openstack.newton.common.repo import Repo
-        ShellCmdExecutor.execCmd('yum install -y mariadb-galera-server mariadb-galera-common galera rsync perl-DBD-MySQL socat')
+        from openstack.kilo.common.repo import Repo
+#         Repo.setFuelRepo()
+        ShellCmdExecutor.execCmd('yum install perl-DBD-MySQL socat percona-xtrabackup -y')
+#         Repo.resetBCLinuxRepo()
+
+        rdb_package_name = 'BC-RDB-2.2.0-el7.x86_64.tar.gz'
+        bcrdb_source_dir = '/etc/puppet/modules/mysql/files/BC-RDB-2.2.0-el7.x86_64.tar.gz'
+        cp_cmd = 'cp -r %s %s' % (bcrdb_source_dir, BCRDB.BCRDB_HOME_DIR)
+        ShellCmdExecutor.execCmd(cp_cmd)
+        
+        extract_cmd = 'cd %s; tar zvxf %s' % (BCRDB.BCRDB_HOME_DIR, rdb_package_name)
+        ShellCmdExecutor.execCmd(extract_cmd)
         pass
     
     @staticmethod
@@ -69,20 +78,19 @@ class MariaDB(object):
             pass
         
         SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
-        SOURCE_GALERA_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'galera.cnf')
+        RDB_DEPLOY_DIR = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
+        DEST_RDB_CONF_DIR = os.path.join(RDB_DEPLOY_DIR, 'conf')
+        RDB_CONF_FILE_PATH = os.path.join(DEST_RDB_CONF_DIR, 'my.cnf')
+        EXECUTE_MYSQL_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysql')
+        MYSQLADMIN_BIN_PATH = os.path.join(RDB_DEPLOY_DIR, 'bin', 'mysqladmin')
         
-        ShellCmdExecutor.execCmd('cp -r %s %s' % (SOURCE_RDB_CONF_FILE_TEMPLATE_PATH, '/etc/'))
-        
-        ShellCmdExecutor.execCmd('cp -r %s %s' % (SOURCE_GALERA_CONF_FILE_TEMPLATE_PATH, '/etc/my.cnf.d/'))
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (SOURCE_RDB_CONF_FILE_TEMPLATE_PATH, DEST_RDB_CONF_DIR))
         
         mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
         mysql_ip_list = mysql_params_dict['mgmt_ips']
         print 'mysql_ip_list=%s--' % mysql_ip_list
-        
-        mysql_root_password = mysql_params_dict["mysql_password"]
         local_management_ip = YAMLUtil.getManagementIP()
-        output, exitcode = ShellCmdExecutor.execCmd('hostname')
-        hostname = output.strip()
+        host_index = mysql_ip_list.index(local_management_ip) + 1
         
         mysql_ip_list1 = [] #The rest mysql except itself
         for ip in mysql_ip_list :
@@ -95,16 +103,47 @@ class MariaDB(object):
         mysql_ip_list_string = ','.join(mysql_ip_list1)
         print 'mysql_ip_list_string=%s--' % mysql_ip_list_string
         
-        FileUtil.replaceFileContent(MariaDB.MARIADB_CONF_FILE_PATH, '<LOCAL_MANAGEMENT_IP>', local_management_ip)
+        FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<MYSQL_IP_LIST>', mysql_ip_list_string)
+        FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<LOCAL_MANAGEMENT_IP>', local_management_ip)
+        FileUtil.replaceFileContent(RDB_CONF_FILE_PATH, '<HOST_INDEX>', str(host_index))
         
-        FileUtil.replaceFileContent(MariaDB.GALERA_CONF_FILE_PATH, '<LOCAL_MANAGEMENT_IP>', local_management_ip)
-        FileUtil.replaceFileContent(MariaDB.GALERA_CONF_FILE_PATH, '<MYSQL_IP_LIST>', mysql_ip_list_string)
-        FileUtil.replaceFileContent(MariaDB.GALERA_CONF_FILE_PATH, '<HOST_NAME>', hostname)
-        FileUtil.replaceFileContent(MariaDB.GALERA_CONF_FILE_PATH, '<MYSQL_ROOT_PASSWORD>', mysql_root_password)
+        mysql_dir_rights_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'mysql_dir_rights.sh')
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % mysql_dir_rights_script_path)
+        ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/mysql_dir_rights.sh')
         
-        ShellCmdExecutor.execCmd('cp /usr/bin/rsync /usr/sbin')
+        #cp mysql to /usr/bin
+        ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % EXECUTE_MYSQL_PATH)
+        
+        ShellCmdExecutor.execCmd('cp -r %s /usr/bin/' % MYSQLADMIN_BIN_PATH)
+        
+        ShellCmdExecutor.execCmd('useradd bcrdb')
+        bcrdb_deploy_dir = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
+        ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb %s' % bcrdb_deploy_dir)
         pass
     
+    @staticmethod
+    def reDeploy():
+        bcrdb_deploy_dir = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
+        if os.path.exists(bcrdb_deploy_dir) :
+            ShellCmdExecutor.execCmd('rm -rf %s' % bcrdb_deploy_dir)
+            pass
+        
+        rdb_package_name = 'BC-RDB-2.2.0-el7.x86_64.tar.gz'
+        destTarFilePath = os.path.join(BCRDB.BCRDB_HOME_DIR, rdb_package_name) 
+        if os.path.exists(destTarFilePath) :
+            ShellCmdExecutor.execCmd('rm -rf %s' % destTarFilePath)
+            pass
+        
+        bcrdb_source_dir = '/etc/puppet/modules/mysql/files/BC-RDB-2.2.0-el7.x86_64.tar.gz'
+        cp_cmd = 'cp -r %s %s' % (bcrdb_source_dir, BCRDB.BCRDB_HOME_DIR)
+        ShellCmdExecutor.execCmd(cp_cmd)
+        
+        extract_cmd = 'cd %s; tar zvxf %s' % (BCRDB.BCRDB_HOME_DIR, rdb_package_name)
+        ShellCmdExecutor.execCmd(extract_cmd)
+        
+        ######re-config
+        BCRDB.config()
+        pass
     
     @staticmethod
     def start():
@@ -123,24 +162,96 @@ class MariaDB(object):
             ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
             pass
         
+        start_cmd = ''
+        start_cmd_template = '/opt/bcrdb/support-files/mysql.server {action}'
         if index == 0 :
-            ShellCmdExecutor.execCmd('systemctl start mariadb')
-            #init mariadb password
-            from openstack.newton.mysql.initDB import MySQL
-            #init root password
-            MySQL.initMariaDB()
+            start_cmd = start_cmd_template.format(action='bootstrap')
+            ShellCmdExecutor.execCmd(start_cmd)
             
-            MySQL.init()
-            ShellCmdExecutor.execCmd('systemctl stop mariadb')
-            #start cluster
-            ShellCmdExecutor.execCmd('/usr/libexec/mysqld --wsrep-new-cluster --user=root &')
+            print 'retry to bootstrap bcrdb==========='
+            retry = 3
+            while retry > 0 :
+                print 'retry=%d' % retry
+                
+                check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
+                process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+                process_num = process_num.strip()
+                if process_num != '0' :
+                    print 'break to bootstrap bcrdb====='
+                    break
+                else :
+                    print 'retry=%d' % retry
+                    ShellCmdExecutor.execCmd(start_cmd)
+                    pass
+                
+                retry -= 1
+                pass
             
+            #send tag to other mysql server, mark that: 
+            #the first mysql server has been launched.
+            if len(mysql_ip_list) > 1:
+                retry = 3
+                while retry > 0 :
+                    for mysql_ip in mysql_ip_list[1:] :
+                        from openstack.kilo.ssh.SSH import SSH
+                        SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
+                        pass
+                    
+                    retry -= 1
+                    pass
+                pass
+                        
+            time.sleep(15)
+            check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
+            process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+            if process_num != '0' :
+                print 'to init db===='
+                from openstack.kilo.mysql.initDB import MySQL
+                MySQL.init()
+                pass
+            else :
+                print 'rdb is not launched.'
+                pass
             pass
         else :
+            start_cmd = start_cmd_template.format(action='start')
+            
             #####
-            ShellCmdExecutor.execCmd('systemctl start mariadb')
+            TIMEOUT = 600
+            timeout = TIMEOUT
+            time_count = 0
+            while True:
+                cmd = 'ls -lt /opt/openstack_conf/tag/ | grep bcrdb_0_launched | wc -l' 
+                output, exitcode = ShellCmdExecutor.execCmd(cmd)
+                file_tag = output.strip()
+                if str(file_tag) == "1" :
+                    time.sleep(5)
+                    print 'wait time: %s second(s).' % time_count
+                     
+                    ShellCmdExecutor.execCmd(start_cmd)
+                     
+                    check_mysql_cmd = 'ps aux | grep mysqld | grep wsrep | grep %s | grep -v grep | wc -l' % BCRDB.PORT
+                    process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
+                    process_num = process_num.strip()
+                    if process_num == '0' :
+                        print 'start bcrdb again===='
+                        ShellCmdExecutor.execCmd(start_cmd)
+                        pass
+                    break
+                else :
+                    step = 1
+        #             print 'wait %s second(s)......' % step
+                    time_count += step
+                    time.sleep(1)
+                    pass
+                 
+                if time_count == timeout :
+                    print 'Timeout %d when wait for the first mysql server launched.' % TIMEOUT
+                    print 'Do nothing!timeout=%s.' % timeout
+                    break
+                pass
+            #####
             pass
-        print 'start mariadb done######'
         pass
     
     @staticmethod
@@ -160,7 +271,7 @@ class MariaDB(object):
             ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
             pass
         
-        from openstack.newton.ssh.SSH import SSH
+        from openstack.kilo.ssh.SSH import SSH
         if index == 0 :
             print 'start to launch mysql master==============='
             start_cmd = '/opt/bcrdb/support-files/mysql.server bootstrap'
@@ -275,7 +386,7 @@ class MariaDB(object):
                 retry = 3
                 while retry > 0 :
                     for mysql_ip in mysql_ip_list[1:] :
-                        from openstack.newton.ssh.SSH import SSH
+                        from openstack.kilo.ssh.SSH import SSH
                         SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
                         pass
                     
@@ -332,18 +443,18 @@ class MariaDB(object):
     
 
 if __name__ == '__main__':
-    print 'hello openstack-newton:mariadb======='
-    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initMariadb'
+    print 'hello openstack-kilo:rdb======='
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initBCRDB'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'bcrdb cluster initted####'
         print 'exit===='
         pass
     else :
-        MariaDB.install()
-        MariaDB.config()
-#         MariaDB.start()
+        BCRDB.install()
+        BCRDB.config()
+        BCRDB.start()
         
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-newton:mariadb installed#######'
+    print 'hello openstack-kilo:rdb installed#######'
     pass
 

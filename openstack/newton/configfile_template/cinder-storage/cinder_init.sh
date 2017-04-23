@@ -1,12 +1,12 @@
 #!/bin/bash
 
-export OS_SERVICE_TOKEN=123456
-export OS_SERVICE_ENDPOINT=http://<LOCAL_IP>:35357/v2.0
-
 export OS_USERNAME=admin
-export OS_PASSWORD=123456
-export OS_TENANT_NAME=admin
-export OS_AUTH_URL=http://<LOCAL_IP>:35357/v2.0
+export OS_PASSWORD=<KEYSTONE_ADMIN_PASSWORD>
+export OS_PROJECT_NAME=admin
+export OS_USER_DOMAIN_NAME=Default
+export OS_PROJECT_DOMAIN_NAME=Default
+export OS_AUTH_URL=http://<KEYSTONE_VIP>:35357/v3
+export OS_IDENTITY_API_VERSION=3
 
 echo 'start to init cinder db==========='
 

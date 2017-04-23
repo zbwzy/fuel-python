@@ -26,7 +26,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-api.conf')
 SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance-registry.conf')
@@ -40,12 +40,12 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 
-from openstack.kilo.glance.glance import Glance
+from openstack.newton.glance.glance import Glance
 
     
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:importImageToGlance============'
+    print 'hello openstack-newton:importImageToGlance============'
     
     print 'start time: %s' % time.ctime()
     
@@ -142,6 +142,6 @@ if __name__ == '__main__':
             print 'Do not exist file %s.' % imageFilePath
             pass
     
-    print 'hello openstack-kilo:importImageToGlance#######'
+    print 'hello openstack-newton:importImageToGlance#######'
     pass
 

@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_GLANE_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'glance-api.conf')
 SOURCE_GLANE_REGISTRY_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'glance-registry.conf')
@@ -42,7 +42,7 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 from openstack.common.serverSequence import ServerSequence
-from openstack.kilo.ssh.SSH import SSH
+from openstack.newton.ssh.SSH import SSH
 
 
 class Glance(object):
@@ -207,7 +207,7 @@ class Glance(object):
     
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:glance============'
+    print 'hello openstack-newton:glance============'
     
     print 'start time: %s' % time.ctime()
     
@@ -223,7 +223,7 @@ if __name__ == '__main__':
         Glance.install()
         Glance.configConfFile()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         #mark: glance is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

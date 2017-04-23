@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -40,7 +40,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
-from openstack.kilo.ssh.SSH import SSH 
+from openstack.newton.ssh.SSH import SSH 
 from openstack.common.serverSequence import ServerSequence
 
 class Prerequisites(object):
@@ -145,14 +145,14 @@ vif_plugging_timeout=0
     @staticmethod
     def start():
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-api.service")
-        ShellCmdExecutor.execCmd("systemctl enable openstack-nova-cert.service")
+#         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-cert.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-consoleauth.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-scheduler.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-conductor.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-novncproxy.service")
         
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-api.service")
-        ShellCmdExecutor.execCmd("systemctl start openstack-nova-cert.service")
+#         ShellCmdExecutor.execCmd("systemctl start openstack-nova-cert.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-consoleauth.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-scheduler.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-conductor.service") 
@@ -298,16 +298,17 @@ vif_plugging_timeout=0
         
         os.system('chown -R nova:nova %s' % nova_manage_log_file)
         ##
-        importCmd = 'su -s /bin/sh -c "nova-manage db sync" nova'
-        print 'importNovaDBSchema.startTime=%s' % time.time()
+        importCmd = 'su -s /bin/sh -c "nova-manage api_db sync" nova'
         ShellCmdExecutor.execCmd(importCmd)
-        print 'importNovaDBSchema.endTime=%s' % time.time()
+        
+        importCmd = 'su -s /bin/sh -c "nova-manage db sync" nova'
+        ShellCmdExecutor.execCmd(importCmd)
         
 #         user = 'root'
 #         mysql_params_dict = JSONUtility.getRoleParamsDict('mysql')
 #         passwd = mysql_params_dict['mysql_password']
 #         
-#         from openstack.kilo.mysql.initDB import MySQL
+#         from openstack.newton.mysql.initDB import MySQL
 #         if MySQL.checkKeystoneDB(user, passwd) == False:
 #             print 'importNovaDBSchema second time==========='
 #             ShellCmdExecutor.execCmd(importCmd)
@@ -324,7 +325,7 @@ vif_plugging_timeout=0
     
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:nova-controller============'
+    print 'hello openstack-newton:nova-controller============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -342,13 +343,13 @@ if __name__ == '__main__':
         Nova.configConfFile()
         
         #patch
-        from openstack.kilo.common.patch import Patch
+        from openstack.newton.common.patch import Patch
         Patch.patchOsloDbApi()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         #mark: nova-api is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-kilo:nova-controller#######'
+    print 'hello openstack-newton:nova-controller#######'
     pass
 

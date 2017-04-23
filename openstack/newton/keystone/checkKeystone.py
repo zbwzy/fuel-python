@@ -29,7 +29,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone.conf')
 
@@ -41,12 +41,12 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.kilo.keystone.keystone import Keystone
+from openstack.newton.keystone.keystone import Keystone
 
 
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:keystone============'
+    print 'hello openstack-newton:keystone============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -131,6 +131,6 @@ if __name__ == '__main__':
             pass
         
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-kilo:keystone#######'
+    print 'hello openstack-newton:keystone#######'
     pass
 

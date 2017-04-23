@@ -20,7 +20,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -32,7 +32,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil  
 from common.yaml.YAMLUtil import YAMLUtil
-from openstack.kilo.ssh.SSH import SSH 
+from openstack.newton.ssh.SSH import SSH 
 from openstack.common.serverSequence import ServerSequence
 
 class Prerequisites(object):
@@ -111,7 +111,9 @@ class NeutronServer(object):
     def install():
         print 'NeutronServer.install start===='
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 python-neutronclient which openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpnaas -y"
+        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 \
+        openstack-neutron-linuxbridge ebtables python-neutronclient -y"
+        
         ShellCmdExecutor.execCmd(yumCmd)
         print 'NeutronServer.install done####'
         pass
@@ -133,7 +135,7 @@ class NeutronServer(object):
         
         NeutronServer.configML2()
         
-        NeutronServer.configLBaaSAgent()
+        NeutronServer.configLinuxBridgeAgent()
         
         ShellCmdExecutor.execCmd('ln -s /etc/neutron/plugins/ml2/ml2_conf.ini /etc/neutron/plugin.ini')
         pass
@@ -146,13 +148,13 @@ class NeutronServer(object):
         output, exitcode = ShellCmdExecutor.execCmd(importNeutronDBSchemaCmd)
         print 'importNeutronSchemaOutput=%s--' % output
         
-        importFwaasCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service fwaas upgrade head'
-        importLbaasCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service lbaas upgrade head'
-        importVpnCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service vpnaas upgrade head'
-        
-        ShellCmdExecutor.execCmd(importFwaasCmd)
-        ShellCmdExecutor.execCmd(importLbaasCmd)
-        ShellCmdExecutor.execCmd(importVpnCmd)
+#         importFwaasCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service fwaas upgrade head'
+#         importLbaasCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service lbaas upgrade head'
+#         importVpnCmd = 'neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/ml2/ml2_conf.ini --service vpnaas upgrade head'
+#         
+#         ShellCmdExecutor.execCmd(importFwaasCmd)
+#         ShellCmdExecutor.execCmd(importLbaasCmd)
+#         ShellCmdExecutor.execCmd(importVpnCmd)
         ########
     
     @staticmethod
@@ -183,6 +185,7 @@ class NeutronServer(object):
         
         keystone_vip = vipParamsDict["keystone_vip"]
         nova_vip = vipParamsDict["nova_vip"]
+        rabbit_vip = vipParamsDict["rabbit_vip"]
         keystone_neutron_password = JSONUtility.getValue("keystone_neutron_password")
         keystone_nova_password = JSONUtility.getValue("keystone_nova_password")
         
@@ -219,10 +222,10 @@ class NeutronServer(object):
         ShellCmdExecutor.execCmd("cat %s > /tmp/neutron.conf" % neutron_server_conf_template_file_path)
         ShellCmdExecutor.execCmd("mv /tmp/neutron.conf /etc/neutron/")
         
-        FileUtil.replaceFileContent(neutron_conf_file_path, '<LOCAL_MANAGEMENT_VIP>', localIP)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-#         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
+        FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_VIP>', rabbit_vip)
         FileUtil.replaceFileContent(neutron_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
         FileUtil.replaceFileContent(neutron_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
@@ -271,15 +274,22 @@ class NeutronServer(object):
         pass
     
     @staticmethod
-    def configLBaaSAgent():
-        NEUTRON_LB_CONF_FILE_PATH1 = '/etc/neutron/neutron_lbaas.conf'
+    def configLinuxBridgeAgent():
+        NEUTRON_LB_CONF_FILE_PATH1 = '/etc/neutron/plugins/ml2/linuxbridge_agent.ini'
         if os.path.exists(NEUTRON_LB_CONF_FILE_PATH1) :
             ShellCmdExecutor.execCmd("rm -rf %s" % NEUTRON_LB_CONF_FILE_PATH1)
             pass
         
-        neutron_lb_template_conf_file_path1 = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'network', 'neutron_lbaas.conf')
+        neutron_lb_template_conf_file_path1 = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'linuxbridge_agent.ini')
         
-        ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_lb_template_conf_file_path1, '/etc/neutron/'))
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (neutron_lb_template_conf_file_path1, '/etc/neutron/plugins/ml2/'))
+        
+        local_management_ip = YAMLUtil.getManagementIP() 
+        FileUtil.replaceFileContent(NEUTRON_LB_CONF_FILE_PATH1, '<LOCAL_MANAGEMENT_IP>', local_management_ip)
+        pass
+    
+    @staticmethod
+    def configDHCPAgent():
         pass
     
     @staticmethod
@@ -418,7 +428,7 @@ if __name__ == '__main__':
 #     print '.'.join(ips[1].split('.')[0:3]) + '.0/24'
 #     exit()
     #####TEST
-    print 'openstack-kilo:neutron-server start============'
+    print 'openstack-newton:neutron-server start============'
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/neutronserver_installed'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'neutron-server installed####'
@@ -432,13 +442,13 @@ if __name__ == '__main__':
         NeutronServer.configConfFile()
         
         #patch
-        from openstack.kilo.common.patch import Patch
+        from openstack.newton.common.patch import Patch
         Patch.patchOsloDbApi()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'openstack-kilo:neutron-server done#######'
+    print 'openstack-newton:neutron-server done#######'
     pass
 

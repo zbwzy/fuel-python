@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -178,9 +178,9 @@ class NovaCompute(object):
     @staticmethod
     def install():
         print 'Nova-compute.install start===='
-        ShellCmdExecutor.execCmd('yum install sysfsutils libvirt* device-mapper* boost* -y')
+#         ShellCmdExecutor.execCmd('yum install sysfsutils libvirt* device-mapper* boost* -y')
         
-        ShellCmdExecutor.execCmd('yum reinstall qemu* -y')
+#         ShellCmdExecutor.execCmd('yum reinstall qemu* -y')
         
         yumCmd = 'yum install openstack-nova-compute -y'
         ShellCmdExecutor.execCmd(yumCmd)
@@ -247,66 +247,6 @@ vif_plugging_timeout=0
     
     @staticmethod
     def configConfFile():
-        '''
-        MYSQL_VIP
-        LOCAL_MANAGEMENT_IP
-        GLANCE_VIP
-        KEYSTONE_VIP
-        KEYSTONE_NOVA_PASSWORD
-        NEUTRON_VIP
-        KEYSTONE_NEUTRON_PASSWORD
-        RABBIT_PASSWORD
-        RABBIT_HOSTS
-        '''
-        #use conf template file to replace <CONTROLLER_IP>
-        '''
-        #modify nova.conf:
-
-[database]
-connection=mysql://nova:123456@controller/nova
-
-[DEFAULT]
-rpc_backend=rabbit
-rabbit_host=<CONTROLLER_IP>
-rabbit_password=123456
-my_ip=<CONTROLLER_IP>
-vncserver_listen=<CONTROLLER_IP>
-vncserver_proxyclient_address=<CONTROLLER_IP>
-#########
-#
-rpc_backend=rabbit
-rabbit_host=<CONTROLLER_IP>
-rabbit_password=123456
-my_ip=<CONTROLLER_IP>
-vncserver_listen=<CONTROLLER_IP>
-vncserver_proxyclient_address=<CONTROLLER_IP>
-
-5).modify nova.conf: set the auth info of keystone:
-
-[DEFAULT]
-auth_strategy=keystone
-
-[keystone_authtoken]
-auth_uri=http://controller:5000
-auth_host=<CONTROLLER_IP>
-auth_protocal=http
-auth_port=35357
-admin_tenant_name=service
-admin_user=nova
-admin_password=123456
-        '''
-        '''
-        MYSQL_VIP
-        LOCAL_MANAGEMENT_IP
-        GLANCE_VIP
-        KEYSTONE_VIP
-        KEYSTONE_NOVA_PASSWORD
-        NEUTRON_VIP
-        KEYSTONE_NEUTRON_PASSWORD
-        RABBIT_PASSWORD
-        RABBIT_HOSTS
-        NOVA_VIP
-        '''
         ####
         NovaCompute.reconfigLibvirtd()
         ####
@@ -317,6 +257,7 @@ admin_password=123456
         rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
         rabbit_password = rabbit_params_dict["rabbit_password"]
         rabbit_userid = rabbit_params_dict["rabbit_userid"]
+        rabbit_vip = rabbit_params_dict["rabbit_vip"]
         
         glance_vip = vipParamsDict["glance_vip"]
         nova_vip = vipParamsDict["nova_vip"]
@@ -370,6 +311,7 @@ admin_password=123456
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
 #         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_VIP>', rabbit_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<NEUTRON_VIP>', neutron_vip)
         FileUtil.replaceFileContent(nova_conf_file_path, '<KEYSTONE_NOVA_PASSWORD>', keystone_nova_password)
@@ -409,7 +351,7 @@ admin_password=123456
     
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:nova-compute============'
+    print 'hello openstack-newton:nova-compute============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -428,14 +370,14 @@ if __name__ == '__main__':
 #         NovaCompute.start()
         #
         #patch
-        from openstack.kilo.common.patch import Patch
+        from openstack.newton.common.patch import Patch
         Patch.patchOsloDbApi()
         
         #do ssh trust for nova user
-        from openstack.kilo.ssh.SSH import SSH
+        from openstack.newton.ssh.SSH import SSH
         SSH.sshNovaUserTrust()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

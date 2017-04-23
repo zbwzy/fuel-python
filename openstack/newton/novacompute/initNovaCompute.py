@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -37,10 +37,10 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.kilo.novacompute.novacompute import NovaCompute
+from openstack.newton.novacompute.novacompute import NovaCompute
     
 if __name__ == '__main__':
-    print 'hello openstack-kilo:nova-compute============'
+    print 'hello openstack-newton:nova-compute============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################
@@ -52,12 +52,8 @@ if __name__ == '__main__':
     else :
         NovaCompute.start()
         
-        #add ssh mutual trust for nova user
-        if NovaCompute.getServerIndex() == 0 :
-            NovaCompute.sshMutualTrust()
-            pass
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello nova-compute kilo#######'
+    print 'hello nova-compute newton#######'
     pass
 
