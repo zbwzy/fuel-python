@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 
 sys.path.append(PROJ_HOME_DIR)
@@ -60,10 +60,10 @@ class Memcached(object):
 
 if __name__ == '__main__':
         
-    print 'hello openstack-kilo:memcached======='
+    print 'hello openstack-newton:memcached======='
     Memcached.install()
     Memcached.start()
     
-    print 'hello openstack-kilo:memcached installed#######'
+    print 'hello openstack-newton:memcached installed#######'
     pass
 

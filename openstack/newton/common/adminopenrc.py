@@ -70,8 +70,8 @@ class AdminOpenrc(object):
 
 if __name__ == '__main__':
         
-    print 'hello openstack-kilo:cp admin-openrc======='
+    print 'hello openstack-newton:cp admin-openrc======='
    
-    print 'hello openstack-kilo:cp admin-openrc#######'
+    print 'hello openstack-newton:cp admin-openrc#######'
     pass
 

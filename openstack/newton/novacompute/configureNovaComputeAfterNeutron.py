@@ -86,6 +86,15 @@ class NovaCompute(object):
         ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron')
         pass
     
+    
+    @staticmethod
+    def configureLinuxBridgeAgent():
+        linuxBridgeAgentConfTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'linuxbridge_agent.ini')
+        ShellCmdExecutor.execCmd("cp -r %s %s" % (linuxBridgeAgentConfTemplatePath, "/etc/neutron/plugins/ml2/"))
+        localIP = YAMLUtil.getManagementIP()
+        FileUtil.replaceFileContent('/etc/neutron/plugins/ml2/', '<LOCAL_MANAGEMENT_IP>', localIP)
+        pass
+    
     @staticmethod
     def configureML2():
         ml2ConfTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'ml2_conf.ini')
@@ -189,7 +198,7 @@ if __name__ == '__main__':
     else :
         NovaCompute.install()
         NovaCompute.confiugureNeutron()
-        NovaCompute.configureML2()
+        NovaCompute.configureLinuxBridgeAgent()
 #         NovaCompute.configureOVS()
 #         NovaCompute.reconfigureNovaCompute()
         NovaCompute.finalizeInstallation()

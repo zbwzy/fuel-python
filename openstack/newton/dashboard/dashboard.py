@@ -238,7 +238,7 @@ if __name__ == '__main__':
         
     #     Dashboard.start()
     #    
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         
         os.system('touch %s' % INSTALL_TAG_FILE)

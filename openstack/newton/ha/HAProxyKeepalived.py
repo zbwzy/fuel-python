@@ -17,7 +17,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
 
@@ -717,7 +717,7 @@ listen rabbitmq
     
 if __name__ == '__main__':
     
-    print 'hello openstack-kilo:haproxy-keepalived============'
+    print 'hello openstack-newton:haproxy-keepalived============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -733,7 +733,7 @@ if __name__ == '__main__':
         
         os.system('touch %s' % INSTALL_TAG_FILE)
         pass
-    print 'hello openstack-kilo:haproxy-keepalived########'
+    print 'hello openstack-newton:haproxy-keepalived########'
     
     
     

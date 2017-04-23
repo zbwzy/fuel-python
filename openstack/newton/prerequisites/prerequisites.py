@@ -20,7 +20,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -30,9 +30,9 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.yaml.YAMLUtil import YAMLUtil
 from common.file.FileUtil import FileUtil
 
-from openstack.kilo.ssh.SSH import SSH
+from openstack.newton.ssh.SSH import SSH
 from common.yaml.ParamsProducer import ParamsProducer
-from openstack.kilo.iptables.iptables import IPTables
+from openstack.newton.iptables.iptables import IPTables
 
 
 class Prerequisites(object):
@@ -54,7 +54,7 @@ class Prerequisites(object):
         YAMLUtil.setHosts()
         
         ###set bclinux repo url
-        from openstack.kilo.common.repo import Repo
+        from openstack.newton.common.repo import Repo
         if Repo.useBCLinuxRepo :
             Repo.setBCLinuxRepo()
             pass
@@ -78,7 +78,7 @@ class Prerequisites(object):
         ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/scripts')
         
         #memcache
-        from openstack.kilo.memcached.memcached import Memcached
+        from openstack.newton.memcached.memcached import Memcached
         Memcached.install()
         Memcached.start()
         
@@ -131,7 +131,7 @@ class Prerequisites(object):
     pass
 
 if __name__ == '__main__':
-    print 'openstack kilo:to do prerequisites============'
+    print 'openstack newton:to do prerequisites============'
     Prerequisites.install()
-    print 'openstack kilo: done prerequisites######'
+    print 'openstack newton: done prerequisites######'
     pass

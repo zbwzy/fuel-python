@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -39,7 +39,7 @@ from openstack.common.role import Role
 
     
 if __name__ == '__main__':
-    print 'hello openstack-kilo:init ostf============'
+    print 'hello openstack-newton:init ostf============'
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     ###############################

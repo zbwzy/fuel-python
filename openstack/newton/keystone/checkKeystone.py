@@ -58,7 +58,7 @@ if __name__ == '__main__':
         print 'keystone initted####'
         print 'exit===='
     else :
-        from openstack.kilo.keystone.keystone import Keystone
+        from openstack.newton.keystone.keystone import Keystone
         if Keystone.getServerIndex() == 0 :
             get_keystone_service_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'getKeystoneServiceID.sh')
             ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts' % get_keystone_service_script_path)

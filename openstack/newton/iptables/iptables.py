@@ -20,14 +20,14 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
 sys.path.append(PROJ_HOME_DIR)
 
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
-from openstack.kilo.ssh.SSH import SSH
+from openstack.newton.ssh.SSH import SSH
 from openstack.common.role import Role
 
 class IPTables(object):

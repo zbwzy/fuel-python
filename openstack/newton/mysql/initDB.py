@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql','keystone.conf')
 
@@ -484,7 +484,7 @@ class MySQL(object):
 
     
 if __name__ == '__main__':
-    print 'hello openstack-kilo:initDB============'
+    print 'hello openstack-newton:initDB============'
     
     print 'start time: %s' % time.ctime()
     

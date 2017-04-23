@@ -29,7 +29,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 
 sys.path.append(PROJ_HOME_DIR)
@@ -228,7 +228,7 @@ class Network(object):
         Network.startNeutron()
         
         ##add br-ex to business net
-        from openstack.kilo.common.net import Net
+        from openstack.newton.common.net import Net
         pxeInterfaceName = Net.getInterfaceNameByBridge('br-fw-admin')
         exInterfaceName = Net.getInterfaceNameByBridge('br-data')
         
@@ -474,7 +474,7 @@ enabled = True
     
 
 if __name__ == '__main__':
-    print 'openstack-kilo:network============'
+    print 'openstack-newton:network============'
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/network_installed'
     
     if os.path.exists(INSTALL_TAG_FILE) :
@@ -485,14 +485,14 @@ if __name__ == '__main__':
         Network.install()
         Network.configConfFile()
         #patch
-        from openstack.kilo.common.patch import Patch
+        from openstack.newton.common.patch import Patch
         Patch.patchOsloDbApi()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
+        from openstack.newton.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()
         
         os.system('touch %s' % INSTALL_TAG_FILE)
         pass
-    print 'openstack-kilo:network done#######'
+    print 'openstack-newton:network done#######'
     pass
 

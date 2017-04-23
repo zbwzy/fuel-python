@@ -25,7 +25,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
 
@@ -56,7 +56,7 @@ class BCRDB(object):
     @staticmethod
     def install():
         #dependency
-        from openstack.kilo.common.repo import Repo
+        from openstack.newton.common.repo import Repo
 #         Repo.setFuelRepo()
         ShellCmdExecutor.execCmd('yum install perl-DBD-MySQL socat percona-xtrabackup -y')
 #         Repo.resetBCLinuxRepo()
@@ -193,7 +193,7 @@ class BCRDB(object):
                 retry = 3
                 while retry > 0 :
                     for mysql_ip in mysql_ip_list[1:] :
-                        from openstack.kilo.ssh.SSH import SSH
+                        from openstack.newton.ssh.SSH import SSH
                         SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
                         pass
                     
@@ -206,7 +206,7 @@ class BCRDB(object):
             process_num, exitcode = ShellCmdExecutor.execCmd(check_mysql_cmd)
             if process_num != '0' :
                 print 'to init db===='
-                from openstack.kilo.mysql.initDB import MySQL
+                from openstack.newton.mysql.initDB import MySQL
                 MySQL.init()
                 pass
             else :
@@ -271,7 +271,7 @@ class BCRDB(object):
             ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
             pass
         
-        from openstack.kilo.ssh.SSH import SSH
+        from openstack.newton.ssh.SSH import SSH
         if index == 0 :
             print 'start to launch mysql master==============='
             start_cmd = '/opt/bcrdb/support-files/mysql.server bootstrap'
@@ -386,7 +386,7 @@ class BCRDB(object):
                 retry = 3
                 while retry > 0 :
                     for mysql_ip in mysql_ip_list[1:] :
-                        from openstack.kilo.ssh.SSH import SSH
+                        from openstack.newton.ssh.SSH import SSH
                         SSH.sendTagTo(mysql_ip, 'bcrdb_0_launched')
                         pass
                     
@@ -443,7 +443,7 @@ class BCRDB(object):
     
 
 if __name__ == '__main__':
-    print 'hello openstack-kilo:rdb======='
+    print 'hello openstack-newton:rdb======='
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initBCRDB'
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'bcrdb cluster initted####'
@@ -455,6 +455,6 @@ if __name__ == '__main__':
         BCRDB.start()
         
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-kilo:rdb installed#######'
+    print 'hello openstack-newton:rdb installed#######'
     pass
 

@@ -25,20 +25,20 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_RDB_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'mysql', 'my.cnf')
 
 sys.path.append(PROJ_HOME_DIR)
 
-from openstack.kilo.mysql.bcrdb import BCRDB
+from openstack.newton.mysql.bcrdb import BCRDB
 
 if __name__ == '__main__':
         
-    print 'hello openstack-kilo:start rdb======='
+    print 'hello openstack-newton:start rdb======='
     BCRDB.start2()
     #init db
     
-    print 'hello openstack-kilo:rdb started#######'
+    print 'hello openstack-newton:rdb started#######'
     pass
 

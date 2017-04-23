@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_NOVA_API_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'nova', 'nova.conf')
 
@@ -98,7 +98,7 @@ def initInternalNetwork():
     admin_token = JSONUtility.getValue('admin_token')
     keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
     
-    from openstack.kilo.neutronserver.neutronserver import NeutronServer
+    from openstack.newton.neutronserver.neutronserver import NeutronServer
     
     net04_l3_subnet = NeutronServer.getNet04L3Subnet()
     net04_l3_gateway = NeutronServer.getNet04L3Gateway()
@@ -126,7 +126,7 @@ def initExternalNetwork():
     admin_token = JSONUtility.getValue('admin_token')
     keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
     
-    from openstack.kilo.neutronserver.neutronserver import NeutronServer
+    from openstack.newton.neutronserver.neutronserver import NeutronServer
     floating_range = NeutronServer.getFloatingRange()
     ips = floating_range.split(':')
     print 'floating_ips=%s--' % ips
@@ -163,7 +163,7 @@ def initBasicNetwork():
     admin_token = JSONUtility.getValue('admin_token')
     keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
     
-    from openstack.kilo.neutronserver.neutronserver import NeutronServer
+    from openstack.newton.neutronserver.neutronserver import NeutronServer
     basic_network_range = NeutronServer.getBasicNetRange()
     ips = basic_network_range.split(':')
     start_ip = ips[0]
@@ -190,7 +190,7 @@ def initBasicNetwork():
     pass
     
 if __name__ == '__main__':
-    print 'hello openstack-kilo:init ostf network============'
+    print 'hello openstack-newton:init ostf network============'
     print 'start time: %s' % time.ctime()
     #####
     #when execute script,exec: python <this file absolute path>

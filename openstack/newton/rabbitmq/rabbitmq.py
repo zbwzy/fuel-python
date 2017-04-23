@@ -28,7 +28,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 SOURCE_KEYSTONE_CONF_FILE_TEMPLATE_PATH = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone.conf')
 
@@ -186,7 +186,7 @@ class RabbitMQ(object):
             time.sleep(3)
             output,exitcode = ShellCmdExecutor.execCmd('bash %s' % init_script_path)
             if len(rabbitmq_ip_list) > 1 :
-                from openstack.kilo.ssh.SSH import SSH
+                from openstack.newton.ssh.SSH import SSH
                 retry = 3
                 while retry > 0 :
                     for rabbitmq_ip in rabbitmq_ip_list[1:] :
@@ -226,7 +226,7 @@ class RabbitMQ(object):
                     '''
 rabbitmqctl stop_app
 sleep 3
-rabbitmqctl join_cluster rabbit@kilo5
+rabbitmqctl join_cluster rabbit@newton5
 rabbitmqctl start_app
 sleep 2
 rabbitmqctl set_policy ha-all '^(?!amq\.).*' '{"ha-mode": "all"}'
@@ -236,7 +236,7 @@ sleep 2
 rabbitmqctl  set_permissions -p / nova '.*' '.*' '.*'
                     '''
 #                     ShellCmdExecutor.execCmd('rabbitmqctl stop_app')
-#                     ShellCmdExecutor.execCmd('rabbitmqctl join_cluster rabbit@kilo5')
+#                     ShellCmdExecutor.execCmd('rabbitmqctl join_cluster rabbit@newton5')
 #                     ShellCmdExecutor.execCmd('rabbitmqctl start_app')
 #                     ShellCmdExecutor.execCmd('rabbitmqctl set_policy ha-all \'^(?!amq\.).*\' \'{"ha-mode": "all"}\'')
 #                     ShellCmdExecutor.execCmd('rabbitmqctl add_user nova 68ed25e3a0c3be79ec83')

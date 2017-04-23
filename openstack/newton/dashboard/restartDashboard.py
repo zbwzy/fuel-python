@@ -57,6 +57,6 @@ if __name__ == '__main__':
     #     ShellCmdExecutor.execCmd('service haproxy restart')
         #mark: dashboard is installed
         os.system('touch %s' % RESTART_TAG_FILE)
-    print 'hello openstack-kilo:dashboard restarted#######'
+    print 'hello openstack-newton:dashboard restarted#######'
     pass
 

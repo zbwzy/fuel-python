@@ -26,7 +26,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 
 sys.path.append(PROJ_HOME_DIR)
@@ -629,7 +629,7 @@ vrrp_instance 42 {
     
     
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:ceilometer============'
+    print 'hello openstack-newton:ceilometer============'
     print 'start time: %s' % time.ctime()
     #DEBUG
     debug = False
@@ -664,6 +664,6 @@ if __name__ == '__main__':
         #
         #mark: ceilometer is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:ceilometer#######'
+    print 'hello openstack-newton:ceilometer#######'
     pass
 

@@ -29,7 +29,7 @@ else :
     PROJ_HOME_DIR = '/etc/puppet/fuel-python'   
     pass
 
-OPENSTACK_VERSION_TAG = 'kilo'
+OPENSTACK_VERSION_TAG = 'newton'
 OPENSTACK_CONF_FILE_TEMPLATE_DIR = os.path.join(PROJ_HOME_DIR, 'openstack', OPENSTACK_VERSION_TAG, 'configfile_template')
 
 sys.path.append(PROJ_HOME_DIR)
@@ -40,14 +40,14 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.ceilometer.ceilometer import Ceilometer
-from openstack.icehouse.ceilometer.ceilometer import CeilometerHA
+from openstack.newton.ceilometer.ceilometer import Ceilometer
+from openstack.newton.ceilometer.ceilometer import CeilometerHA
 
 
 
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:ceilometer============'
+    print 'hello openstack-newton:ceilometer============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -75,6 +75,6 @@ if __name__ == '__main__':
         
         #mark: ceilometer is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:ceilometer#######'
+    print 'hello openstack-newton:ceilometer#######'
     pass
 
