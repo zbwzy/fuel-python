@@ -1,0 +1,22 @@
+# BCLinux-Base.repo
+#
+# The mirror system uses the connecting IP address of the client and the
+# update status of each mirror to pick mirrors that are updated to and
+# geographically close to the client.  You should use this for BCLinux updates
+# unless you are manually picking other mirrors.
+#
+# If the mirrorlist= does not work for you, as a fall back you can try the 
+# remarked out baseurl= line instead.
+#
+#
+[product] 
+name=BCLinux-$releasever - Product
+baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/product/$basearch/
+gpgcheck=0 
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-BCLinux-7
+
+[product-source] 
+name=BCLinux-$releasever - Product Sources
+baseurl=http://mirrors.bclinux.org/bclinux/el$releasever/product/Source/
+gpgcheck=0 
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-BCLinux-7

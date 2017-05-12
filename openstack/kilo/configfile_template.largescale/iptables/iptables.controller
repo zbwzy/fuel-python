@@ -1,0 +1,50 @@
+# sample configuration for iptables service
+# you can edit this manually or use system-config-firewall
+# please do not ask us to add additional ports/services to this default configuration
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 22 -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 4505,4506 -m comment --comment saltsack -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 3306,4567,4444,9200 -m comment --comment rdb -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 80 -m comment --comment httpd -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 10050 -m comment --comment zabbix -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 3306 -m comment --comment mysql -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5007 -m comment --comment mysql -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5008 -m comment --comment mysql -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 4369 -m comment --comment "rabbitmq cluster" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 41055 -m comment --comment "rabbitmq cluster" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5000 -m comment --comment "keystone internal api" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 5672 -m comment --comment rabbitmq -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 35357 -m comment --comment "keystone admin api" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 9292 -m comment --comment "glance api" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8000 -m comment --comment heat-api -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8004 -m comment --comment heat-api-cfn -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 9191 -m comment --comment "glance registry" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8773 -m comment --comment "ec2 api" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8774 -m comment --comment "nova api" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8775 -m comment --comment "nova metadata" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8776 -m comment --comment cinder-api -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 4952 -m comment --comment ceilometer-collector -j ACCEPT
+-A INPUT -p udp -m udp --dport 4952 -m comment --comment ceilometer-collector -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8041 -m comment --comment gnocchi-api -j ACCEPT
+-A INPUT -p tcp -m multiport --dports 8083,8086,8088,8091 -m comment --comment influxdb -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8778 -m comment --comment senlin-api -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8777 -m comment --comment ceilometer-api -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 9696 -m comment --comment "neutron server" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 6080 -m comment --comment vncproxy -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 8088 -m comment --comment "bcec portal" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 10000 -m comment --comment "haproxy monitor" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 6379 -m comment --comment redis -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 15672 -m comment --comment "rabbitmq monitor" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 25672 -m comment --comment "rabbitmq monitor" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 3260 -m comment --comment tgtd -j ACCEPT
+-A INPUT -p udp -m udp --sport 4789 -j ACCEPT  
+-A INPUT -p udp -m udp --dport 4789 -j ACCEPT
+-A OUTPUT -o virbr0 -p udp -m udp --dport 68 -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 11211 -m comment --comment "memcache" -j ACCEPT
+COMMIT

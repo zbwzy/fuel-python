@@ -1,0 +1,156 @@
+--- 
+deployment_id: 2
+priority: 500
+role: rabbitmq
+keystone: 
+  keystone_mysql_user: keystone
+  bond_2: 192.168.34.22
+  bond_1: 192.168.34.21
+  keystone_mysql_password: 70e3a8bc6c3cc6d401bd
+  keystone_vip: 10.20.0.66
+  install: true
+  keystone_vip_interface: eth0
+nova-compute: 
+  virt_type: qemu
+  bond_2: ""
+  bond_1: 192.168.34.21
+  install: true
+cinder-storage: 
+  cinder_mysql_password: fc4b06ca38e040897847
+  bond_2: ""
+  bond_1: 192.168.34.21
+  cinder_mysql_user: cinder
+  install: true
+ceilometer: 
+  ceilometer_vip_interface: eth0
+  metadata_secret: c0213a73ad061046eb4d
+  bond_2: ""
+  bond_1: 192.168.34.21
+  ceilometer_mongo_password: e73499302a3f78091497
+  ceilometer_mongo_user: ceilometer
+  ceilometer_vip: 10.20.0.66
+  install: true
+nodes: 
+- role: mongodb
+  ip: 10.20.0.132
+  swift_zone: "2"
+  uid: "2"
+  name: 10.20.0.132
+  fqdn: 10.20.0.132.domain.tld
+  cabinet: ""
+- role: mysql
+  ip: 10.20.0.132
+  swift_zone: "2"
+  uid: "2"
+  name: 10.20.0.132
+  fqdn: 10.20.0.132.domain.tld
+  cabinet: ""
+- role: rabbitmq
+  ip: 10.20.0.132
+  swift_zone: "2"
+  uid: "2"
+  name: 10.20.0.132
+  fqdn: 10.20.0.132.domain.tld
+  cabinet: ""
+horizon: 
+  dashboard_vip: 10.20.0.66
+  bond_2: ""
+  bond_1: 192.168.34.21
+  dashboard_vip_interface: eth0
+  install: true
+nova-api: 
+  nova_mysql_user: nova
+  nova_vip: 10.20.0.66
+  bond_2: 192.168.34.22
+  bond_1: 192.168.34.21
+  nova_vip_interface: eth0
+  install: true
+  nova_mysql_password: 9fafd3bfd71923e50ea4
+glance: 
+  glance_mysql_password: 82d27ca25c4bc12b354b
+  glance_vip_interface: eth0
+  bond_1: 192.168.34.21
+  bond_2: 192.168.34.22
+  glance_mysql_user: glance
+  install: true
+  glance_vip: 10.20.0.66
+ip: 10.20.0.132
+haproxy-keepalived: 
+  bond_2: ""
+  bond_1: 192.168.34.21
+  haproxy_vipinterface2: eth0
+  haproxy_vipinterface1: eth0
+  haproxy_vip2: 192.168.34.21
+  haproxy_vip1: 192.168.34.21
+  install: true
+neutron-server: 
+  neutron_vip: 10.20.0.66
+  neutron_mysql_password: 0d00e48cd281111f5697
+  bond_1: 192.168.34.21
+  bond_2: ""
+  neutron_network_mode: gre
+  neutron_vip_interface: eth0
+  install: true
+  neutron_mysql_user: neutron
+rabbitmq: 
+  rabbit_vip: 10.20.0.66
+  rabbit_password: 8a6e1d5f5da94f2a92d9
+  bond_2: 192.168.34.22
+  bond_1: 192.168.34.21
+  rabbit_userid: guest
+  rabbit_vip_interface: eth0
+  action: config
+  install: true
+cinder-api: 
+  cinder_mysql_password: 09c652fdb977b0372275
+  cinder_vip_interface: eth0
+  cinder_vip: 10.20.0.66
+  bond_2: ""
+  bond_1: 192.168.34.21
+  cinder_mysql_user: cinder
+  install: true
+uid: "2"
+mongodb: 
+  mongodb_vip_interface: eth0
+  bond_1: 192.168.34.21
+  bond_2: 192.168.34.22
+  mongo_user: ceilometer
+  mongodb_vip: 10.20.0.66
+  mongo_password: 73e1c9b8ebd863935142
+  install: true
+fail_if_error: false
+fqdn: 10.20.0.132.domain.tld
+online: true
+repo_metadata: 
+  2014.2-6.0: http://10.20.0.2:8080/2014.2-6.0/centos/x86_64
+puppet_manifests_source: rsync://10.20.0.2:/puppet/2014.2-6.0/manifests/
+global: 
+  bclinux_repo_url: http://127.0.0.1/web
+masterip: 10.20.0.132
+heat: 
+  bond_2: ""
+  bond_1: 192.168.34.21
+  heat_mysql_user: heat
+  heat_mysql_password: 2de913662710b1fd86da
+  heat_vip: 10.20.0.66
+  install: true
+  heat_vip_interface: eth0
+mysql: 
+  root_password: acb056ae66e9b5a8e095
+  bond_2: 192.168.34.22
+  bond_1: 192.168.34.21
+  mysql_vip_interface: eth0
+  action: config
+  install: true
+  mysql_vip: 10.20.0.66
+puppet_modules_source: rsync://10.20.0.2:/puppet/2014.2-6.0/modules/
+cobbler: 
+  profile: centos-x86_64
+neutron-agent: 
+  bond_2: ""
+  bond_1: 192.168.34.21
+  neutron_network_mode: gre
+  interface_name: bond1
+  install: true
+status: error
+
