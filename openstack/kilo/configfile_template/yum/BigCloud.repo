@@ -1,5 +1,0 @@
-[product]
-name=BCLinux-$releasever - Product
-baseurl=http://mirrors.bclinux.org/bclinux/bigcloud/master/$basearch/
-gpgcheck=0
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7

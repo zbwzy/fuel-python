@@ -1,5 +1,0 @@
-[bclinux-openstack-kilo] 
-name=BCLinux-$releasever - openstack-kilo
-baseurl=http://mirrors.bclinux.org/bclinux/openstack/x86_64/openstack-kilo/
-gpgcheck=0 
-gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-CentOS-7
