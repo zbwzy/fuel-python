@@ -1,7 +1,0 @@
-import os
-
-from keystone.server import wsgi as wsgi_server
-
-name = os.path.basename(__file__)
-
-application = wsgi_server.initialize_application(name)

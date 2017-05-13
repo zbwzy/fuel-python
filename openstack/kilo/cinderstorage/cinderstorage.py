@@ -191,6 +191,7 @@ class CinderStorage(object):
         
         keystone_vip = vipParamsDict["keystone_vip"]
         glance_vip = vipParamsDict["glance_vip"]
+        cinder_vip = vipParamsDict["cinder_vip"]
         keystone_cinder_password = JSONUtility.getValue('keystone_cinder_password')
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
@@ -238,6 +239,7 @@ class CinderStorage(object):
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(cinder_conf_file_path, '<CINDER_VIP>', cinder_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<GLANCE_VIP>', glance_vip)
         FileUtil.replaceFileContent(cinder_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
         

@@ -235,7 +235,7 @@ vif_plugging_timeout=0
         ###libvirtd :  /etc/libvirt/libvirtd.conf
         ### /etc/sysconfig/libvirtd
         libvirtdConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'libvirtd', 'libvirtd.conf')
-        libvirtdFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'libvirtd', 'libvirtd.conf')
+        libvirtdFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'libvirtd', 'libvirtd')
         ShellCmdExecutor.execCmd('cp -r %s /etc/libvirt/' % libvirtdConfFileTemplatePath)
         ShellCmdExecutor.execCmd('cp -r %s /etc/sysconfig/' % libvirtdFileTemplatePath)
         
@@ -247,54 +247,6 @@ vif_plugging_timeout=0
     
     @staticmethod
     def configConfFile():
-        '''
-        MYSQL_VIP
-        LOCAL_MANAGEMENT_IP
-        GLANCE_VIP
-        KEYSTONE_VIP
-        KEYSTONE_NOVA_PASSWORD
-        NEUTRON_VIP
-        KEYSTONE_NEUTRON_PASSWORD
-        RABBIT_PASSWORD
-        RABBIT_HOSTS
-        '''
-        #use conf template file to replace <CONTROLLER_IP>
-        '''
-        #modify nova.conf:
-
-[database]
-connection=mysql://nova:123456@controller/nova
-
-[DEFAULT]
-rpc_backend=rabbit
-rabbit_host=<CONTROLLER_IP>
-rabbit_password=123456
-my_ip=<CONTROLLER_IP>
-vncserver_listen=<CONTROLLER_IP>
-vncserver_proxyclient_address=<CONTROLLER_IP>
-#########
-#
-rpc_backend=rabbit
-rabbit_host=<CONTROLLER_IP>
-rabbit_password=123456
-my_ip=<CONTROLLER_IP>
-vncserver_listen=<CONTROLLER_IP>
-vncserver_proxyclient_address=<CONTROLLER_IP>
-
-5).modify nova.conf: set the auth info of keystone:
-
-[DEFAULT]
-auth_strategy=keystone
-
-[keystone_authtoken]
-auth_uri=http://controller:5000
-auth_host=<CONTROLLER_IP>
-auth_protocal=http
-auth_port=35357
-admin_tenant_name=service
-admin_user=nova
-admin_password=123456
-        '''
         '''
         MYSQL_VIP
         LOCAL_MANAGEMENT_IP
