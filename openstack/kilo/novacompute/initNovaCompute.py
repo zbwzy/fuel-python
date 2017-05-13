@@ -38,6 +38,7 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
 from openstack.kilo.novacompute.novacompute import NovaCompute
+from openstack.kilo.ssh.SSH import SSH
     
 if __name__ == '__main__':
     print 'hello openstack-kilo:nova-compute============'
@@ -55,6 +56,15 @@ if __name__ == '__main__':
         #add ssh mutual trust for nova user
         if NovaCompute.getServerIndex() == 0 :
             NovaCompute.sshMutualTrust()
+            NovaCompute.sshNovaUserTrust()
+            pass
+        else :
+            nova_compute_params_dict = JSONUtility.getRoleParamsDict('nova-compute')
+            nova_compute_ip_list = nova_compute_params_dict['mgmt_ips']
+            src_ip = nova_compute_ip_list[0]
+            if len(nova_compute_ip_list) > 1 :
+                NovaCompute.scpSSHNovaTrustFiles(src_ip)
+                pass
             pass
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

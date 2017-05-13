@@ -167,6 +167,105 @@ class NovaCompute(object):
         pass
     
     @staticmethod
+    def sshNovaUserTrust():
+        novaSSHDirPath = '/var/lib/nova/.ssh'
+        if os.path.exists(novaSSHDirPath) :
+            os.system('rm -rf %s' % novaSSHDirPath)
+            pass
+        
+        config_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'config')
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (config_file_path, novaSSHDirPath))
+        
+        keygenCmd = 'su - nova -c "mkdir -p /var/lib/nova/.ssh; cd /var/lib/nova/.ssh/;ssh-keygen;"'
+        try:
+            import pexpect
+
+            child = pexpect.spawn(keygenCmd)
+
+            #When do the first shell cmd execution, this interact message is appeared on shell.
+            child.expect('Enter file in which to save the key.*')
+            child.sendline('')
+
+            child.expect('Enter passphrase.*')
+            child.sendline('')
+
+            child.expect('Enter same passphrase.*')
+            child.sendline('')
+
+            while True :
+                regex = "[\\s\\S]*" #match any
+                index = child.expect([regex , pexpect.EOF, pexpect.TIMEOUT])
+                if index == 0:
+                    break
+                elif index == 1:
+                    pass   #continue to wait
+                elif index == 2:
+                    pass    #continue to wait
+
+            child.sendline('exit')
+            child.sendcontrol('c')
+            child.interact()
+        except OSError:
+            print 'Catch exception %s when send tag.' % OSError.strerror
+            sys.exit(0)
+            pass
+#         authorizedKeysFilePath = os.path.join(novaUserKeyFilesTemplateDirPath, 'authorized_keys')
+#         idRsaKeysFilePath = os.path.join(novaUserKeyFilesTemplateDirPath, 'id_rsa*')
+#         ShellCmdExecutor.execCmd('cp -r %s %s' % (authorizedKeysFilePath, novaSSHDirPath))
+#         ShellCmdExecutor.execCmd('cp -r %s %s' % (idRsaKeysFilePath, novaSSHDirPath))
+
+        ShellCmdExecutor.execCmd('chmod 755 /var/lib/nova/.ssh')
+        ShellCmdExecutor.execCmd('chmod 600 /var/lib/nova/.ssh/*')
+        ShellCmdExecutor.execCmd('chown -R nova:nova /var/lib/nova')
+        pass
+    
+    @staticmethod
+    def scpSSHNovaTrustFiles(src_ip):
+        novaSSHDirPath = '/var/lib/nova/.ssh'
+        if os.path.exists(novaSSHDirPath) :
+            os.system('rm -rf %s' % novaSSHDirPath)
+            pass
+        
+        os.system('mkdir -p %s' % novaSSHDirPath)
+        
+        scpCmd = 'scp -r root@{src_ip}:/var/lib/nova/.ssh /var/lib//nova/'.format(src_ip=src_ip)
+        try:
+            import pexpect
+            #To make the interact string: Are you sure you want to continue connecting.* always appear
+            if os.path.exists('/root/.ssh/known_hosts') :
+                os.system('rm -rf /root/.ssh/known_hosts')
+                pass
+    
+            child = pexpect.spawn(scpCmd)
+            
+            #When do the first shell cmd execution, this interact message is appeared on shell.
+            child.expect('Are you sure you want to continue connecting.*')
+            child.sendline('yes')
+    
+            while True :
+                regex = "[\\s\\S]*" #match any
+                index = child.expect([regex , pexpect.EOF, pexpect.TIMEOUT])
+                if index == 0:
+                    break
+                elif index == 1:
+                    pass   #continue to wait
+                elif index == 2:
+                    pass   #continue to wait
+    
+            child.sendline('exit')
+            child.sendcontrol('c')
+            #child.interact()
+        except OSError:
+            print 'Catch exception %s when send tag.' % OSError.strerror
+            sys.exit(0)
+            pass
+        
+        ShellCmdExecutor.execCmd('chmod 755 /var/lib/nova/.ssh')
+        ShellCmdExecutor.execCmd('chmod 600 /var/lib/nova/.ssh/*')
+        ShellCmdExecutor.execCmd('chown -R nova:nova /var/lib/nova')
+        pass
+    
+    @staticmethod
     def getServerIndex():
         from openstack.common.serverSequence import ServerSequence
         local_management_ip = YAMLUtil.getManagementIP() 
