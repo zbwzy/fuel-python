@@ -104,7 +104,7 @@ if __name__ == '__main__':
             pass
         else :
             print 'wait for 10 secs====='
-            time.sleep(10)
+#             time.sleep(10)
             
             if os.path.exists('/opt/openstack_conf/tag/install/existGlanceFileOnHost') :
                 output, exitcode = ShellCmdExecutor.execCmd('bash /opt/openstack_conf/scripts/getDefaultImageID.sh')
@@ -134,6 +134,11 @@ if __name__ == '__main__':
                     scp_image(scpCmd, imageFileName, ip)
                     pass
                 pass
+            
+            #assign glance image privilege
+            time.sleep(5)
+            imageFileDir = '/var/lib/glance/images/'
+            output, exitcode = ShellCmdExecutor.execCmd('chown -R glance:glance %s' % imageFileDir)
             
             os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)
             pass

@@ -62,6 +62,10 @@ if __name__ == '__main__':
             pass
         
         NeutronServer.start()
+        
+        #
+        from common.openfile.OpenFile import OpenFile
+        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
         #mark: neutron-server is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:neutron-server initted#######'

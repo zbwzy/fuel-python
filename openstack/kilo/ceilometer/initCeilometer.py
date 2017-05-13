@@ -41,13 +41,12 @@ from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
 from openstack.icehouse.ceilometer.ceilometer import Ceilometer
-from openstack.icehouse.ceilometer.ceilometer import CeilometerHA
-
+from common.openfile.OpenFile import OpenFile
 
 
 if __name__ == '__main__':
     
-    print 'hello openstack-icehouse:ceilometer============'
+    print 'hello openstack-kilo:ceilometer============'
     
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
@@ -59,22 +58,9 @@ if __name__ == '__main__':
         print 'ceilometer initted####'
         print 'exit===='
     else :
-        ###Original Codes
-#         Ceilometer.start()
-#         #add HA
-#         CeilometerHA.install()
-#         CeilometerHA.configure()
-#         CeilometerHA.start()
-#         
-#         ##########################
-#         Ceilometer.restart()
-#         CeilometerHA.start()
-        ###Original Codes
-        
-    #     os.system("service haproxy restart")
-        
         #mark: ceilometer is installed
+#         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:ceilometer#######'
+    print 'hello openstack-kilo:ceilometer#######'
     pass
 

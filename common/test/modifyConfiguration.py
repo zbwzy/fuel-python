@@ -521,13 +521,13 @@ def execModification(dirPath, fileNameKey):
         ###
         ShellCmdExecutor.execCmd('systemctl daemon-reload')
         #Restart service
-        ShellCmdExecutor.execCmd('systemctl restart %s' % fileName)
+        if 'openstack-nova-metadata-api' not in fileName :
+            ShellCmdExecutor.execCmd('systemctl restart %s' % fileName)
+            pass
         pass
     
     file.close()
-    
     return 1
-    pass
 
 
 def insertAfterLine(curLineContent, insertLine, filePath):
@@ -546,6 +546,9 @@ if __name__ == '__main__':
     #when execute script,exec: python <this file absolute path>
     ###############################
     result = execModification('/usr/lib/systemd/system', 'openstack-')
+    print 'result=%s-------------' % result
+    
+    result = execModification('/usr/lib/systemd/system', 'rabbitmq')
     print 'result=%s-------------' % result
     
     exit()

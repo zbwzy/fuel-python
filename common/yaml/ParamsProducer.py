@@ -543,6 +543,12 @@ class ParamsProducer(object):
             ceilometer_metering_secret = '7c1edcdfc1b2841c21ff'
             ceilometerParams['ceilometer_metering_secret'] = ceilometer_metering_secret
             
+            gnocchi_influxdb_password = '1c1ddcdec1b2841d19fe'
+            ceilometerParams['gnocchi_influxdb_password'] = gnocchi_influxdb_password
+            
+            gnocchi_dbpass = '3d3edcdec1b2841e99fd'
+            ceilometerParams['gnocchi_dbpass'] = gnocchi_dbpass
+            
             if YAMLUtil.getManagementIP() in ceilometer_ips_list :
                 FileUtil.writeContent(is_role_file_path, 'true')
                 pass

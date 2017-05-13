@@ -206,6 +206,7 @@ if __name__ == '__main__':
             neutron_params_dict = JSONUtility.getRoleParamsDict('neutron-server')
             neutron_ip_list = neutron_params_dict["mgmt_ips"]
             localIP = YAMLUtil.getManagementIP() 
+            
             if ServerSequence.getIndex(neutron_ip_list, localIP) == 0:
                 
                 initInternalNetwork()

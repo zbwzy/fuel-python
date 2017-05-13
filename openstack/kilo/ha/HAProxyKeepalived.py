@@ -632,14 +632,15 @@ listen cinder_api
         ha_vip1 = haParamsDict['ha_vip1']
         ha_vip2 = haParamsDict['ha_vip2']
         
+        ceilometerAllString = ''
         ceilometerServerBackendString = '''
 listen ceilometer_api
-  bind <HA_VIP2>:8777
+  bind <HA_VIP1>:8777
   balance  roundrobin
   option  httplog
   <CEILOMETER_SERVER_LIST>
         '''
-        ceilometerServerBackendString = ceilometerServerBackendString.replace('<HA_VIP2>', ha_vip2)
+        ceilometerServerBackendString = ceilometerServerBackendString.replace('<HA_VIP1>', ha_vip1)
         ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
         ceilometer_ip_list = ceilometer_params_dict["mgmt_ips"]
 
@@ -659,7 +660,70 @@ listen ceilometer_api
 
         ceilometerServerBackendString = ceilometerServerBackendString.replace('<CEILOMETER_SERVER_LIST>', ceilometerServerListContent)
         print 'ceilometerServerBackendString=%s--' % ceilometerServerBackendString
-        HA.appendBackendStringToHaproxyCfg(ceilometerServerBackendString)
+        
+        #gnocchi
+        gnocchiServerBackendString = '''
+listen gnocchi_api
+  bind <HA_VIP1>:8041
+  balance  roundrobin
+  option  httplog
+  <GNOCCHI_SERVER_LIST>
+        '''
+        serverGnocchiBackendTemplate   = 'server gnocchi<INDEX> <SERVER_IP>:8041 check inter 2000 rise 2 fall 3'
+
+        gnocchiServerListContent = ''
+        index = 1
+        for ip in ceilometer_ip_list :
+            gnocchiServerListContent += serverGnocchiBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
+            gnocchiServerListContent += '\n'
+            gnocchiServerListContent += '  '
+            index += 1
+            pass
+
+        gnocchiServerListContent = ceilometerServerListContent.strip()
+        print 'gnocchiServerListContent=%s--' % gnocchiServerListContent
+
+        gnocchiServerBackendString = gnocchiServerBackendString.replace('<GNOCCHI_SERVER_LIST>', gnocchiServerListContent)
+        print 'gnocchiServerBackendString=%s--' % gnocchiServerBackendString
+        
+        #influxdb
+        influxdbServerBackendString = '''
+listen influxdb_cluster
+  bind <HA_VIP1>:8086
+  balance  roundrobin
+  option  httplog
+  <INFLUXDB_SERVER_LIST>
+        '''
+        
+        serverInfluxdbBackendString1 = 'server influxdb1 %s:8086 check inter 2000 rise 2 fall 3' % ceilometer_ip_list[0]
+        serverMysqlBackendTemplate   = 'server influxdb<INDEX> <SERVER_IP>:8086 backup check inter 2000 rise 2 fall 3'
+        
+        influxdbServerListContent = ''
+        influxdbServerListContent += serverInfluxdbBackendString1
+        influxdbServerListContent += '\n'
+        influxdbServerListContent += '  '
+        
+        serverInfluxdbBackendTemplate   = 'server influxdb<INDEX> <SERVER_IP>:8086 check inter 2000 rise 2 fall 3'
+
+        influxdbServerListContent = ''
+        index = 2
+        if len(ceilometer_ip_list) > 1:
+            for ip in ceilometer_ip_list[1:] :
+                influxdbServerListContent += serverInfluxdbBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
+                influxdbServerListContent += '\n'
+                influxdbServerListContent += '  '
+                index += 1
+                pass
+
+        influxdbServerListContent = influxdbServerListContent.strip()
+        print 'influxdbServerListContent=%s--' % influxdbServerListContent
+
+        influxdbServerBackendString = influxdbServerBackendString.replace('<INFLUXDB_SERVER_LIST>', influxdbServerListContent)
+        print 'influxdbServerBackendString=%s--' % influxdbServerBackendString
+        
+        ceilometerAllString = ceilometerServerBackendString + '\n' + gnocchiServerBackendString + '\n' + influxdbServerBackendString
+        
+        HA.appendBackendStringToHaproxyCfg(ceilometerAllString)
         pass
     
     @staticmethod

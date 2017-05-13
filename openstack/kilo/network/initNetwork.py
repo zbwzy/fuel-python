@@ -46,6 +46,11 @@ if __name__ == '__main__':
     else :
         Network.finalizeInstallation()
         #mark: network is initted
+        #open limits of file & restart always
+        if not Network.isNeutronServerNode() :
+            from common.openfile.OpenFile import OpenFile
+            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
+            pass
         
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello network initted#######'

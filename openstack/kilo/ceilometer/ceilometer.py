@@ -109,11 +109,15 @@ class Ceilometer(object):
     @staticmethod
     def install():
         print 'Ceilometer.install start===='
-        yumCmd = 'yum install openstack-ceilometer-api openstack-ceilometer-collector \
+        yumCmd = 'yum install docker openstack-ceilometer-api openstack-ceilometer-collector \
   openstack-ceilometer-notification openstack-ceilometer-central openstack-ceilometer-alarm \
   python-ceilometerclient -y'
   
         ShellCmdExecutor.execCmd(yumCmd)
+        
+        ShellCmdExecutor.execCmd('yum install docker -y')
+        ShellCmdExecutor.execCmd('systemctl restart docker')
+        
         print 'Ceilometer.install done####'
         pass
     
@@ -649,9 +653,9 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-        print 'Do nothing currently============'
+        print '============'
 #         Prerequisites.prepare()
-#         Ceilometer.install()
+        Ceilometer.install()
 #         Ceilometer.configConfFile()
         
         

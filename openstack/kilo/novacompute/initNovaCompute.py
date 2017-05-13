@@ -65,6 +65,10 @@ if __name__ == '__main__':
             if len(nova_compute_ip_list) > 1 :
                 NovaCompute.scpSSHNovaTrustFiles(src_ip)
                 pass
+            
+            #open limits of file & restart always
+            from common.openfile.OpenFile import OpenFile
+            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
             pass
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

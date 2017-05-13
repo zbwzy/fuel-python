@@ -130,6 +130,10 @@ class RabbitMQ(object):
         ShellCmdExecutor.execCmd('systemctl enable rabbitmq-server.service')
         ShellCmdExecutor.execCmd('systemctl start rabbitmq-server.service')
         
+        #open limits file & restart always
+        from common.openfile.OpenFile import OpenFile
+        OpenFile.execModification('/usr/lib/systemd/system', 'rabbitmq-server')
+        
         TIMEOUT = 10
         time_count = 0
         while True :
@@ -143,7 +147,7 @@ class RabbitMQ(object):
                 print 'rabbitmq is launched####'
                 break
             
-            print 'ddddd==='
+            print 'retry==='
             print 'time_count=%d' % time_count
             
             time_count += 1
