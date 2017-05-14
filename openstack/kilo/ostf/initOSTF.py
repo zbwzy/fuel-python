@@ -134,13 +134,6 @@ if __name__ == '__main__':
                     scp_image(scpCmd, imageFileName, ip)
                     pass
                 pass
-            
-            #assign glance image privilege
-            time.sleep(5)
-            imageFileDir = '/var/lib/glance/images/'
-            output, exitcode = ShellCmdExecutor.execCmd('chown -R glance:glance %s' % imageFileDir)
-            
-            os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)
             pass
         pass
     print 'hello ostf initted#######'

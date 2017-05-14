@@ -669,6 +669,7 @@ listen gnocchi_api
   option  httplog
   <GNOCCHI_SERVER_LIST>
         '''
+        gnocchiServerBackendString = gnocchiServerBackendString.replace('<HA_VIP1>', ha_vip1)
         serverGnocchiBackendTemplate   = 'server gnocchi<INDEX> <SERVER_IP>:8041 check inter 2000 rise 2 fall 3'
 
         gnocchiServerListContent = ''
@@ -694,18 +695,15 @@ listen influxdb_cluster
   option  httplog
   <INFLUXDB_SERVER_LIST>
         '''
-        
+        influxdbServerBackendString = influxdbServerBackendString.replace('<HA_VIP1>', ha_vip1)
         serverInfluxdbBackendString1 = 'server influxdb1 %s:8086 check inter 2000 rise 2 fall 3' % ceilometer_ip_list[0]
-        serverMysqlBackendTemplate   = 'server influxdb<INDEX> <SERVER_IP>:8086 backup check inter 2000 rise 2 fall 3'
+        serverInfluxdbBackendTemplate   = 'server influxdb<INDEX> <SERVER_IP>:8086 backup check inter 2000 rise 2 fall 3'
         
         influxdbServerListContent = ''
         influxdbServerListContent += serverInfluxdbBackendString1
         influxdbServerListContent += '\n'
         influxdbServerListContent += '  '
         
-        serverInfluxdbBackendTemplate   = 'server influxdb<INDEX> <SERVER_IP>:8086 check inter 2000 rise 2 fall 3'
-
-        influxdbServerListContent = ''
         index = 2
         if len(ceilometer_ip_list) > 1:
             for ip in ceilometer_ip_list[1:] :

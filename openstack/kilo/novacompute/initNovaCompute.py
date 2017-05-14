@@ -68,7 +68,7 @@ if __name__ == '__main__':
             
             #open limits of file & restart always
             from common.openfile.OpenFile import OpenFile
-            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
+            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-nova-compute')
             pass
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)

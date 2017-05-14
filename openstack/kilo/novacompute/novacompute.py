@@ -173,6 +173,9 @@ class NovaCompute(object):
             os.system('rm -rf %s' % novaSSHDirPath)
             pass
         
+        os.system('mkdir -p %s' % novaSSHDirPath)
+        os.system('chown -R nova:nova %s' % novaSSHDirPath)    
+        
         config_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ssh', 'config')
         ShellCmdExecutor.execCmd('cp -r %s %s' % (config_file_path, novaSSHDirPath))
         
@@ -213,6 +216,8 @@ class NovaCompute(object):
 #         idRsaKeysFilePath = os.path.join(novaUserKeyFilesTemplateDirPath, 'id_rsa*')
 #         ShellCmdExecutor.execCmd('cp -r %s %s' % (authorizedKeysFilePath, novaSSHDirPath))
 #         ShellCmdExecutor.execCmd('cp -r %s %s' % (idRsaKeysFilePath, novaSSHDirPath))
+
+        ShellCmdExecutor.execCmd('cp -r /var/lib/nova/.ssh/id_rsa.pub /var/lib/nova/.ssh/authorized_keys')
 
         ShellCmdExecutor.execCmd('chmod 755 /var/lib/nova/.ssh')
         ShellCmdExecutor.execCmd('chmod 600 /var/lib/nova/.ssh/*')
