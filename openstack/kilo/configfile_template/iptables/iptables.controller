@@ -42,6 +42,7 @@
 -A INPUT -p tcp -m tcp --dport 10000 -m comment --comment "haproxy monitor" -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 6379 -m comment --comment redis -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 15672 -m comment --comment "rabbitmq monitor" -j ACCEPT
+-A INPUT -p tcp -m tcp --dport 41055 -m comment --comment "rabbitmq autoheal" -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 25672 -m comment --comment "rabbitmq monitor" -j ACCEPT
 -A INPUT -p tcp -m tcp --dport 3260 -m comment --comment tgtd -j ACCEPT
 -A INPUT -p udp -m udp --sport 4789 -j ACCEPT  

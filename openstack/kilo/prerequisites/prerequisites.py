@@ -123,7 +123,9 @@ class Prerequisites(object):
         
         ShellCmdExecutor.execCmd('sysctl -p')
         print 'do sysctl####'
-        
+        #set os limits
+        limits_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'limits', 'limits.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/security/' % limits_file_template_path)
         pass
     pass
 
