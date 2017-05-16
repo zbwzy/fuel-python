@@ -19,7 +19,7 @@ import time
 debug = False
 if debug == True :
     #MODIFY HERE WHEN TEST ON HOST
-    PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python'
+    PROJ_HOME_DIR = '/Users/zhangbai/Documents/AptanaWorkspace/fuel-python-icbc-dev'
     pass
 else :
     # The real dir in which this project is deployed on PROD env.
@@ -36,62 +36,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
-
-class Prerequisites(object):
-    '''
-    classdocs
-    '''
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def prepare():
-        Network.Prepare()
-        
-        cmd = 'yum install openstack-utils -y'
-        ShellCmdExecutor.execCmd(cmd)
-        
-        cmd = 'yum install openstack-selinux -y'
-        ShellCmdExecutor.execCmd(cmd)
-        
-        cmd = 'yum install python-openstackclient -y'
-        ShellCmdExecutor.execCmd(cmd)
-        pass
-    pass
-
-class Network(object):
-    '''
-    classdocs
-    '''
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def Prepare():
-        Network.stopIPTables()
-        Network.stopNetworkManager()
-        pass
-    
-    @staticmethod
-    def stopIPTables():
-        stopCmd = "service iptables stop"
-        ShellCmdExecutor.execCmd(stopCmd)
-        pass
-    
-    @staticmethod
-    def stopNetworkManager():
-        stopCmd = "service NetworkManager stop"
-        chkconfigOffCmd = "chkconfig NetworkManager off"
-        
-        ShellCmdExecutor.execCmd(stopCmd)
-        ShellCmdExecutor.execCmd(chkconfigOffCmd)
-        pass
+from common.yaml.YAMLUtil import YAMLUtil
 
 
 class Ceilometer(object):
@@ -109,16 +54,28 @@ class Ceilometer(object):
     @staticmethod
     def install():
         print 'Ceilometer.install start===='
-        yumCmd = 'yum install docker openstack-ceilometer-api openstack-ceilometer-collector \
+        yumCmd = 'yum install docker influxdb openstack-ceilometer-api openstack-ceilometer-collector \
   openstack-ceilometer-notification openstack-ceilometer-central openstack-ceilometer-alarm \
-  python-ceilometerclient -y'
+  python-ceilometerclient python2-jsonpath-rw-ext python-memcached python-oslo-policy MySQL-python python-oslo-log -y'
   
         ShellCmdExecutor.execCmd(yumCmd)
         
-        ShellCmdExecutor.execCmd('yum install docker -y')
         ShellCmdExecutor.execCmd('systemctl restart docker')
-        
         print 'Ceilometer.install done####'
+        pass
+    
+    @staticmethod
+    def loadGnocchi():
+        ShellCmdExecutor.execCmd('docker load < /etc/puppet/modules/ceilometer/files/gnocchi-with-httpd-2016-02-04.tar')
+        ShellCmdExecutor.execCmd('docker tag 075090cb04ab bcec/gnocchi-with-httpd:1.3.0')
+#         ShellCmdExecutor.execCmd('docker run -it --name gnocchi --net host --volume /apps/logs/gnocchi:/var/log/gnocchi 075090cb04ab bash')
+        pass
+    
+    @staticmethod
+    def activateGnocchiConfFile():
+        gnocchi_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'gnocchi')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/logrotate.d/' % gnocchi_conf_file_path)
+        ShellCmdExecutor.execCmd('logrotate -f /etc/logrotate.d/gnocchi')
         pass
     
     @staticmethod
@@ -166,33 +123,206 @@ class Ceilometer(object):
         pass
     
     @staticmethod
+    def configInflux():
+        local_mgmt_ip = YAMLUtil.getManagementIP()
+        influxdb_conf_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'influxdb.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/influxdb/' % influxdb_conf_file_template_path)
+        influxdb_conf_file_path = '/etc/influxdb/influxdb.conf'
+        FileUtil.replaceFileContent(influxdb_conf_file_path, '<LOCAL_MANAGEMENT_IP>', local_mgmt_ip)
+        
+        ###influxdb cluster conf file
+        influxdb_cluster_conf_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'influxdb')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/default/' % influxdb_cluster_conf_file_template_path)
+        influxdb_cluseter_conf_file_path = '/etc/default/influxdb'
+        ceilometer_ip_list = YAMLUtil.getRoleManagementIPList('ceilometer')
+        
+        servicePortList = []
+        for ip in ceilometer_ip_list :
+            servicePort = ip + ':8091'
+            servicePortList.append(servicePort)
+            pass
+        
+        servicePortString = ','.join(servicePortList)
+        FileUtil.replaceFileContent(influxdb_cluseter_conf_file_path, '<SERVICE_STRING>', servicePortString)
+        pass
+    
+    @staticmethod
+    def startInflux():
+        start_cmd = 'systemctl start influxdb'
+        ShellCmdExecutor.execCmd(start_cmd)
+        pass
+    
+    @staticmethod
+    def initInflux():
+        vipParmasDict = JSONUtility.getRoleParamsDict('vip')
+        influxdb_vip = vipParmasDict['influxdb_vip']
+        print 'influxdb_vip=%s--' % influxdb_vip
+        cmd1 = 'create database gnocchi'
+        Ceilometer.execInfluxCmd(influxdb_vip, cmd1)
+        Ceilometer.execInfluxCmd(influxdb_vip, 'use gnocchi')
+
+        ceilometerParamsDict = JSONUtility.getRoleParamsDict('ceilometer')
+        gnocchi_influxdb_password = ceilometerParamsDict['gnocchi_influxdb_password']
+        cmd2 = 'CREATE USER root WITH PASSWORD \'%s\' WITH ALL PRIVILEGES' % gnocchi_influxdb_password
+        print 'cmd2=%s--' % cmd2
+        Ceilometer.execInfluxCmd(influxdb_vip, cmd2)
+
+        cmd3 = 'GRANT ALL PRIVILEGES ON gnocchi TO root'
+        Ceilometer.execInfluxCmd(influxdb_vip, cmd3)
+        pass
+    
+    @staticmethod
+    def execInfluxCmd(host, influx_cmd):
+        cmd = 'influx -host {host} -execute \"{cmd}\"'.format(host=host,cmd=influx_cmd)
+        output,exitcode = ShellCmdExecutor.execCmd(cmd)
+        print 'output=%s---' % output
+        pass
+    
+    @staticmethod
+    def getGnocchiContainerID():
+        containerID = ''
+        cmd = 'docker ps --all | grep gnocchi  | awk \'{print $1}\''
+        output, exitcode = ShellCmdExecutor.execCmd(cmd)
+        containerID = output.strip()
+        return containerID
+    
+    @staticmethod
+    def execDockerCmd(container_id, cmd):
+        dockerCmd = "docker exec -it {container_id} bash -c '{cmd}'".format(container_id=container_id,cmd=cmd)
+        output, exitcode = ShellCmdExecutor.execCmd(dockerCmd)
+        print 'execDockerCmd.output=%s' % output
+        print 'execDockerCmd.exitcode=%s' % exitcode
+        
+        pass
+    
+    @staticmethod
+    def configGnocchi():
+        local_mgmt_ip = YAMLUtil.getManagementIP()
+        gnocchi_conf_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'gnocchi.conf')
+        
+        ShellCmdExecutor.execCmd('cp -r %s /home/' % gnocchi_conf_file_template_path)
+        gnocchi_conf_dest_file = '/opt/openstack_conf/gnocchi.conf'
+        '''
+        <GNOCCHI_DBPASS>
+        <GNOCCHI_VIP>
+        <KEYSTONE_VIP>
+        <KEYSTONE_GNOCCHI_PASSWORD>
+        <INFLUXDB_VIP>
+        <INFLUXDB_PASSWORD>
+        '''
+        ceilometerParamsDict = JSONUtility.getRoleParamsDict('ceilometer')
+        
+        gnocchi_influxdb_password = ceilometerParamsDict['gnocchi_influxdb_password']
+        gnocchi_dbpass = ceilometerParamsDict['gnocchi_dbpass']
+        
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict['keystone_vip']
+        influxdb_vip = vipParamsDict['influxdb_vip']
+        gnocchi_vip = vipParamsDict['gnocchi_vip']
+        
+        keystone_gnocchi_password = JSONUtility.getValue("keystone_gnocchi_password")
+        
+        FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<GNOCCHI_DBPASS>', gnocchi_dbpass)
+        FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<GNOCCHI_VIP>', gnocchi_vip)
+        FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<KEYSTONE_GNOCCHI_PASSWORD>', keystone_gnocchi_password)
+        FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<INFLUXDB_VIP>', influxdb_vip)
+        FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<INFLUXDB_PASSWORD>', gnocchi_influxdb_password)
+        pass
+    
+    @staticmethod
+    def configGnocchiHttpConfFile():
+#         container_id = Ceilometer.getGnocchiContainerID()
+        httpd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'httpd.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/' % httpd_conf_template_file_path)
+        
+#         cmd = 'docker cp /opt/openstack_conf/httpd.conf {container_id}:/etc/httpd/conf/'.format(container_id=container_id)
+#         ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def configGnocchiWsgiConfFile():
+        local_mgmt_ip = YAMLUtil.getManagementIP()
+#         container_id = Ceilometer.getGnocchiContainerID()
+        gnocchi_wsgi_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'gnocchi-wsgi.conf')
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/' % gnocchi_wsgi_conf_template_file_path)
+        FileUtil.replaceFileContent('/opt/openstack_conf/gnocchi-wsgi.conf', '<LOCAL_MANAGEMENT_IP>', local_mgmt_ip)
+        
+#         cmd = 'docker cp /opt/openstack_conf/gnocchi-wsgi.conf {container_id}:/etc/httpd/conf.d/'.format(container_id=container_id)
+#         ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def startGnocchiHttp():
+        container_id = Ceilometer.getGnocchiContainerID()
+        cmd = 'chmod 777 /var/log/gnocchi/'
+        Ceilometer.execDockerCmd(container_id, cmd)
+        
+        start_cmd = 'systemctl restart httpd'
+        Ceilometer.execDockerCmd(container_id, start_cmd)
+        pass
+    
+    @staticmethod
+    def initIndexerDB():
+        container_id = Ceilometer.getGnocchiContainerID()
+        cmd = 'gnocchi-upgrade'
+        Ceilometer.execDockerCmd(container_id, cmd)
+        
+        #
+        cmd = 'docker cp /opt/openstack_conf/admin-openrc.sh {container_id}:/root'.format(container_id=container_id)
+        ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def configArchivePolicy():
+        archive_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'archive_policy.sh')
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/' % archive_file_template_path)
+        
+        admin_token = JSONUtility.getValue('admin_token')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        
+        archive_policy_file_path = '/opt/openstack_conf/archive_policy.sh'
+        FileUtil.replaceFileContent(archive_policy_file_path, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(archive_policy_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(archive_policy_file_path, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        pass
+    
+    @staticmethod
     def configConfFile():
         vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict['keystone_vip']
+        gnocchi_vip = vipParamsDict['gnocchi_vip']
         mysql_vip = vipParamsDict["mysql_vip"]
 
         rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
         rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
         rabbit_userid = rabbit_params_dict["rabbit_userid"]
         rabbit_password = rabbit_params_dict["rabbit_password"]
+        ceilometer_dbpass = JSONUtility.getValue("ceilometer_dbpass")
+        keystone_ceilometer_password = JSONUtility.getValue("keystone_ceilometer_password")
         
-        keystone_vip = vipParamsDict["keystone_vip"] 
-        mongodb_vip = '' 
-        ceilometer_mongo_password = JSONUtility.getValue("ceilometer_mongo_password")
-        
-        metering_secret = JSONUtility.getValue("ceilometer_metering_secret")
-#         metering_secret = Ceilometer.getMeteringSecret()
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        metering_secret = ceilometer_params_dict['ceilometer_metering_secret']
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % local_ip_file_path)
-        localIP = output.strip()
+        local_mgmt_ip = YAMLUtil.getManagementIP()
+        
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        ceilometer_ip_list = ceilometer_params_dict["mgmt_ips"]
+        memcached_service_list = []
+        for ip in ceilometer_ip_list:
+            memcached_service_list.append(ip.strip() + ':11211')
+            pass
+        memcached_service_string = ','.join(memcached_service_list)
         
         print 'mysql_vip=%s' % mysql_vip
         print 'rabbit_hosts=%s' % rabbit_hosts
         print 'rabbit_userid=%s' % rabbit_userid
         print 'rabbit_password=%s' % rabbit_password
         print 'keystone_vip=%s' % keystone_vip
-        print 'locaIP=%s' % localIP
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         ceilometer_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'ceilometer.conf')
@@ -222,431 +352,55 @@ class Ceilometer(object):
         
         ShellCmdExecutor.execCmd("sudo chmod 777 %s" % ceilometer_conf_file_path)
         
-        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<MONGODB_VIP>', mongodb_vip)
-        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<CEILOMETER_DBPASS>', ceilometer_mongo_password)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<CEILOMETER_DBPASS>', ceilometer_dbpass)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<MEMCACHED_LIST>', memcached_service_string)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<GNOCCHI_VIP>', gnocchi_vip)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
-        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_USERID>', rabbit_userid)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_CEILOMETER_PASSWORD>', keystone_ceilometer_password)
+        
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<METERING_SECRET>', metering_secret)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<METERING_SECRECT>', metering_secret)
         
-        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<LOCAL_IP>', localIP)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<LOCAL_MANAGEMENT_IP>', local_mgmt_ip)
         
-        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % ceilometer_conf_file_path)
+        ShellCmdExecutor.execCmd("chmod 640 %s" % ceilometer_conf_file_path)
+        ShellCmdExecutor.execCmd("chown -R root:ceilometer %s" % ceilometer_conf_file_path)
         pass
     pass
 
-    
-class CeilometerHA(object):
-    '''
-    classdocs
-    '''
-    
-    def __init__(self):
-        '''
-        Constructor
-        '''
-        pass
-    
-    @staticmethod
-    def isExistVIP(vip, interface):
-        cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
-        output, exitcode = ShellCmdExecutor.execCmd(cmd)
-        output = output.strip()
-        if output == None or output == '':
-            print 'Do no exist vip %s on interface %s.' % (vip, interface)
-            return False
-        
-        if debug == True :
-            output = '''
-            xxxx
-            inet 192.168.11.100/32 scope global eth0
-            xxxx
-            '''
-            pass
-        
-        newString = vip + '/'
-        if newString in output :
-            print 'exist vip %s on interface %s.' % (vip, interface)
-            return True
-        else :
-            print 'Do no exist vip %s on interface %s.' % (vip, interface)
-            return False
-        pass
-    
-    #return value: 192.168.11.100/32
-    @staticmethod
-    def getVIPFormatString(vip, interface):
-        vipFormatString = ''
-        if CeilometerHA.isExistVIP(vip, interface) :
-            print 'getVIPFormatString====exist vip %s on interface %s' % (vip, interface) 
-            cmd = 'ip addr show dev {interface} | grep {vip}'.format(interface=interface, vip=vip)
-            output, exitcode = ShellCmdExecutor.execCmd(cmd)
-            vipFormatString = output.strip()
-            if debug == True :
-                fakeVIPFormatString = 'inet 192.168.11.100/32 scope global eth0'
-                vipFormatString = fakeVIPFormatString
-                pass
-            
-            result = vipFormatString.split(' ')[1]
-            pass
-        else :
-            #construct vip format string
-            print 'getVIPFormatString====do not exist vip %s on interface %s, to construct vip format string' % (vip, interface) 
-            vipFormatString = '{vip}/32'.format(vip=vip)
-            print 'vipFormatString=%s--' % vipFormatString
-            result = vipFormatString
-            pass
-        
-        return result
-    
-    @staticmethod
-    def addVIP(vip, interface):
-        result = CeilometerHA.getVIPFormatString(vip, interface)
-        print 'result===%s--' % result
-        if not CeilometerHA.isExistVIP(vip, interface) :
-            print 'NOT exist vip %s on interface %s.' % (vip, interface)
-            addVIPCmd = 'ip addr add {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
-            print 'addVIPCmd=%s--' % addVIPCmd
-            ShellCmdExecutor.execCmd(addVIPCmd)
-            pass
-        else :
-            print 'The VIP %s already exists on interface %s.' % (vip, interface)
-            pass
-        pass
-    
-    @staticmethod
-    def deleteVIP(vip, interface):
-        result = CeilometerHA.getVIPFormatString(vip, interface)
-        print 'result===%s--' % result
-        if CeilometerHA.isExistVIP(vip, interface) :
-            deleteVIPCmd = 'ip addr delete {format_vip} dev {interface}'.format(format_vip=result, interface=interface)
-            print 'deleteVIPCmd=%s--' % deleteVIPCmd
-            ShellCmdExecutor.execCmd(deleteVIPCmd)
-            pass
-        else :
-            print 'The VIP %s does not exist on interface %s.' % (vip, interface)
-            pass
-        pass
-    
-    @staticmethod
-    def isKeepalivedInstalled():
-        KEEPALIVED_CONF_FILE_PATH = '/etc/keepalived/keepalived.conf'
-        if os.path.exists(KEEPALIVED_CONF_FILE_PATH) :
-            return True
-        else :
-            return False
-        
-    @staticmethod
-    def isHAProxyInstalled():
-        HAPROXY_CONF_FILE_PATH = '/etc/haproxy/haproxy.cfg'
-        if os.path.exists(HAPROXY_CONF_FILE_PATH) :
-            return True
-        else :
-            return False
-    
-    @staticmethod
-    def install():
-        if debug == True :
-            print "DEBUG is True.On local dev env, do test==="
-            yumCmd = "ls -lt"
-            ShellCmdExecutor.execCmd(yumCmd)
-            pass
-        else :
-            if not CeilometerHA.isKeepalivedInstalled() :
-                keepalivedInstallCmd = "yum install keepalived -y"
-                ShellCmdExecutor.execCmd(keepalivedInstallCmd)
-                pass
-            
-            if not CeilometerHA.isHAProxyInstalled() :
-                haproxyInstallCmd = 'yum install haproxy -y'
-                ShellCmdExecutor.execCmd(haproxyInstallCmd)
-                
-                #prepare haproxy conf file template
-                openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-                haproxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
-                haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
-                print 'haproxyTemplateFilePath=%s' % haproxyTemplateFilePath
-                print 'haproxyConfFilePath=%s' % haproxyConfFilePath
-                if not os.path.exists('/etc/haproxy') :
-                    ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
-                    pass
-                
-                ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (haproxyTemplateFilePath, '/etc/haproxy'))
-                pass
-            pass
-        pass
-    
-    @staticmethod
-    def configure():
-        CeilometerHA.configureHAProxy()
-        CeilometerHA.configureKeepalived()
-        pass
-    
-    @staticmethod
-    def configureHAProxy():
-        ####################configure haproxy
-        #server heat-01 192.168.1.137:8004 check inter 10s
-        vipParamsDict = JSONUtility.getValue('vip')
-        ceilometer_vip = vipParamsDict["ceilometer_vip"]
-        
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        HAProxyTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'haproxy.cfg')
-        haproxyConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'HAPROXY_CONF_FILE_PATH')
-        print 'haproxyConfFilePath=%s' % haproxyConfFilePath
-        if not os.path.exists('/etc/haproxy') :
-            ShellCmdExecutor.execCmd('sudo mkdir /etc/haproxy')
-            pass
-        
-        if not os.path.exists(haproxyConfFilePath) :
-            ShellCmdExecutor.execCmd('cat %s > /tmp/haproxy.cfg' % HAProxyTemplateFilePath)
-            ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
-            ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
-            pass
-        
-        ShellCmdExecutor.execCmd('sudo chmod 777 %s' % haproxyConfFilePath)
-        
-        #############
-        ceilometerBackendApiStringTemplate = '''
-listen ceilometer_api_cluster
-  bind <CEILOMETER_VIP>:8777
-  balance source
-  <CEILOMETER_API_SERVER_LIST>
-  '''
-        ceilometerBackendApiString = ceilometerBackendApiStringTemplate.replace('<CEILOMETER_VIP>', ceilometer_vip)
-        
-        ################new
-        ceilometer_ips = JSONUtility.getValue("ceilometer_ips")
-        ceilometer_ip_list = ceilometer_ips.strip().split(',')
-        
-        serverCeilometerAPIBackendTemplate   = 'server ceilometer-<INDEX> <SERVER_IP>:8777 check inter 2000 rise 2 fall 5'
-        
-        ceilometerAPIServerListContent = ''
-        
-        index = 1
-        for ip in ceilometer_ip_list:
-            print 'ceilometer_ip=%s' % ip
-            ceilometerAPIServerListContent += serverCeilometerAPIBackendTemplate.replace('<INDEX>', str(index)).replace('<SERVER_IP>', ip)
-            
-            ceilometerAPIServerListContent += '\n'
-            ceilometerAPIServerListContent += '  '
-            
-            index += 1
-            pass
-        
-        ceilometerAPIServerListContent = ceilometerAPIServerListContent.strip()
-        print 'ceilometerAPIServerListContent=%s--' % ceilometerAPIServerListContent
-        
-        ceilometerBackendApiString = ceilometerBackendApiString.replace('<CEILOMETER_API_SERVER_LIST>', ceilometerAPIServerListContent)
-        
-        print 'ceilometerBackendApiString=%s--' % ceilometerBackendApiString
-        
-        #append
-#         ShellCmdExecutor.execCmd('sudo echo "%s" >> %s' % (heatBackendApiString, haproxyConfFilePath))
 
-        if os.path.exists(haproxyConfFilePath) :
-            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % haproxyConfFilePath)
-        else :
-            output, exitcode = ShellCmdExecutor.execCmd('cat %s' % HAProxyTemplateFilePath)
-            pass
-        
-        haproxyNativeContent = output.strip()
-
-        haproxyContent = ''
-        haproxyContent += haproxyNativeContent
-        haproxyContent += '\n\n'
-        haproxyContent += ceilometerBackendApiString
-        FileUtil.writeContent('/tmp/haproxy.cfg', haproxyContent)
-        if os.path.exists(haproxyConfFilePath):
-            ShellCmdExecutor.execCmd("sudo rm -rf %s" % haproxyConfFilePath)
-            pass
-        ShellCmdExecutor.execCmd('mv /tmp/haproxy.cfg /etc/haproxy/')
-        ShellCmdExecutor.execCmd('rm -rf /tmp/haproxy.cfg')
-        
-        ShellCmdExecutor.execCmd('sudo chmod 644 %s' % haproxyConfFilePath)
-        pass
-    
-    @staticmethod
-    def configureKeepalived():
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        ###################configure keepalived
-        keepalivedTemplateFilePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keepalived.conf')
-        keepalivedConfFilePath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'KEEPALIVED_CONF_FILE_PATH')
-        print 'keepalivedConfFilePath=%s' % keepalivedConfFilePath
-        if not os.path.exists('/etc/keepalived') :
-            ShellCmdExecutor.execCmd('sudo mkdir /etc/keepalived')
-            pass
-        
-        #configure haproxy check script in keepalived
-        checkHAProxyScriptPath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'check_haproxy.sh')
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (checkHAProxyScriptPath, '/etc/keepalived'))
-        if os.path.exists(keepalivedConfFilePath) :
-            ShellCmdExecutor.execCmd("sudo rm -rf %s" % keepalivedConfFilePath)
-            pass
-        
-        ShellCmdExecutor.execCmd('sudo cp -r %s %s' % (keepalivedTemplateFilePath, keepalivedConfFilePath))
-        print 'keepalivedTemplateFilePath=%s==========----' % keepalivedTemplateFilePath
-        print 'keepalivedConfFilePath=%s=============----' % keepalivedConfFilePath
-        
-        ShellCmdExecutor.execCmd("sudo chmod 777 %s" % keepalivedConfFilePath)
-        ##configure
-        '''keepalived template====
-        global_defs {
-  router_id LVS-DEVEL
-}
-vrrp_script chk_haproxy {
-   script "/etc/keepalived/check_haproxy.sh"
-   interval 2
-   weight  2
-}
-
-vrrp_instance 42 {
-  virtual_router_id 42
-  # for electing MASTER, highest priority wins.
-  priority  <KEYSTONE_WEIGHT>
-  state     <KEYSTONE_STATE>
-  interface <INTERFACE>
-  track_script {
-    chk_haproxy
-}
-  virtual_ipaddress {
-        <VIRTURL_IPADDR>
-  }
-}
-        '''
-        #WEIGHT is from 300 to down, 300 belongs to MASTER, and then 299, 298, ...etc, belong to SLAVE
-        ##Here: connect to ZooKeeper to coordinate the weight
-        vipParamsDict = JSONUtility.getValue('vip')
-        ceilometer_vip = vipParamsDict["ceilometer_vip"] 
-        ceilometer_vip_interface = JSONUtility.getValue("ceilometer_vip_interface")
-        
-        weight_counter = 300
-        if CeilometerHA.isMasterNode() :
-            weight_counter = 300
-            state = 'MASTER'
-            pass
-        else :
-            index = CeilometerHA.getIndex()  #get this host index which is indexed by the gid in /etc/astutue.yaml responding with this role
-            weight_counter = 300 - index
-            state = 'SLAVE' + str(index)
-            pass
-        
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<WEIGHT>', str(weight_counter))
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<STATE>', state)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<INTERFACE>', ceilometer_vip_interface)
-        FileUtil.replaceFileContent(keepalivedConfFilePath, '<VIRTURL_IPADDR>', ceilometer_vip)
-        
-        ##temporary: if current user is not root
-        ShellCmdExecutor.execCmd("sudo chmod 644 %s" % keepalivedConfFilePath)
-        
-        #If keepalived need to support more VIP: append here
-        pass
-    
-    @staticmethod
-    def isHAProxyRunning():
-        cmd = 'ps aux | grep haproxy | grep -v grep | wc -l'
-        output, exitcode = ShellCmdExecutor.execCmd(cmd)
-        output = output.strip()
-        if output == '0' :
-            return False
-        else :
-            return True
-        
-    @staticmethod
-    def isKeepalivedRunning():
-        cmd = 'ps aux | grep keepalived | grep -v grep | wc -l'
-        output, exitcode = ShellCmdExecutor.execCmd(cmd)
-        output = output.strip()
-        if output == '0' :
-            return False
-        else :
-            return True
-        pass
-    
-    @staticmethod
-    def getIndex(): #get host index, the ips has been sorted ascended.
-        print 'To get this host index of role %s==============' % "ceilometer" 
-        ceilometer_ips = JSONUtility.getValue('ceilometer_ips')
-        ceilometer_ip_list = ceilometer_ips.split(',')
-        
-        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
-        local_ip_file_path = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'LOCAL_IP_FILE_PATH')
-        output, exitcode = ShellCmdExecutor.execCmd("cat %s" % local_ip_file_path)
-        localIP = output.strip()
-        print 'localIP=%s---------------------' % localIP
-        print 'ceilometer_ip_list=%s--------------' % ceilometer_ip_list
-        index = ceilometer_ip_list.index(localIP)
-        print 'index=%s-----------' % index
-        return index
-        
-    @staticmethod
-    def isMasterNode():
-        if CeilometerHA.getIndex() == 0 :
-            return True
-        
-        return False
-    
-    @staticmethod
-    def start():
-        if debug == True :
-            pass
-        else :
-            ceilometer_vip_interface = JSONUtility.getValue("ceilometer_vip_interface")
-            vipParamsDict = JSONUtility.getValue('vip')
-            ceilometer_vip = vipParamsDict["ceilometer_vip"]
-            
-            CeilometerHA.addVIP(ceilometer_vip, ceilometer_vip_interface)
-            
-            if CeilometerHA.isHAProxyRunning() :
-                ShellCmdExecutor.execCmd('service haproxy restart')
-            else :
-                ShellCmdExecutor.execCmd('service haproxy start')
-                pass
-            
-            if CeilometerHA.isKeepalivedRunning() :
-                ShellCmdExecutor.execCmd('service keepalived restart')
-            else :
-                ShellCmdExecutor.execCmd('service keepalived start')
-                pass
-            
-            ShellCmdExecutor.execCmd('service haproxy restart')
-            
-            isMasterNode = CeilometerHA.isMasterNode()
-            if isMasterNode == True :
-                CeilometerHA.restart()
-                pass
-            else :
-                CeilometerHA.deleteVIP(ceilometer_vip, ceilometer_vip_interface)
-                pass
-            pass
-        
-        ShellCmdExecutor.execCmd('service keepalived restart')
-        pass
-    
-    @staticmethod
-    def restart():
-        ShellCmdExecutor.execCmd('service haproxy restart')
-        ShellCmdExecutor.execCmd('service keepalived restart')
-        pass
-    
-    
 if __name__ == '__main__':
-    print 'hello openstack-icehouse:ceilometer============'
+    print 'hello openstack-kilo:ceilometer============'
     print 'start time: %s' % time.ctime()
     #DEBUG
-    debug = False
     if debug :
         print 'start to debug======'
-#         print CeilometerHA.configure()
+#         Ceilometer.configInflux()
+#         Ceilometer.startInflux()
+#         Ceilometer.initInflux()
+        print 'influx##############'
+        exit()
+        
+        ceilometer_ip_list = ['10.142.55.54', '10.142.55.53']
+        servicePortList = []
+        for ip in ceilometer_ip_list :
+            servicePort = ip + ':8091'
+            servicePortList.append(servicePort)
+            pass
+        
+        servicePortString = ','.join(servicePortList)
+        print 'configInflux.servicePortString=%s--' % servicePortString
         print 'end debug######'
         exit()
         pass
     
     #when execute script,exec: python <this file absolute path>
     ###############################
-    INSTALL_TAG_FILE = '/opt/ceilometer_installed'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/ceilometer_installed'
     #DEBUG
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'ceilometer installed####'
@@ -654,9 +408,19 @@ if __name__ == '__main__':
         pass
     else :
         print '============'
-#         Prerequisites.prepare()
         Ceilometer.install()
-#         Ceilometer.configConfFile()
+        
+        print 'start to install influxdb========'
+        Ceilometer.configInflux()
+        Ceilometer.startInflux()
+        print 'done to install influxdb###########'
+        
+        print 'start to load gnocchi image======='
+        
+        print 'done to load gnocchi image########'
+        
+        #configure ceilometer
+        Ceilometer.configConfFile()
         
         
     #     Ceilometer.start()
@@ -668,6 +432,6 @@ if __name__ == '__main__':
         #
         #mark: ceilometer is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:ceilometer#######'
+    print 'hello openstack-kilo:ceilometer#######'
     pass
 

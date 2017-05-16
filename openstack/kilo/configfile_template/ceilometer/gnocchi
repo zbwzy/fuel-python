@@ -1,0 +1,9 @@
+/var/log/gnocchi/*.log {
+    su root root
+    daily
+    rotate 2
+    size 100M
+    missingok
+    compress
+    copytruncate
+}

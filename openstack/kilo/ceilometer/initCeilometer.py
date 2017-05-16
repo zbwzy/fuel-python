@@ -40,7 +40,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 
-from openstack.icehouse.ceilometer.ceilometer import Ceilometer
+from openstack.kilo.ceilometer.ceilometer import Ceilometer
 from common.openfile.OpenFile import OpenFile
 
 
@@ -52,14 +52,23 @@ if __name__ == '__main__':
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
     ###############################
-    INSTALL_TAG_FILE = '/opt/initCeilometer'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initCeilometer'
     
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'ceilometer initted####'
         print 'exit===='
     else :
+        #init influxdb
+        Ceilometer.initIndexerDB()
+        
+        #load gnocchi image
+        Ceilometer.loadGnocchi()
+        
+        Ceilometer.activateGnocchiConfFile()
+        Ceilometer.configGnocchiHttpConfFile()
+        Ceilometer.configGnocchiWsgiConfFile()
+        Ceilometer.configArchivePolicy()
         #mark: ceilometer is installed
-#         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:ceilometer#######'
     pass

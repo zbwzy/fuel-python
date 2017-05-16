@@ -71,7 +71,16 @@ class InitKeystone(object):
         
         InitKeystone.initCinderUser()
         InitKeystone.initCinder()
+        
+        if YAMLUtil.hasRoleInNodes('ceilometer') :
+            InitKeystone.initCeilometerUser()
+            InitKeystone.initGnocchiUser()
+            
+            InitKeystone.initCeilometer()
+            InitKeystone.initGnocchi()
+            
         pass
+        
     
     @staticmethod
     def initOpenstackComponentToKeystone(scriptPath, userPassword):
@@ -262,6 +271,62 @@ Repeat User Password:
         InitKeystone.initOpenstackComponentToKeystone(initCinderScriptPath, keystone_cinder_password)
         pass
     
+    @staticmethod
+    def initCeilometerUser():
+        admin_token = JSONUtility.getValue('admin_token')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_vip = vipParamsDict["keystone_vip"]
+        keystone_ceilometer_password = JSONUtility.getValue('keystone_ceilometer_password')
+        ceilometer_vip = vipParamsDict['ceilometer_vip']
+        
+        initCeilometerScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'initCeilometerUser.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initCeilometerScriptTemplatePath, openstackScriptDirPath))
+        
+        initCeilometerScriptPath = os.path.join(openstackScriptDirPath, 'initCeilometerUser.sh')
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<CEILOMETER_VIP>', ceilometer_vip)
+#         ShellCmdExecutor.execCmd('bash %s' % initCinderScriptPath)
+        InitKeystone.initOpenstackComponentToKeystone(initCeilometerScriptPath, keystone_ceilometer_password)
+        pass
+    
+    @staticmethod
+    def initGnocchiUser():
+        admin_token = JSONUtility.getValue('admin_token')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_vip = vipParamsDict["keystone_vip"]
+        keystone_gnocchi_password = JSONUtility.getValue('keystone_gnocchi_password')
+        gnocchi_vip = vipParamsDict['gnocchi_vip']
+        
+        initGnocchiScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'initGnocchiUser.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initGnocchiScriptTemplatePath, openstackScriptDirPath))
+        
+        initGnocchiScriptPath = os.path.join(openstackScriptDirPath, 'initGnocchiUser.sh')
+        FileUtil.replaceFileContent(initGnocchiScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initGnocchiScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initGnocchiScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        InitKeystone.initOpenstackComponentToKeystone(initGnocchiScriptPath, keystone_gnocchi_password)
+        pass
+    
     ######
     @staticmethod
     def initKeystone(): #init all component's user/password/project/endpoint in keystone
@@ -405,6 +470,64 @@ Repeat User Password:
         FileUtil.replaceFileContent(initCinderScriptPath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(initCinderScriptPath, '<CINDER_VIP>', cinder_vip)
         output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initCinderScriptPath)
+        print 'output=%s' % output
+        pass
+    
+    @staticmethod
+    def initCeilometer():
+        admin_token = JSONUtility.getValue('admin_token')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        keystone_ceilometer_password = JSONUtility.getValue('keystone_ceilometer_password')
+        ceilometer_vip = vipParamsDict["ceilometer_vip"]
+        
+        initCeilometerScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'initCeilometer.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initCeilometerScriptTemplatePath, openstackScriptDirPath))
+        
+        initCeilometerScriptPath = os.path.join(openstackScriptDirPath, 'initCeilometer.sh')
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initCeilometerScriptPath, '<CEILOMETER_VIP>', ceilometer_vip)
+        output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initCeilometerScriptPath)
+        print 'output=%s' % output
+        pass
+    
+    @staticmethod
+    def initGnocchi():
+        admin_token = JSONUtility.getValue('admin_token')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = vipParamsDict["keystone_vip"]
+        keystone_gnocchi_password = JSONUtility.getValue('keystone_gnocchi_password')
+        gnocchi_vip = vipParamsDict["gnocchi_vip"]
+        
+        initGnocchiScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'initGnocchi.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initGnocchiScriptTemplatePath, openstackScriptDirPath))
+        
+        initGnocchiScriptPath = os.path.join(openstackScriptDirPath, 'initGnocchi.sh')
+        FileUtil.replaceFileContent(initGnocchiScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initGnocchiScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initGnocchiScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initGnocchiScriptPath, '<GNOCCHI_VIP>', gnocchi_vip)
+        output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initGnocchiScriptPath)
         print 'output=%s' % output
         pass
 

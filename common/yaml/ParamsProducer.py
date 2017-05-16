@@ -137,6 +137,9 @@ class ParamsProducer(object):
         keystone_ceilometer_password = YAMLUtil.getValue('global', 'keystone_ceilometer_password')
         paramsMap['keystone_ceilometer_password'] = keystone_ceilometer_password
         
+        keystone_gnocchi_password = 'd23a70822f53040a883c'
+        paramsMap['keystone_gnocchi_password'] = keystone_gnocchi_password
+        
         cluster_id = YAMLUtil.getValue('global', 'cluster_id')
         paramsMap['cluster_id'] = cluster_id
         
@@ -631,7 +634,9 @@ class ParamsProducer(object):
             vipParams['cinder_vip'] = ha_vip1
             vipParams['heat_vip'] = ha_vip1
             
-            vipParams['ceilometer_vip'] = ha_vip2
+            vipParams['ceilometer_vip'] = ha_vip1
+            vipParams['gnocchi_vip'] = ha_vip1
+            vipParams['influxdb_vip'] = ha_vip1
             pass
         
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()

@@ -87,7 +87,8 @@ class Network(object):
         ShellCmdExecutor.execCmd('mv /tmp/ml2_conf.ini /etc/neutron/plugins/ml2/')
         
         localExIP = YAMLUtil.getExIP()
-        FileUtil.replaceFileContent(Network.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localExIP)
+        localMgmtIP = YAMLUtil.getManagementIP()
+        FileUtil.replaceFileContent(Network.NEUTRON_ML2_CONF_FILE_PATH, '<INSTANCE_TUNNELS_INTERFACE_IP_ADDRESS>', localMgmtIP)
         
         if Network.isNeutronServerNode() :
             vlan_range = YAMLUtil.getVlanRange()

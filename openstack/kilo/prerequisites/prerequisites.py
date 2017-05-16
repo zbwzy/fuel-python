@@ -108,6 +108,7 @@ class Prerequisites(object):
         if os.path.exists('/etc/sysctl.conf') :
             ShellCmdExecutor.execCmd('rm -rf /etc/sysctl.conf')
             pass
+        
         sysctlConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'sysctl', 'sysctl.conf')
         novaComputeSysctlConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'sysctl', 'sysctl.conf.compute')
         controllerSysctlConfFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'sysctl', 'sysctl.conf.ctl')

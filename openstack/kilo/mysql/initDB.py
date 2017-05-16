@@ -437,7 +437,41 @@ class MySQL(object):
             
             #ceilometer
             if YAMLUtil.hasRoleInNodes('ceilometer') :
-    #             Ceilometer.initCeilometer()
+                createDBCmd = 'CREATE DATABASE ceilometer'
+                MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+                MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+                
+                ceilometer_dbpass= JSONUtility.getValue('ceilometer_dbpass')
+                grantCmd1 = 'GRANT ALL PRIVILEGES ON ceilometer.* TO \'ceilometer\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+                .format(init_passwd=ceilometer_dbpass)
+                
+                grantCmd2 = 'GRANT ALL PRIVILEGES ON ceilometer.* TO \'ceilometer\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+                .format(init_passwd=ceilometer_dbpass)
+                
+                MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+                MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+                MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+                MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+                
+                #gnocchi
+                roleParamsDict = JSONUtility.getRoleParamsDict('ceilometer')
+                gnocchi_dbpass = roleParamsDict['gnocchi_dbpass']
+                gnocchi_influxdb_password = roleParamsDict['gnocchi_influxdb_password']
+                
+                createDBCmd = 'CREATE DATABASE gnocchi'
+                MySQL.execMySQLCmd(user, initPasswd, createDBCmd)
+                MySQL.execMySQLCmd(user, initPasswd, flushCmd)
+                
+                grantCmd1 = 'GRANT ALL PRIVILEGES ON gnocchi.* TO \'gnocchi\'@\'localhost\' IDENTIFIED BY \'{init_passwd}\''\
+                .format(init_passwd=gnocchi_dbpass)
+                
+                grantCmd2 = 'GRANT ALL PRIVILEGES ON gnocchi.* TO \'gnocchi\'@\'%\' IDENTIFIED BY \'{init_passwd}\''\
+                .format(init_passwd=gnocchi_dbpass)
+                
+                MySQL.execMySQLCmd(user, initPasswd, grantCmd1)
+                MySQL.execMySQLCmd(user, initPasswd, flushCmd)         
+                MySQL.execMySQLCmd(user, initPasswd, grantCmd2)
+                MySQL.execMySQLCmd(user, initPasswd, flushCmd)
                 pass
                 
             #heat

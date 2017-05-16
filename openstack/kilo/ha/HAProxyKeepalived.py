@@ -721,6 +721,8 @@ listen influxdb_cluster
         
         ceilometerAllString = ceilometerServerBackendString + '\n' + gnocchiServerBackendString + '\n' + influxdbServerBackendString
         
+        ceilometerAllString = ceilometerAllString.replace('<HA_VIP1>', ha_vip1)
+        
         HA.appendBackendStringToHaproxyCfg(ceilometerAllString)
         pass
     
