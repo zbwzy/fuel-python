@@ -106,20 +106,17 @@ class Ceilometer(object):
     
     
     @staticmethod
-    def start():    
-        ShellCmdExecutor.execCmd("service openstack-ceilometer-api start")
-        ShellCmdExecutor.execCmd("service openstack-ceilometer-notification start")
-        ShellCmdExecutor.execCmd("service openstack-ceilometer-central start")
-        ShellCmdExecutor.execCmd("service openstack-ceilometer-collector start")
-        ShellCmdExecutor.execCmd("service openstack-ceilometer-alarm-evaluator start")
-        ShellCmdExecutor.execCmd("service openstack-ceilometer-alarm-notifier start")
-            
-        ShellCmdExecutor.execCmd("chkconfig openstack-ceilometer-api on")
-        ShellCmdExecutor.execCmd("chkconfig openstack-ceilometer-notification on")
-        ShellCmdExecutor.execCmd("chkconfig openstack-ceilometer-central on")
-        ShellCmdExecutor.execCmd("chkconfig openstack-ceilometer-collector on")
-        ShellCmdExecutor.execCmd("chkconfig openstack-ceilometer-alarm-evaluator on")
-        ShellCmdExecutor.execCmd("chkconfig openstack-ceilometer-alarm-notifier on")
+    def start():  
+        enable_cmd = 'systemctl enable openstack-ceilometer-api.service openstack-ceilometer-notification.service \
+        openstack-ceilometer-central.service openstack-ceilometer-collector.service \
+        openstack-ceilometer-alarm-evaluator.service openstack-ceilometer-alarm-notifier.service'
+        
+        start_cmd = 'systemctl start openstack-ceilometer-api.service openstack-ceilometer-notification.service \
+        openstack-ceilometer-central.service openstack-ceilometer-collector.service \
+        openstack-ceilometer-alarm-evaluator.service openstack-ceilometer-alarm-notifier.service'
+        
+        ShellCmdExecutor.execCmd(enable_cmd)
+        ShellCmdExecutor.execCmd(start_cmd)
         pass
     
     @staticmethod
@@ -363,7 +360,7 @@ class Ceilometer(object):
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_CEILOMETER_PASSWORD>', keystone_ceilometer_password)
         
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
-        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<METERING_SECRECT>', metering_secret)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<METERING_SECRET>', metering_secret)
         
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<LOCAL_MANAGEMENT_IP>', local_mgmt_ip)
         

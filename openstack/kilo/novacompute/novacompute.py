@@ -302,6 +302,60 @@ class NovaCompute(object):
         pass
     
     @staticmethod
+    def installCeilometer():
+        cmd = 'yum install openstack-ceilometer-compute python-ceilometerclient python-pecan -y'
+        ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def configCeilometer():
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict['keystone_vip']
+
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
+        keystone_ceilometer_password = JSONUtility.getValue("keystone_ceilometer_password")
+        
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        metering_secret = ceilometer_params_dict['ceilometer_metering_secret']
+        
+        local_mgmt_ip = YAMLUtil.getManagementIP()
+        
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        
+        ceilometer_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'ceilometer.conf')
+        print 'ceilometer_conf_template_file_path=%s' % ceilometer_conf_template_file_path
+        
+        ceilometer_conf_file_path = '/etc/ceilometer/ceilometer.conf'
+        
+        if os.path.exists(ceilometer_conf_file_path) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % ceilometer_conf_file_path)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s /etc/ceilometer' % ceilometer_conf_template_file_path)
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_CEILOMETER_PASSWORD>', keystone_ceilometer_password)
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<METERING_SECRET>', metering_secret)
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<LOCAL_MANAGEMENT_IP>', local_mgmt_ip)
+        
+        ShellCmdExecutor.execCmd("chmod 640 %s" % ceilometer_conf_file_path)
+        ShellCmdExecutor.execCmd("chown -R root:ceilometer %s" % ceilometer_conf_file_path)
+        pass
+    
+    @staticmethod
+    def startCeilometer():
+        ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
+        ShellCmdExecutor.execCmd('systemctl start openstack-ceilometer-compute.service')
+        pass
+    
+    @staticmethod
     def configAfterNetworkNodeConfiguration():
         '''
 1.on Controller node: moidfy /etc/nova/nova.conf, enabled metadata:
@@ -481,6 +535,10 @@ if __name__ == '__main__':
 #         Prerequisites.prepare()
         NovaCompute.install()
         NovaCompute.configConfFile()
+        
+        #ceilometer
+        NovaCompute.installCeilometer()
+        NovaCompute.configCeilometer()
 #         NovaCompute.start()
         #
         #patch
