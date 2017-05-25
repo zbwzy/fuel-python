@@ -350,6 +350,17 @@ class YAMLUtil(object):
         
         return gw
     
+    @staticmethod
+    def getInterfacesByBridge(bridge_name):
+        dataMap = YAMLUtil.getMap(YAMLUtil.ASTUTE_YAML_FILE_PATH)
+        endpointsDict = dataMap['network_scheme']['endpoints']
+        interfacesList = []
+        if endpointsDict.has_key(bridge_name) :
+            interfacesDict = endpointsDict[bridge_name]
+            interfacesList = interfacesDict['vendor_specific']['phy_interfaces']
+            pass
+        
+        return interfacesList
     
     @staticmethod
     def getBCLinuxRepoIP():

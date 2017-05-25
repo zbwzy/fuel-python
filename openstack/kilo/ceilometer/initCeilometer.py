@@ -59,15 +59,34 @@ if __name__ == '__main__':
         print 'exit===='
     else :
         #init influxdb
-        Ceilometer.initIndexerDB()
-        
+        Ceilometer.initInflux()
         #load gnocchi image
         Ceilometer.loadGnocchi()
         
         Ceilometer.activateGnocchiConfFile()
+        Ceilometer.configGnocchi()
+       
         Ceilometer.configGnocchiHttpConfFile()
         Ceilometer.configGnocchiWsgiConfFile()
         Ceilometer.configArchivePolicy()
+        
+        if Ceilometer.getServerIndex() == 0 :
+            Ceilometer.configGnocchiApiPaste()
+            pass
+        
+        Ceilometer.startGnocchiHttp()
+        
+        if Ceilometer.getServerIndex() == 0 :
+            Ceilometer.initIndexerDB()
+            Ceilometer.createArchivePolicy()
+            Ceilometer.resetGnocchiApiPasteFile()
+            
+            #sync ceilometer db
+            ShellCmdExecutor.execCmd('ceilometer-dbsync')
+            pass
+        
+        Ceilometer.start()
+        
         #mark: ceilometer is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:ceilometer#######'

@@ -63,6 +63,7 @@ if __name__ == '__main__':
         
         NeutronServer.start()
         
+        NeutronServer.implement_lldp()
         #
         from common.openfile.OpenFile import OpenFile
         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')

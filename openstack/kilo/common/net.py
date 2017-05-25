@@ -65,6 +65,24 @@ class Net(object):
             raise Exception("Failed to get interface name by bridge [%s]." % bridge_name)
         
         return ifName
+    
+    @staticmethod
+    def removePhyNet(bridge_name):
+        networkSchemeTransformationsDictList = Net.getNetworkSchemeTransformations()
+        
+        ifName = ''
+        for element in networkSchemeTransformationsDictList :
+            if element.has_key('action') and element.has_key('bridge') :
+                if element['bridge'] == bridge_name :
+                    ifName = element['name']
+                    pass
+                pass
+            pass
+        
+        if ifName == '' :
+            raise Exception("Failed to get interface name by bridge [%s]." % bridge_name)
+        
+        return ifName
         
         pass
     

@@ -333,7 +333,9 @@ class NovaCompute(object):
             ShellCmdExecutor.execCmd("sudo rm -rf %s" % ceilometer_conf_file_path)
             pass
         
-        ShellCmdExecutor.execCmd('cp -r %s /etc/ceilometer' % ceilometer_conf_template_file_path)
+        print 'ceilometer_conf_template_file_path=%s------xxx' % ceilometer_conf_template_file_path
+        ShellCmdExecutor.execCmd('cat %s > /tmp/ceilometer.conf' % ceilometer_conf_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/ceilometer.conf /etc/ceilometer/')
         
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)

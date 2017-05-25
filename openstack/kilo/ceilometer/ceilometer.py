@@ -37,6 +37,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
+from openstack.common.serverSequence import ServerSequence
 
 
 class Ceilometer(object):
@@ -68,7 +69,7 @@ class Ceilometer(object):
     def loadGnocchi():
         ShellCmdExecutor.execCmd('docker load < /etc/puppet/modules/ceilometer/files/gnocchi-with-httpd-2016-02-04.tar')
         ShellCmdExecutor.execCmd('docker tag 075090cb04ab bcec/gnocchi-with-httpd:1.3.0')
-#         ShellCmdExecutor.execCmd('docker run -it --name gnocchi --net host --volume /apps/logs/gnocchi:/var/log/gnocchi 075090cb04ab bash')
+        ShellCmdExecutor.execCmd('docker run -d -it --name gnocchi --net host --volume /apps/logs/gnocchi:/var/log/gnocchi 075090cb04ab bash')
         pass
     
     @staticmethod
@@ -197,7 +198,7 @@ class Ceilometer(object):
         local_mgmt_ip = YAMLUtil.getManagementIP()
         gnocchi_conf_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'gnocchi.conf')
         
-        ShellCmdExecutor.execCmd('cp -r %s /home/' % gnocchi_conf_file_template_path)
+        ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/' % gnocchi_conf_file_template_path)
         gnocchi_conf_dest_file = '/opt/openstack_conf/gnocchi.conf'
         '''
         <GNOCCHI_DBPASS>
@@ -225,28 +226,42 @@ class Ceilometer(object):
         FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<KEYSTONE_GNOCCHI_PASSWORD>', keystone_gnocchi_password)
         FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<INFLUXDB_VIP>', influxdb_vip)
         FileUtil.replaceFileContent(gnocchi_conf_dest_file, '<INFLUXDB_PASSWORD>', gnocchi_influxdb_password)
+        
+        container_id = Ceilometer.getGnocchiContainerID()
+        cmd = 'docker cp /opt/openstack_conf/gnocchi.conf {container_id}:/etc/gnocchi/'.format(container_id=container_id)
+        ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def configGnocchiApiPaste():
+        local_mgmt_ip = YAMLUtil.getManagementIP()
+        gnocchi_conf_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'api-paste.ini')
+        
+        container_id = Ceilometer.getGnocchiContainerID()
+        cmd = 'docker cp {src_file_path} {container_id}:/etc/gnocchi/'.format(src_file_path=gnocchi_conf_file_template_path, container_id=container_id)
+        ShellCmdExecutor.execCmd(cmd)
         pass
     
     @staticmethod
     def configGnocchiHttpConfFile():
-#         container_id = Ceilometer.getGnocchiContainerID()
+        container_id = Ceilometer.getGnocchiContainerID()
         httpd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'httpd.conf')
         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/' % httpd_conf_template_file_path)
         
-#         cmd = 'docker cp /opt/openstack_conf/httpd.conf {container_id}:/etc/httpd/conf/'.format(container_id=container_id)
-#         ShellCmdExecutor.execCmd(cmd)
+        cmd = 'docker cp /opt/openstack_conf/httpd.conf {container_id}:/etc/httpd/conf/'.format(container_id=container_id)
+        ShellCmdExecutor.execCmd(cmd)
         pass
     
     @staticmethod
     def configGnocchiWsgiConfFile():
         local_mgmt_ip = YAMLUtil.getManagementIP()
-#         container_id = Ceilometer.getGnocchiContainerID()
+        container_id = Ceilometer.getGnocchiContainerID()
         gnocchi_wsgi_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'gnocchi-wsgi.conf')
         ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/' % gnocchi_wsgi_conf_template_file_path)
         FileUtil.replaceFileContent('/opt/openstack_conf/gnocchi-wsgi.conf', '<LOCAL_MANAGEMENT_IP>', local_mgmt_ip)
         
-#         cmd = 'docker cp /opt/openstack_conf/gnocchi-wsgi.conf {container_id}:/etc/httpd/conf.d/'.format(container_id=container_id)
-#         ShellCmdExecutor.execCmd(cmd)
+        cmd = 'docker cp /opt/openstack_conf/gnocchi-wsgi.conf {container_id}:/etc/httpd/conf.d/'.format(container_id=container_id)
+        ShellCmdExecutor.execCmd(cmd)
         pass
     
     @staticmethod
@@ -255,7 +270,7 @@ class Ceilometer(object):
         cmd = 'chmod 777 /var/log/gnocchi/'
         Ceilometer.execDockerCmd(container_id, cmd)
         
-        start_cmd = 'systemctl restart httpd'
+        start_cmd = 'httpd'
         Ceilometer.execDockerCmd(container_id, start_cmd)
         pass
     
@@ -264,10 +279,10 @@ class Ceilometer(object):
         container_id = Ceilometer.getGnocchiContainerID()
         cmd = 'gnocchi-upgrade'
         Ceilometer.execDockerCmd(container_id, cmd)
-        
         #
         cmd = 'docker cp /opt/openstack_conf/admin-openrc.sh {container_id}:/root'.format(container_id=container_id)
         ShellCmdExecutor.execCmd(cmd)
+        #
         pass
     
     @staticmethod
@@ -285,6 +300,31 @@ class Ceilometer(object):
         FileUtil.replaceFileContent(archive_policy_file_path, '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent(archive_policy_file_path, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(archive_policy_file_path, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        
+        container_id = Ceilometer.getGnocchiContainerID()
+        cmd = 'docker cp /opt/openstack_conf/archive_policy.sh {container_id}:/root'.format(container_id=container_id)
+        ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
+    def resetGnocchiApiPasteFile():
+        api_paste_file_template_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ceilometer', 'api-paste.ini.original')
+        
+        container_id = Ceilometer.getGnocchiContainerID()
+        cmd = 'docker cp {src_file_path} {container_id}:/etc/gnocchi'.format(src_file_path=api_paste_file_template_path, container_id=container_id)
+        ShellCmdExecutor.execCmd(cmd)
+        
+        Ceilometer.execDockerCmd(container_id, 'rm -rf /etc/gnocchi/api-paste.ini')
+        Ceilometer.execDockerCmd(container_id, 'mv /etc/gnocchi/api-paste.ini.original /etc/gnocchi/api-paste.ini')
+        Ceilometer.execDockerCmd(container_id, 'killall -e httpd')
+        Ceilometer.execDockerCmd(container_id, 'httpd')
+        pass
+    
+    @staticmethod
+    def createArchivePolicy():
+        container_id = Ceilometer.getGnocchiContainerID()
+        cmd = 'bash /root/archive_policy.sh'
+        Ceilometer.execDockerCmd(container_id, cmd)
         pass
     
     @staticmethod
@@ -367,6 +407,14 @@ class Ceilometer(object):
         ShellCmdExecutor.execCmd("chmod 640 %s" % ceilometer_conf_file_path)
         ShellCmdExecutor.execCmd("chown -R root:ceilometer %s" % ceilometer_conf_file_path)
         pass
+    
+    @staticmethod
+    def getServerIndex():
+        local_management_ip = YAMLUtil.getManagementIP() 
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        ceilometer_server_ip_list = ceilometer_params_dict["mgmt_ips"]
+        index = ServerSequence.getIndex(ceilometer_server_ip_list, local_management_ip)
+        return index
     pass
 
 

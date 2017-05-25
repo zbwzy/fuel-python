@@ -70,6 +70,9 @@ if __name__ == '__main__':
             from common.openfile.OpenFile import OpenFile
             OpenFile.execModification('/usr/lib/systemd/system', 'openstack-nova-compute')
             pass
+        
+        from openstack.kilo.neutronserver.neutronserver import NeutronServer
+        NeutronServer.implement_lldp()
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello nova-compute kilo#######'
