@@ -67,13 +67,13 @@ if __name__ == '__main__':
                 pass
             
         #start ceilometer compute
-        ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
-        ShellCmdExecutor.execCmd('systemctl restart openstack-ceilometer-compute.service')
+#         ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
+#         ShellCmdExecutor.execCmd('systemctl restart openstack-ceilometer-compute.service')
         
         #open limits of file & restart always
         from common.openfile.OpenFile import OpenFile
         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-nova-compute')
-        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-ceilometer-compute')
+#         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-ceilometer-compute')
         
         ####################ICBC
         from openstack.kilo.neutronserver.neutronserver import NeutronServer
