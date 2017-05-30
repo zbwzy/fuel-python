@@ -70,6 +70,13 @@ class Prerequisites(object):
         
         #install pexpect
         ShellCmdExecutor.execCmd('cd /etc/puppet/fuel-python/externals/pexpect-3.3; python setup.py install')
+        if os.path.exists('/opt/openstack_conf/tag') :
+#             ShellCmdExecutor.execCmd('rm -rf /opt/openstack_conf/tag')
+            pass
+        
+        if os.path.exists('/opt/openstack_conf/scripts') :
+#             ShellCmdExecutor.execCmd('rm -rf /opt/openstack_conf/scripts')
+            pass
         
         ShellCmdExecutor.execCmd('mkdir -p /opt/openstack_conf/tag/')
         

@@ -552,6 +552,10 @@ if __name__ == '__main__':
             Keystone.start()
             time.sleep(10)
             InitKeystone.init()
+            #set ntp server
+            time.sleep(1)
+            from common.ntp.NTPService import NTPService
+            NTPService.setNTPServer()
             pass
         else :
             ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')

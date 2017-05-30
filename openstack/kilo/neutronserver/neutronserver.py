@@ -404,27 +404,26 @@ class NeutronServer(object):
         role = 'neutron-agent'
         key = 'neutron_network_mode'
         network_mode = YAMLUtil.getValue(role, key)
-        if network_mode == 'vlan' :
-            ShellCmdExecutor.execCmd('yum install lldpad -y')
-            ShellCmdExecutor.execCmd('lldpad -d')
+        
+#         if network_mode == 'vlan' :
+        ShellCmdExecutor.execCmd('yum install lldpad -y')
+        ShellCmdExecutor.execCmd('lldpad -d')
+        
+        mgmt_interface_names = YAMLUtil.getInterfacesByBridge('br-mgmt')
+        for interface_name in mgmt_interface_names:
             
-            mgmt_interface_names = YAMLUtil.getInterfacesByBridge('br-mgmt')
-            for interface_name in mgmt_interface_names:
-                
-                cmd1 = 'lldptool set-lldp -i {interface_name} adminStatus=rxtx'.format(interface_name=interface_name)
-                cmd2 = 'lldptool -T -i {interface_name} -V  sysName enableTx=yes'.format(interface_name=interface_name)
-                cmd3 = 'lldptool -T -i {interface_name} -V  portDesc enableTx=yes'.format(interface_name=interface_name)
-                cmd4 = 'lldptool -T -i {interface_name} -V  sysDesc enableTx=yes'.format(interface_name=interface_name)
-                cmd5 = 'lldptool -T -i {interface_name} -V sysCap enableTx=yes'.format(interface_name=interface_name)
-                cmd6 = 'lldptool -T -i {interface_name} -V mngAddr enableTx=yes'.format(interface_name=interface_name)
-                ShellCmdExecutor.execCmd(cmd1)
-                ShellCmdExecutor.execCmd(cmd2)
-                ShellCmdExecutor.execCmd(cmd3)
-                ShellCmdExecutor.execCmd(cmd4)
-                ShellCmdExecutor.execCmd(cmd5)
-                ShellCmdExecutor.execCmd(cmd6)
-                pass
-            pass
+            cmd1 = 'lldptool set-lldp -i {interface_name} adminStatus=rxtx'.format(interface_name=interface_name)
+            cmd2 = 'lldptool -T -i {interface_name} -V  sysName enableTx=yes'.format(interface_name=interface_name)
+            cmd3 = 'lldptool -T -i {interface_name} -V  portDesc enableTx=yes'.format(interface_name=interface_name)
+            cmd4 = 'lldptool -T -i {interface_name} -V  sysDesc enableTx=yes'.format(interface_name=interface_name)
+            cmd5 = 'lldptool -T -i {interface_name} -V sysCap enableTx=yes'.format(interface_name=interface_name)
+            cmd6 = 'lldptool -T -i {interface_name} -V mngAddr enableTx=yes'.format(interface_name=interface_name)
+            ShellCmdExecutor.execCmd(cmd1)
+            ShellCmdExecutor.execCmd(cmd2)
+            ShellCmdExecutor.execCmd(cmd3)
+            ShellCmdExecutor.execCmd(cmd4)
+            ShellCmdExecutor.execCmd(cmd5)
+            ShellCmdExecutor.execCmd(cmd6)
         print 'implement_lldp#########'
         pass
     
@@ -461,6 +460,10 @@ if __name__ == '__main__':
         NeutronServer.install()
         
         NeutronServer.configConfFile()
+        #ICBC patch
+        from openstack.kilo.common.net import Net
+        Net.patch()
+        ############
         
         #patch
         from openstack.kilo.common.patch import Patch

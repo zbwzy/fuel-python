@@ -681,7 +681,7 @@ listen gnocchi_api
             index += 1
             pass
 
-        gnocchiServerListContent = ceilometerServerListContent.strip()
+        gnocchiServerListContent = gnocchiServerListContent.strip()
         print 'gnocchiServerListContent=%s--' % gnocchiServerListContent
 
         gnocchiServerBackendString = gnocchiServerBackendString.replace('<GNOCCHI_SERVER_LIST>', gnocchiServerListContent)

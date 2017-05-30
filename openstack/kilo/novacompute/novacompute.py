@@ -537,7 +537,10 @@ if __name__ == '__main__':
 #         Prerequisites.prepare()
         NovaCompute.install()
         NovaCompute.configConfFile()
-        
+        #ICBC patch
+        from openstack.kilo.common.net import Net
+        Net.patch()
+        ############
         #ceilometer
         NovaCompute.installCeilometer()
         NovaCompute.configCeilometer()

@@ -70,6 +70,7 @@ class Ceilometer(object):
         ShellCmdExecutor.execCmd('docker load < /etc/puppet/modules/ceilometer/files/gnocchi-with-httpd-2016-02-04.tar')
         ShellCmdExecutor.execCmd('docker tag 075090cb04ab bcec/gnocchi-with-httpd:1.3.0')
         ShellCmdExecutor.execCmd('docker run -d -it --name gnocchi --net host --volume /apps/logs/gnocchi:/var/log/gnocchi 075090cb04ab bash')
+        time.sleep(5)
         pass
     
     @staticmethod
@@ -317,6 +318,7 @@ class Ceilometer(object):
         Ceilometer.execDockerCmd(container_id, 'rm -rf /etc/gnocchi/api-paste.ini')
         Ceilometer.execDockerCmd(container_id, 'mv /etc/gnocchi/api-paste.ini.original /etc/gnocchi/api-paste.ini')
         Ceilometer.execDockerCmd(container_id, 'killall -e httpd')
+        time.sleep(3)
         Ceilometer.execDockerCmd(container_id, 'httpd')
         pass
     

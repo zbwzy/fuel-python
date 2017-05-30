@@ -66,13 +66,21 @@ if __name__ == '__main__':
                 NovaCompute.scpSSHNovaTrustFiles(src_ip)
                 pass
             
-            #open limits of file & restart always
-            from common.openfile.OpenFile import OpenFile
-            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-nova-compute')
-            pass
+        #start ceilometer compute
+        ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
+        ShellCmdExecutor.execCmd('systemctl restart openstack-ceilometer-compute.service')
         
+        #open limits of file & restart always
+        from common.openfile.OpenFile import OpenFile
+        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-nova-compute')
+        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-ceilometer-compute')
+        
+        ####################ICBC
         from openstack.kilo.neutronserver.neutronserver import NeutronServer
-        NeutronServer.implement_lldp()
+        from openstack.kilo.common.net import Net
+        Net.implement_lldp()
+#         Net.rmBusinessNet()
+        ####################ICBC
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello nova-compute kilo#######'

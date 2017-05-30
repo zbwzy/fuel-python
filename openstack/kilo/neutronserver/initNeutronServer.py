@@ -60,13 +60,16 @@ if __name__ == '__main__':
             NeutronServer.importNeutronDBSchema()
             time.sleep(2)
             pass
+        else :
+            pass
         
         NeutronServer.start()
-        
-        NeutronServer.implement_lldp()
+        #####################ICBC
+        #icbc customize
+        #rm business 
+#         Net.rmBusinessNet()
+        ####################ICBC
         #
-        from common.openfile.OpenFile import OpenFile
-        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
         #mark: neutron-server is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:neutron-server initted#######'

@@ -20,7 +20,7 @@ export OS_ENDPOINT_TYPE='internalURL'
 export OS_VOLUME_API_VERSION=2
 
 
-yum install qemu* -y
+yum reinstall qemu* -y
 yum install lvm2 -y
 
 systemctl enable lvm2-lvmetad.service

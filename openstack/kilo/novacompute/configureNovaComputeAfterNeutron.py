@@ -214,6 +214,10 @@ if __name__ == '__main__':
         NovaCompute.confiugureNeutron()
         NovaCompute.configureML2()
         NovaCompute.configureOVS()
+        #ICBC
+        from openstack.kilo.common.net import Net
+        Net.patch()
+        #########################
 #         NovaCompute.reconfigureNovaCompute()
         NovaCompute.finalizeInstallation()
         

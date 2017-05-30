@@ -41,6 +41,7 @@ from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 
 from openstack.common.role import Role
+from openstack.kilo.common.net import Net
 
 #install pexpect package
 # pexpectPackagePath = os.path.join(PROJ_HOME_DIR, 'externals', 'pexpect-3.3')
@@ -82,7 +83,7 @@ root@10.20.0.192's password:
         time.sleep(5)
         child.sendline('exit')
         child.sendcontrol('c')
-        child.interact()
+#         child.interact()
     except OSError:
         print 'Catch exception %s when sync glance image.' % OSError.strerror
         sys.exit(0)
@@ -134,6 +135,24 @@ if __name__ == '__main__':
                     scp_image(scpCmd, imageFileName, ip)
                     pass
                 pass
+            
+            #set ntp client
+            keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+            keystone_ip_list = keystone_params_dict['mgmt_ips']
+            keystone_0_ip = keystone_ip_list[0]
+            
+            from common.ntp.NTPService import NTPService
+            ntp_server_ip = keystone_0_ip
+            NTPService.setNTPClient(ntp_server_ip)
+            ###############
+            
+            ###implement lldp
+            Net.implement_lldp()
+            
+            from common.openfile.OpenFile import OpenFile
+            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
+            
+            os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)
             pass
         pass
     print 'hello ostf initted#######'
