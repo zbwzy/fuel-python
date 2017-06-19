@@ -154,9 +154,13 @@ class Net(object):
             pass
         
         rpc_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'rpc.py')
-        ShellCmdExecutor.execCmd('cp -r %s /usr/lib/python2.7/site-packages/neutron/plugins/ml2/' % rpc_template_file_path)
+        if os.path.exists('/usr/lib/python2.7/site-packages/neutron/plugins/ml2/'):
+            ShellCmdExecutor.execCmd('cp -r %s /usr/lib/python2.7/site-packages/neutron/plugins/ml2/' % rpc_template_file_path)
+            pass
         
-        ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron/neutron_lbaas.conf')
+        if os.path.exists('/etc/neutron/neutron_lbaas.conf') :
+            ShellCmdExecutor.execCmd('chown -R neutron:neutron /etc/neutron/neutron_lbaas.conf')
+            pass
         pass
     
     

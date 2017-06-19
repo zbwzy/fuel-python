@@ -14,6 +14,7 @@ NOTE: the params is from conf/openstack_params.json, this file is initialized wh
 import sys
 import os
 import time
+import string 
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -42,6 +43,7 @@ from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
 from openstack.kilo.ssh.SSH import SSH 
 from openstack.common.serverSequence import ServerSequence
+from openstack.common.utils import Utils
 
 class Prerequisites(object):
     '''
@@ -150,6 +152,7 @@ vif_plugging_timeout=0
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-scheduler.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-conductor.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-novncproxy.service")
+        ShellCmdExecutor.execCmd("systemctl enable openstack-nova-console.service")
         
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-api.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-cert.service")
@@ -157,6 +160,7 @@ vif_plugging_timeout=0
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-scheduler.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-conductor.service") 
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-novncproxy.service")
+        ShellCmdExecutor.execCmd("systemctl start openstack-nova-console.service")
         pass
     
     @staticmethod
@@ -175,6 +179,7 @@ vif_plugging_timeout=0
         RABBIT_PASSWORD
         NOVA_DBPASS
         MYSQL_VIP
+        VCPU_PIN_SET
         '''
         vipParamsDict = JSONUtility.getValue('vip')
         mysql_vip = vipParamsDict["mysql_vip"] 
@@ -227,6 +232,9 @@ vif_plugging_timeout=0
         novaConfDir = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'NOVA_CONF_DIR')
         print 'novaConfDir=%s' % novaConfDir #/etc/nova
         
+        all_mem_size_mb = Utils.get_all_mem_size_mb()
+        reserverd_host_mem_mb = str(int(string.atof(all_mem_size_mb)*0.1))
+        
         nova_conf_file_path = os.path.join(novaConfDir, 'nova.conf')
         print 'nova_conf_file_path=%s' % nova_conf_file_path
         
@@ -265,6 +273,10 @@ vif_plugging_timeout=0
         
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
         FileUtil.replaceFileContent(nova_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        vcpu_pin_set = '1-15,17-25'
+        FileUtil.replaceFileContent(nova_conf_file_path, '<VCPU_PIN_SET>', vcpu_pin_set)
+        
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RESERVED_HOST_MEM>', reserverd_host_mem_mb)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         

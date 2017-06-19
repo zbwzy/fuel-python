@@ -35,6 +35,7 @@ sys.path.append(PROJ_HOME_DIR)
 from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
+from common.yaml.YAMLUtil import YAMLUtil
 from common.file.FileUtil import FileUtil
 
 from openstack.kilo.novacompute.novacompute import NovaCompute
@@ -67,18 +68,37 @@ if __name__ == '__main__':
                 pass
             
         #start ceilometer compute
-#         ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
-#         ShellCmdExecutor.execCmd('systemctl restart openstack-ceilometer-compute.service')
+        ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
+        ShellCmdExecutor.execCmd('systemctl restart openstack-ceilometer-compute.service')
         
         #open limits of file & restart always
         from common.openfile.OpenFile import OpenFile
         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-nova-compute')
-#         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-ceilometer-compute')
+        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-ceilometer-compute')
+        
+        
+        
+        from common.ntp.NTPService import NTPService
+        ntp_enabled = YAMLUtil.getValue('ntp', 'enable')
+        if ntp_enabled == False :
+            #defaulty,choose the first keystone(uuid is  the smallest) as ntp server
+            #set ntp client
+            keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+            keystone_ip_list = keystone_params_dict['mgmt_ips']
+            keystone_0_ip = keystone_ip_list[0]
+            ntp_server_ip = keystone_0_ip
+            NTPService.setNTPClient(ntp_server_ip)
+            pass
+        else :
+            ntp_server_ip = YAMLUtil.getValue('ntp', 'ntp_server_ip')
+            NTPService.setNTPClient(ntp_server_ip)
+            pass
         
         ####################ICBC
         from openstack.kilo.neutronserver.neutronserver import NeutronServer
         from openstack.kilo.common.net import Net
         Net.implement_lldp()
+        
 #         Net.rmBusinessNet()
         ####################ICBC
         #mark: nova-compute is installed

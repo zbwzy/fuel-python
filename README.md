@@ -42,3 +42,48 @@ Deploy this project to /etc/puppet/modules/.
 
 
 
+how to adjust rdb when disk is mounted done
+---------------------------------------------
+e.g.  mount point is /apps/
+
+1.stop rdb service:
+cd /opt/bcrdb/support-files
+./mysql.server stop
+
+2. backup original rdb data:
+mkdir /apps/backup
+mv /opt/bcrdb/data  /apps/backup
+
+3.adjust data and log to new disk for rdb:
+mkdir /apps/bcrdb/
+mkdir /apps/bcrdb/log/
+cp -r /apps/backup/data /apps/bcrdb/
+chown -R bcrdb:bcrdb /apps/bcrdb
+
+4.adjust rdb conf file:
+vim /opt/bcrdb/conf/my.cnf
+-------
+...
+datadir                                = /apps/bcrdb/data
+...
+general_log_file                       = /apps/bcrdb/log/general.log
+log_error                              = /apps/bcrdb/log/error.log
+...
+slow_query_log_file                    = /apps/bcrdb/log/slow.log
+...
+
+5.launch rdb:
+if exist other running rdb:
+------
+cd /opt/bcrdb/support-files
+./mysql.server start
+
+
+if not exist other running rdb:
+launch first rdb:
+cd /opt/bcrdb/support-files
+./mysql.server bootstrap
+
+launch another rdb:
+cd /opt/bcrdb/support-files
+./mysql.server start

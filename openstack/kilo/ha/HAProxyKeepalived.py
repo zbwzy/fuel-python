@@ -100,12 +100,13 @@ class HA(object):
     
     @staticmethod
     def startKeepalived():
+        ShellCmdExecutor.execCmd('systemctl enable keepalived.service')
         ShellCmdExecutor.execCmd('systemctl restart keepalived.service')
         pass
     
     @staticmethod
     def restartKeepalived():
-        ShellCmdExecutor.execCmd('systemctl restart keepalived.service')
+        ShellCmdExecutor.execCmd('systemctl enable keepalived.service')
         ShellCmdExecutor.execCmd('systemctl restart keepalived.service')
         pass
     
@@ -157,9 +158,11 @@ class HA(object):
     
     @staticmethod
     def startHaproxy():
+        enable_cmd = '/usr/bin/systemctl enable haproxy.service'
         cmd = '/usr/bin/systemctl restart haproxy.service'
         timeout = 20
         time_count = 0
+        os.system(enable_cmd)
         os.system(cmd)
         
         while True :

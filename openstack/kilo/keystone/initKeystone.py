@@ -554,8 +554,18 @@ if __name__ == '__main__':
             InitKeystone.init()
             #set ntp server
             time.sleep(1)
+            
             from common.ntp.NTPService import NTPService
-            NTPService.setNTPServer()
+            ntp_enabled = YAMLUtil.getValue('ntp', 'enable')
+            if ntp_enabled == False :
+                #defaulty,choose the first keystone(uuid is  the smallest) as ntp server
+                #set ntp server
+                NTPService.setNTPServer()
+                pass
+            else :
+                ntp_server_ip = YAMLUtil.getValue('ntp', 'ntp_server_ip')
+                NTPService.setNTPClient(ntp_server_ip)
+                pass
             pass
         else :
             ShellCmdExecutor.execCmd('chmod 777 /etc/keystone')

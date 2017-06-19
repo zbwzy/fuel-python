@@ -10,11 +10,13 @@ vlan=$2
 dot="."
 bondv=${bond}${dot}${vlan}
 
+path1="/etc/sysconfig/network-scripts/ifcfg-"
 echo "1. remove port from bridge br-fw-admin"
 brctl delif br-fw-admin ${bond}
+path3=${path1}${bond}
+sed -i '/br-fw-admin/d' ${path3}
 
 echo "2. delete bridge br-data and delete interface br-data"
-path1="/etc/sysconfig/network-scripts/ifcfg-"
 path2=${path1}${bondv}
 ifconfig br-data down
 brctl delif br-data ${bondv}

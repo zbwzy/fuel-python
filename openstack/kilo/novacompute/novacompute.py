@@ -14,6 +14,7 @@ NOTE: the params is from conf/openstack_params.json, this file is initialized wh
 import sys
 import os
 import time
+import string
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -40,6 +41,7 @@ from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
 from common.yaml.YAMLUtil import YAMLUtil
+from openstack.common.utils import Utils
 
 class Prerequisites(object):
     '''
@@ -461,6 +463,9 @@ vif_plugging_timeout=0
         nova_conf_file_path = os.path.join(novaConfDir, 'nova.conf')
         print 'nova_conf_file_path=%s' % nova_conf_file_path
         
+        all_mem_size_mb = Utils.get_all_mem_size_mb()
+        reserverd_host_mem_mb = str(int(string.atof(all_mem_size_mb)*0.1))
+        
         if not os.path.exists(novaConfDir) :
             ShellCmdExecutor.execCmd("mkdir %s" % novaConfDir)
             pass
@@ -491,6 +496,7 @@ vif_plugging_timeout=0
         FileUtil.replaceFileContent(nova_conf_file_path, '<VIRT_TYPE>', virt_type)
         FileUtil.replaceFileContent(nova_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
         FileUtil.replaceFileContent(nova_conf_file_path, '<NOVA_VIP>', nova_vip)
+        FileUtil.replaceFileContent(nova_conf_file_path, '<RESERVED_HOST_MEM>', reserverd_host_mem_mb)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
         

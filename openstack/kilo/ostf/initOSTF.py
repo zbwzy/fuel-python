@@ -136,14 +136,28 @@ if __name__ == '__main__':
                     pass
                 pass
             
-            #set ntp client
-            keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
-            keystone_ip_list = keystone_params_dict['mgmt_ips']
-            keystone_0_ip = keystone_ip_list[0]
+            
             
             from common.ntp.NTPService import NTPService
-            ntp_server_ip = keystone_0_ip
-            NTPService.setNTPClient(ntp_server_ip)
+            
+            ntp_enabled = YAMLUtil.getValue('ntp', 'enable')
+            if ntp_enabled == False :
+                #defaulty,choose the first keystone(uuid is  the smallest) as ntp server
+                #set ntp client
+                keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
+                keystone_ip_list = keystone_params_dict['mgmt_ips']
+                keystone_0_ip = keystone_ip_list[0]
+                ntp_server_ip = keystone_0_ip
+                if YAMLUtil.getManagementIP() != ntp_server_ip:
+                    #Not ntp server
+                    NTPService.setNTPClient(ntp_server_ip)
+                    pass
+                pass
+            else :
+                ntp_server_ip = YAMLUtil.getValue('ntp', 'ntp_server_ip')
+                NTPService.setNTPClient(ntp_server_ip)
+                pass
+            
             ###############
             
             ###implement lldp
