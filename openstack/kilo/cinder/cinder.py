@@ -81,7 +81,7 @@ class Cinder(object):
     @staticmethod
     def install():
         print 'Cinder.install start===='
-        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db python-oslo-log -y'
+        yumCmd = 'yum install openstack-cinder python-cinderclient python-oslo-db python-oslo-log  MySQL-python scsi-target-utils -y'
         ShellCmdExecutor.execCmd(yumCmd)
         print 'Cinder.install done####'
         pass
@@ -100,6 +100,8 @@ class Cinder(object):
         
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-api.service')
         ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-scheduler.service')
+        
+        ShellCmdExecutor.execCmd('systemctl enable openstack-cinder-volume.service')
         
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-api.service')
         ShellCmdExecutor.execCmd('systemctl start openstack-cinder-scheduler.service')

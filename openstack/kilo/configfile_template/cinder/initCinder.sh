@@ -22,6 +22,10 @@ export OS_VOLUME_API_VERSION=2
 #
 echo 'init cinder in keystone===='
 
+openstack project create --description "cinder internal tenant project" cinder_internal_tenant_project
+
+openstack role add --project cinder_internal_tenant_project --user cinder_internal_tenant_user admin
+
 openstack role add --project service --user cinder admin
 
 openstack service create --name cinder --description "OpenStack Block Storage" volume

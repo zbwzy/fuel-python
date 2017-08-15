@@ -70,6 +70,7 @@ class InitKeystone(object):
         InitKeystone.initNeutron()
         
         InitKeystone.initCinderUser()
+        InitKeystone.initCinderInternalTenantUser()
         InitKeystone.initCinder()
         
         if YAMLUtil.hasRoleInNodes('ceilometer') :
@@ -269,6 +270,35 @@ Repeat User Password:
         FileUtil.replaceFileContent(initCinderScriptPath, '<CINDER_VIP>', cinder_vip)
 #         ShellCmdExecutor.execCmd('bash %s' % initCinderScriptPath)
         InitKeystone.initOpenstackComponentToKeystone(initCinderScriptPath, keystone_cinder_password)
+        pass
+    
+    @staticmethod
+    def initCinderInternalTenantUser():
+        admin_token = JSONUtility.getValue('admin_token')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        vipParamsDict = JSONUtility.getValue('vip')
+        
+        keystone_vip = vipParamsDict["keystone_vip"]
+        keystone_cinder_internal_tenant_password = JSONUtility.getValue('keystone_cinder_internal_tenant_password')
+        cinder_vip = vipParamsDict['cinder_vip']
+        
+        initCinderScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'cinder', 'initCinderInternalTenantUser.sh')
+        ##
+        openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
+        openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
+        if os.path.exists(openstackScriptDirPath) :
+            os.system('mkdir -p %s' % openstackScriptDirPath)
+            pass
+        
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initCinderScriptTemplatePath, openstackScriptDirPath))
+        
+        initCinderScriptPath = os.path.join(openstackScriptDirPath, 'initCinderInternalTenantUser.sh')
+        FileUtil.replaceFileContent(initCinderScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initCinderScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initCinderScriptPath, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(initCinderScriptPath, '<CINDER_VIP>', cinder_vip)
+#         ShellCmdExecutor.execCmd('bash %s' % initCinderScriptPath)
+        InitKeystone.initOpenstackComponentToKeystone(initCinderScriptPath, keystone_cinder_internal_tenant_password)
         pass
     
     @staticmethod
@@ -611,6 +641,8 @@ if __name__ == '__main__':
             Keystone.start()
             pass
         
+        from common.openfile.OpenFile import OpenFile
+        OpenFile.execModificationBy('/usr/lib/systemd/system', 'httpd.service')
         #mark: keystone is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:keystone#######'

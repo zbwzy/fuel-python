@@ -119,11 +119,6 @@ class BCRDB(object):
         ShellCmdExecutor.execCmd('useradd bcrdb')
         bcrdb_deploy_dir = os.path.join(BCRDB.BCRDB_HOME_DIR, 'bcrdb')
         ShellCmdExecutor.execCmd('chown -R bcrdb:bcrdb %s' % bcrdb_deploy_dir)
-        
-        if os.path.exists('/var/lib/mysql') :
-            os.system('mkdir /var/lib/mysql/data')
-            os.system('mkdir /var/lib/mysql/log')
-            os.system('chown -R bcrdb:bcrdb /var/lib/mysql')
         pass
     
     @staticmethod

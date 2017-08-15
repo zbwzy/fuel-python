@@ -64,6 +64,9 @@ if __name__ == '__main__':
             pass
         
         NeutronServer.start()
+        
+        from common.openfile.OpenFile import OpenFile
+        OpenFile.execModificationBy('/usr/lib/systemd/system', 'neutron-server.service')
         #####################ICBC
         #icbc customize
         #rm business 

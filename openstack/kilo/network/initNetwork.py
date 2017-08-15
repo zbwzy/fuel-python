@@ -50,6 +50,7 @@ if __name__ == '__main__':
         if not Network.isNeutronServerNode() :
             from common.openfile.OpenFile import OpenFile
             OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
+            OpenFile.execModificationBy('/usr/lib/systemd/system', 'neutron-dhcp-agent.service')
             pass
         
         os.system('touch %s' % INSTALL_TAG_FILE)

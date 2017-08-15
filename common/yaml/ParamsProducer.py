@@ -140,6 +140,9 @@ class ParamsProducer(object):
         keystone_gnocchi_password = 'd23a70822f53040a883c'
         paramsMap['keystone_gnocchi_password'] = keystone_gnocchi_password
         
+        keystone_cinder_internal_tenant_password = 'a12d60866d87090b899d'
+        paramsMap['keystone_cinder_internal_tenant_password'] = keystone_cinder_internal_tenant_password
+        
         cluster_id = YAMLUtil.getValue('global', 'cluster_id')
         paramsMap['cluster_id'] = cluster_id
         

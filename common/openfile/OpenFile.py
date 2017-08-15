@@ -116,7 +116,7 @@ class OpenFile(object):
             ###
             ShellCmdExecutor.execCmd('systemctl daemon-reload')
             #Restart service
-            if 'openstack-nova-metadata-api' not in fileName :
+            if ('openstack-nova-metadata-api' not in fileName) and ('openstack-keystone' not in fileName) :
                 ShellCmdExecutor.execCmd('systemctl restart %s' % fileName)
                 pass
             pass
@@ -129,4 +129,80 @@ class OpenFile(object):
         cmd = 'sed -i  \'/%s/a\%s\' %s' % (curLineContent, insertLine, filePath)
         ShellCmdExecutor.execCmd(cmd)
         pass
+    
+    #fileName should be xxxx.service,e.g. httpd.service
+    @staticmethod
+    def execModificationBy(dirPath, fileName):
+        backupDir = '/home/backup_service/serviceFile'
+        if not os.path.exists(backupDir) :
+            os.system('mkdir -p %s' % backupDir)
+            pass
+        
+        #backup
+        ShellCmdExecutor.execCmd('cd %s; cp -r %s %s' %(dirPath, fileName, backupDir))
+        
+        #        
+        if fileName.strip() == '' or fileName.strip() == None:
+            return 0
+            pass
+        
+        diffDir = '/home/backup_service/serviceRecord.txt'
+        if os.path.exists(diffDir) :
+            ShellCmdExecutor.execCmd("rm -rf %s" % diffDir)
+            pass
+        
+        file = open(diffDir, 'a')
+        #////////////////  modify service configuration file: add limitNOFILE=409600, Restart=always
+        filePath = os.path.join(dirPath, fileName)
+        output, exitcode = ShellCmdExecutor.execCmd('cat %s' % filePath)
+        fileContent = output.strip()
+          
+        limitNOFILECount, exitcode = ShellCmdExecutor.execCmd('cat %s | grep LimitNOFILE | wc -l' % filePath)
+        limitNOFILECount = limitNOFILECount.strip()
+          
+        restartCount, exitcode = ShellCmdExecutor.execCmd('cat %s | grep Restart | wc -l' % filePath)
+        restartCount = restartCount.strip()
+          
+        file.write('%s\n\'%s\'->[%s].  \'%s\'->[%s].\n------------------------------------\n' % (fileName,'LimitNOFILE', limitNOFILECount, 'Restart', restartCount))
+          
+        if 'Restart' in fileContent and 'always' in fileContent :
+            #del
+            delCmd = 'sed -i -e \'/%s/d\' %s' % ('Restart', filePath)
+            ShellCmdExecutor.execCmd(delCmd)
+              
+            OpenFile.insertAfterLine('\[Service\]', 'Restart=always', filePath)
+            pass
+        else :
+            OpenFile.insertAfterLine('\[Service\]', 'Restart=always', filePath)
+            pass
+          
+        if 'LimitNOFILE' in fileContent :
+            #del
+            delCmd = 'sed -i -e \'/%s/d\' %s' % ('LimitNOFILE', filePath)
+            ShellCmdExecutor.execCmd(delCmd)
+              
+            OpenFile.insertAfterLine('\[Service\]', 'LimitNOFILE=409600', filePath)
+            pass
+        else :
+            OpenFile.insertAfterLine('\[Service\]', 'LimitNOFILE=409600', filePath)
+            pass
+          
+        #After
+        limitNOFILECount, exitcode = ShellCmdExecutor.execCmd('cat %s | grep LimitNOFILE | wc -l' % filePath)
+        limitNOFILECount = limitNOFILECount.strip()
+          
+        restartCount, exitcode = ShellCmdExecutor.execCmd('cat %s | grep Restart | wc -l' % filePath)
+        restartCount = restartCount.strip()
+          
+        file.write('After modification: %s\n\'%s\'->[%s].  \'%s\'->[%s].\n------------------------------------\n' % (fileName,'LimitNOFILE', limitNOFILECount, 'Restart', restartCount))
+        
+        ###
+        ShellCmdExecutor.execCmd('systemctl daemon-reload')
+        #Restart service
+        if ('openstack-nova-metadata-api' not in fileName) and ('openstack-keystone' not in fileName) :
+            ShellCmdExecutor.execCmd('systemctl restart %s' % fileName)
+            pass
+        
+        file.close()
+        return 1
         

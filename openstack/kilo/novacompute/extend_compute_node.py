@@ -46,7 +46,7 @@ class ExtendNovaCompute(object):
     '''
     classdocs
     '''
-    EXTENDED_INFO_FILE = '/root/extend_node/extended_history.json'
+    EXTENDED_INFO_FILE = '/root/rm_node/extended_history.json'
     
     def __init__(self):
         '''
@@ -325,6 +325,12 @@ if __name__ == '__main__':
                     output, exitcode = ShellCmdExecutor.execCmd(cmd)
                     print 'output=%s--' % output
                     print 'exitcode=%s--' % exitcode
+                    
+                    cmd1 = 'ssh root@{compute_ip} python /etc/puppet/fuel-python/openstack/kilo/novacompute/initNovaCompute.py'.format(compute_ip=ip)
+                    print 'cmd1=%s' % cmd1
+                    output1, exitcode1 = ShellCmdExecutor.execCmd(cmd1)
+                    print 'output1=%s--' % output1
+                    print 'exitcode1=%s--' % exitcode1
                     if exitcode == 0 :
                         ExtendNovaCompute.appendToExtendHistory(ip)
                         pass

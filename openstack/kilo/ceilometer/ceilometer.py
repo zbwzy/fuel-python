@@ -61,6 +61,7 @@ class Ceilometer(object):
   
         ShellCmdExecutor.execCmd(yumCmd)
         
+        ShellCmdExecutor.execCmd('systemctl enable docker')
         ShellCmdExecutor.execCmd('systemctl restart docker')
         print 'Ceilometer.install done####'
         pass
@@ -472,11 +473,6 @@ if __name__ == '__main__':
         
     #     Ceilometer.start()
     #     
-    #     ## Ceilometer HA
-#         CeilometerHA.install()
-#         CeilometerHA.configure()
-    #     CeilometerHA.start()
-        #
         #mark: ceilometer is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:ceilometer#######'

@@ -1,25 +1,38 @@
 #!/bin/sh
-if [ $# -ne 1 ]
-then
-    echo "WARNING: please input a para of physical interface"
-    exit
-fi
+#echo "1. install lldpad"
+#yum install lldpad -y
 
-intf=$1
+BOND_DEVICE="bond0"
+BOND_SLAVES=`ip -o link show |grep "master bond0"|cut -d ':' -f2`
 
-echo "1. install lldpad"
-yum install lldpad -y
+function start()
+{ 
+ lldpad -d;
+ for i in $BOND_SLAVES;
+ do
+	lldptool set-lldp -i ${i} adminStatus=rxtx 
+        lldptool -T -i ${i} -V  sysName enableTx=yes
+        lldptool -T -i ${i} -V  portDesc enableTx=yes
+        lldptool -T -i ${i} -V  sysDesc enableTx=yes
+        lldptool -T -i ${i} -V sysCap enableTx=yes
+        lldptool -T -i ${i} -V mngAddr enableTx=yes
+ done
+ }
 
-echo "2. start lldpad"
-lldpad -d
+function stop()
+{ 
+	pass
+ }
 
-echo "3. config lldp"
-lldptool set-lldp -i ${intf} adminStatus=rxtx 
-lldptool -T -i ${intf} -V  sysName enableTx=yes
-lldptool -T -i ${intf} -V  portDesc enableTx=yes
-lldptool -T -i ${intf} -V  sysDesc enableTx=yes
-lldptool -T -i ${intf} -V sysCap enableTx=yes
-lldptool -T -i ${intf} -V mngAddr enableTx=yes
-
-echo "4. done"
-
+case "$1" in
+ start)
+ start;
+	;;
+ stop)
+ stop;
+ ;;
+ *)
+	echo $"useage: $0 (start)"
+	exit 2
+ 
+esac

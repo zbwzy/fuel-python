@@ -96,6 +96,7 @@ class Net(object):
 #         if network_mode == 'vlan' :
         ShellCmdExecutor.execCmd('yum install lldpad -y')
         ShellCmdExecutor.execCmd('lldpad -d')
+        ShellCmdExecutor.execCmd('systemctl enable lldpad')
         
         mgmt_interface_names = YAMLUtil.getInterfacesByBridge('br-mgmt')
         for interface_name in mgmt_interface_names:
@@ -112,6 +113,14 @@ class Net(object):
             ShellCmdExecutor.execCmd(cmd4)
             ShellCmdExecutor.execCmd(cmd5)
             ShellCmdExecutor.execCmd(cmd6)
+        
+        #set self start
+        lldp_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'icbc', 'lldp.sh')
+        ShellCmdExecutor.execCmd('cp -r %s /etc/init.d/' % lldp_script_path)
+        ShellCmdExecutor.execCmd('chmod 755 /etc/init.d/lldp.sh')
+        
+        append_cmd = 'echo "/etc/init.d/lldp.sh start" >> /etc/rc.local'
+        ShellCmdExecutor.execCmd(append_cmd)
         print 'implement_lldp#########'
         pass
     

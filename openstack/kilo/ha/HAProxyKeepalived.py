@@ -95,7 +95,7 @@ class HA(object):
         haproxy_check_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'ha', 'haproxy_check.sh')
         ShellCmdExecutor.execCmd('cp -r %s /etc/keepalived/' % haproxy_check_script_path)
         ShellCmdExecutor.execCmd('chmod 644 %s' % keepalived_conf_dest_path)
-        ShellCmdExecutor.execCmd('chmod 644 /etc/keepalived/haproxy_check.sh')
+        ShellCmdExecutor.execCmd('chmod 777 /etc/keepalived/haproxy_check.sh')
         pass
     
     @staticmethod
