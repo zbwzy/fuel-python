@@ -28,6 +28,8 @@ rm -rf ${path3}
 echo "3. restart network"
 systemctl restart network
 
+systemctl restart keepalived
+
 
 echo "4. done"
 

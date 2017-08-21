@@ -41,8 +41,9 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.properties.PropertiesUtil import PropertiesUtility
 from common.file.FileUtil import FileUtil
+from common.yaml.YAMLUtil import YAMLUtil
 
-class ExtendNovaCompute(object):
+class SetEtcHosts(object):
     '''
     classdocs
     '''
@@ -65,12 +66,12 @@ class ExtendNovaCompute(object):
     
     @staticmethod
     def getComputeNodes():
-        dict = ExtendNovaCompute.getCurClusterParamsDict()
+        dict = SetEtcHosts.getCurClusterParamsDict()
         return dict["compute_nodes"]
     
     @staticmethod
     def getControllerNodes():
-        dict = ExtendNovaCompute.getCurClusterParamsDict()
+        dict = SetEtcHosts.getCurClusterParamsDict()
         return dict["controller_nodes"]
     
     @staticmethod
@@ -87,58 +88,42 @@ class ExtendNovaCompute(object):
         pass
     
     @staticmethod
-    def extendEtcHosts(extended_compute_node_ips):
-        originalHostLines = ''
-        cmd = 'ssh root@{ip} cat /etc/hosts'.format(ip=ExtendNovaCompute.getControllerNodes()[0])
-        output, exitcode = ShellCmdExecutor.execCmd(cmd)
-        output = output.strip()
-        if 'Warning' in output :
-            lineList = output.split('\n')
-            for line in lineList :
-                if 'Warning' not in line :
-                    originalHostLines += line + '\n'
-                    pass
+    def setEtcHosts(extended_compute_node_ip):
+        host_name = YAMLUtil.getNodeNameByManagementIP(extended_compute_node_ip)
+        host_name_with_domain = host_name + '.domain.tld'
+        host_line = extended_compute_node_ip + ' ' + host_name + ' ' + host_name_with_domain
+        controller_ip_list = YAMLUtil.getRoleManagementIPList('mysql')
+        compute_ip_list = YAMLUtil.getRoleManagementIPList('nova-compute')
+        print 'controller_ip_list=%s--' % controller_ip_list
+        print 'compute_ip_list=%s--' % compute_ip_list
+        for controller_ip in controller_ip_list :
+            cmd = 'ssh -o StrictHostKeyChecking=no root@{ip} date'.format(ip=controller_ip)
+            ShellCmdExecutor.execCmd(cmd) 
+
+            catCmd = 'ssh root@{ip} cat /etc/hosts'.format(ip=controller_ip)
+            output, exitcode = ShellCmdExecutor.execCmd(catCmd) 
+            if host_name not in output :
+                setHostInfoCmd = 'ssh root@{ip} \'echo "{host_line}" >> /etc/hosts\''.format(ip=controller_ip,host_line=host_line)
+                print 'setHostInfoCmd=%s' % setHostInfoCmd
+                ShellCmdExecutor.execCmd(setHostInfoCmd)
                 pass
             pass
-        else :
-            originalHostLines = output
+
+        for compute_ip in compute_ip_list :
+            cmd = 'ssh -o StrictHostKeyChecking=no root@{ip} date'.format(ip=compute_ip)
+            ShellCmdExecutor.execCmd(cmd) 
+
+            catCmd = 'ssh root@{ip} cat /etc/hosts'.format(ip=compute_ip)
+            output, exitcode = ShellCmdExecutor.execCmd(catCmd)
+            if host_name not in output :
+                setHostInfoCmd = 'ssh root@{ip} \'echo "{host_line}" >> /etc/hosts\''.format(ip=compute_ip,host_line=host_line)
+                ShellCmdExecutor.execCmd(setHostInfoCmd)
             pass
         
-        originalHostLines = originalHostLines.strip()
-        print 'originalHostLines=%s--' % originalHostLines
         
-        
-        extendComputeHostlines = ''
-        for ip in extended_compute_node_ips :
-            hostname = ExtendNovaCompute.getHostNameBy(ip)
-            traditionHostName = hostname.rstrip(".tld").rstrip(".domain")
-            line = ip + ' ' + traditionHostName + ' ' + hostname + '\n'
-            extendComputeHostlines += line
-            pass
-        
-        hostLines = originalHostLines + '\n' + extendComputeHostlines
-        
-        for ip in ExtendNovaCompute.getControllerNodes() :
-            setHostInfoCmd = 'ssh root@{ip} \'echo "{hostLines}" > /etc/hosts\''.format(ip=ip,hostLines=hostLines)
-            ShellCmdExecutor.execCmd(setHostInfoCmd)
-            pass
-        
-        for ip in ExtendNovaCompute.getComputeNodes() :
-            setHostInfoCmd = 'ssh root@{ip} \'echo "{hostLines}" > /etc/hosts\''.format(ip=ip,hostLines=hostLines)
-            ShellCmdExecutor.execCmd(setHostInfoCmd)
-            pass
-        
-        for ip in extended_compute_node_ips :
-            setHostInfoCmd = 'ssh root@{ip} \'echo "{hostLines}" > /etc/hosts\''.format(ip=ip,hostLines=hostLines)
-            ShellCmdExecutor.execCmd(setHostInfoCmd)
-            pass
-        
-        print 'extendComputeHostlines=%s---' % extendComputeHostlines
-        pass
-    
     @staticmethod
     def prepareCurClusterParams(extend_compute_ips):
-        controllerNodesList = ExtendNovaCompute.getControllerNodes()
+        controllerNodesList = SetEtcHosts.getControllerNodes()
         controllerNodeIP = controllerNodesList[0]
         paramsFilePath = '/opt/openstack_conf/openstack_params.json'
         for compute_ip in extend_compute_ips :
@@ -226,7 +211,7 @@ vif_plugging_timeout=0
     
     @staticmethod
     def getHistoryNodeIPs(key):
-        extened_info_history_file_path = ExtendNovaCompute.EXTENDED_INFO_FILE
+        extened_info_history_file_path = SetEtcHosts.EXTENDED_INFO_FILE
         if os.path.exists(extened_info_history_file_path) :
             jsonContent = JSONUtility.getContent(extened_info_history_file_path)
             pass
@@ -247,14 +232,14 @@ vif_plugging_timeout=0
             value = jsonDict[key]
             pass
         else :
-            print 'ERROR:no key %s in %s.' % (str(key), ExtendNovaCompute.EXTENDED_INFO_FILE)
+            print 'ERROR:no key %s in %s.' % (str(key), SetEtcHosts.EXTENDED_INFO_FILE)
             pass
         
         return value
     
     @staticmethod
     def isComputeNodeExistInHistory(mgmt_ip):
-        compute_node = ExtendNovaCompute.getHistoryNodeIPs('compute_node')
+        compute_node = SetEtcHosts.getHistoryNodeIPs('compute_node')
         if compute_node == None :
             print 'history info is NONE!!'
             return False
@@ -270,7 +255,7 @@ vif_plugging_timeout=0
     @staticmethod
     def appendToExtendHistory(mgmt_ip):
         compute_node_list = []
-        cur_compute_node_list = ExtendNovaCompute.getHistoryNodeIPs('compute_node')
+        cur_compute_node_list = SetEtcHosts.getHistoryNodeIPs('compute_node')
         if cur_compute_node_list == None:
             compute_node_list.append(mgmt_ip)
             pass
@@ -283,7 +268,7 @@ vif_plugging_timeout=0
         json_dict["compute_node"] = compute_node_list
         json_str = json.dumps(json_dict, indent=2)
         
-        json_file_path = ExtendNovaCompute.EXTENDED_INFO_FILE
+        json_file_path = SetEtcHosts.EXTENDED_INFO_FILE
         if not os.path.exists(os.path.dirname(json_file_path)) :
             os.mkdir(os.path.dirname(json_file_path))
             pass
@@ -294,75 +279,24 @@ vif_plugging_timeout=0
     
 
 if __name__ == '__main__':
-    print 'Start to extend compute node(s)============'
-    
+    print 'Start to set host============'
     print 'start time: %s' % time.ctime()
 
     ###############################
-    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/novacompute_extended'
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/set_host'
     
     compute_node_ips = sys.argv
     compute_node_ips.pop(0)
-    print 'compute_node_ips=%s--' % compute_node_ips
-    if len(compute_node_ips) == 0 :
+    compute_node_ip = compute_node_ips[0]
+    print 'compute_node_ip=%s--' % compute_node_ip
+    if len(compute_node_ip) == 0 :
         print '++++++++++++++++++++++++++++++++++++++++++++++'
-        print 'Usage: \npython extend_compute_node.py <compute_ip1> <compute_ip2> ... \n\nNote: \nThe compute node ip should be management ip.'
+        print 'Usage: \npython set_host.py <compute_ip1> ... \n\nNote: \nThe compute node ip should be management ip.'
         print '++++++++++++++++++++++++++++++++++++++++++++++'
         sys.exit(1)
         pass
     
-    from common.lock.FileBasedLock import FileBasedLock
-    file_lock = FileBasedLock(lockFilePath='/opt/openstack_conf/lock/extend_compute_lock')
-    if file_lock.acquire(acquireTimeout=60) == True :
-        try :
-            for ip in compute_node_ips:
-                if ExtendNovaCompute.isComputeNodeExistInHistory(ip) :
-                    print 'Do nothing......'
-                    pass
-                else :
-                    cmd = 'ssh root@{compute_ip} python /etc/puppet/fuel-python/openstack/kilo/novacompute/initNovaCompute.py'.format(compute_ip=ip)
-                    print 'cmd=%s' % cmd
-                    output, exitcode = ShellCmdExecutor.execCmd(cmd)
-                    print 'output=%s--' % output
-                    print 'exitcode=%s--' % exitcode
-                    
-                    cmd1 = 'ssh root@{compute_ip} python /etc/puppet/fuel-python/openstack/kilo/novacompute/configureNovaComputeAfterNeutron.py'.format(compute_ip=ip)
-                    print 'cmd1=%s' % cmd1
-                    output1, exitcode1 = ShellCmdExecutor.execCmd(cmd1)
-                    print 'output1=%s--' % output1
-                    print 'exitcode1=%s--' % exitcode1
-                    
-                    cmd2 = 'ssh root@{compute_ip} python /etc/puppet/fuel-python/openstack/kilo/novacompute/set_host.py {compute_ip}'.format(compute_ip=ip)
-                    print 'cmd2=%s' % cmd2
-                    output2, exitcode2 = ShellCmdExecutor.execCmd(cmd2)
-                    print 'output2=%s--' % output2
-                    print 'exitcode2=%s--' % exitcode2
-                    if exitcode == 0 :
-                        ExtendNovaCompute.appendToExtendHistory(ip)
-                        pass
-                    #mark that the compute node is extended
-                    pass
-                pass
-            pass
-        except Exception, e :
-            print 'ERROR: %s' % e
-            print traceback.format_exc()
-        finally: 
-            file_lock.release()
-            pass
-        pass
-        
-        
-        #/etc/hosts
-#         ExtendNovaCompute.extendEtcHosts(compute_node_ips)
-        
-        #prepare original cluster info
-#         ExtendNovaCompute.prepareCurClusterParams(compute_node_ips)
-        
-        #configure nova compute
-#         ExtendNovaCompute.configConfFile()
-        
+    SetEtcHosts.setEtcHosts(compute_node_ip)
         
     print 'hello openstack-kilo:nova-compute extended done#######'
     pass
-

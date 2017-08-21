@@ -131,9 +131,28 @@ def getAllPackage():
 if __name__ == '__main__':
     print 'hello pexpect test============'
     print 'start time: %s' % time.ctime()
+    from common.yaml.YAMLUtil import YAMLUtil
+    ShellCmdExecutor.execCmd('ifconfig br-data down')
+    ShellCmdExecutor.execCmd('ifconfig br-storage down')
+    local_data_ip = YAMLUtil.getExIP()
+    local_storage_ip = YAMLUtil.getStorageIP()
+    rm_data_ip = 'ip addr del %s/24 dev br-data' % local_data_ip 
+    rm_storage_ip = 'ip addr del %s/24 dev br-storage' % local_storage_ip 
+    ShellCmdExecutor.execCmd(rm_data_ip)
+    ShellCmdExecutor.execCmd(rm_storage_ip)
+
+    FileUtil.replaceFileContent('/etc/sysconfig/network-scripts/ifcfg-bond0.102', 'br-storage', 'br-inspector') 
+    FileUtil.replaceFileContent('/etc/sysconfig/network-scripts/ifcfg-bond0.103', 'br-data', 'br-provision') 
+    FileUtil.replaceFileContent('/etc/sysconfig/network-scripts/ifcfg-br-storage', 'br-storage', 'br-inspector') 
+    FileUtil.replaceFileContent('/etc/sysconfig/network-scripts/ifcfg-br-data', 'br-data', 'br-provision') 
     
-    sum = 240+220+280+220+250+415+290+200+345+300+270+258+230+245+220+280+200+200+335.02+200
-    print sum+166
+    ShellCmdExecutor.execCmd('mv /etc/sysconfig/network-scripts/ifcfg-br-storage /etc/sysconfig/network-scripts/ifcfg-br-inspector')
+    ShellCmdExecutor.execCmd('mv /etc/sysconfig/network-scripts/ifcfg-br-provision /etc/sysconfig/network-scripts/ifcfg-br-provision')
+
+    ShellCmdExecutor.execCmd('systemctl restart network')
+    ShellCmdExecutor.execCmd('brctl delbr br-storage')
+    ShellCmdExecutor.execCmd('brctl delbr br-data')
+     
     exit()
     
     #when execute script,exec: python <this file absolute path>

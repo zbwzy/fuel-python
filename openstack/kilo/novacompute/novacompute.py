@@ -548,8 +548,10 @@ if __name__ == '__main__':
         Net.patch()
         ############
         #ceilometer
-        NovaCompute.installCeilometer()
-        NovaCompute.configCeilometer()
+        if YAMLUtil.hasRole('ceilometer') :
+            NovaCompute.installCeilometer()
+            NovaCompute.configCeilometer()
+            pass
 #         NovaCompute.start()
         #
         #patch

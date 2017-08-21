@@ -77,8 +77,30 @@ def prepare():
         execute_cmd(cp_file_cmd, 'cp extend_compute_script_path error')
 	pass
 
+def upgrade_ostf():
+	ostfcmd="docker inspect -f '{{.ID}}' fuel-core-6.0-ostf"
+	ostferrmsg="Get ostf container id failure."
+	ostfcid = execute_cmd(ostfcmd, ostferrmsg)
+	ostfPythonPwd = "/var/lib/docker/devicemapper/mnt/%s/rootfs/usr/lib/python2.6/site-packages" % (ostfcid,)
+	
+	mv_ostf_cmd = "rm -fr %s/fuel_health" %(ostfPythonPwd,)
+	mverrmsg = "rm fuel_health dir in ostf docker container failure." 
+	execute_cmd(mv_ostf_cmd, mverrmsg)
+	
+	cp_ostf_cmd= "cp -r code/fuel_health %s/" %(ostfPythonPwd,)
+	cperrmsg = "cp fuel_health to ostf docker failure." 
+	execute_cmd(cp_ostf_cmd, cperrmsg)
+	
+	restart_ostf_cmd = "docker restart %s" %(ostfcid,)
+	execute_cmd(restart_ostf_cmd, "restart ostf docker failure.") 
+	pass
+
 prepare()
-##################
+
+##################upgrade ostf
+upgrade_ostf()
+############
+
 
 cmd="docker inspect -f '{{.ID}}' fuel-core-6.0-nailgun"
 cobblercmd="docker inspect -f '{{.ID}}' fuel-core-6.0-cobbler"
