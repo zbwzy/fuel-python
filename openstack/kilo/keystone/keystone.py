@@ -133,8 +133,8 @@ class Keystone(object):
         print "start keystone========="
         #assign rights
         ShellCmdExecutor.execCmd('chown -R keystone:keystone /etc/keystone')
-        ShellCmdExecutor.execCmd('chown -R keystone:keystone /var/www/cgi-bin/keystone')
-        ShellCmdExecutor.execCmd('chmod 755 /var/www/cgi-bin/keystone/*')
+#         ShellCmdExecutor.execCmd('chown -R keystone:keystone /var/www/cgi-bin/keystone')
+#         ShellCmdExecutor.execCmd('chmod 755 /var/www/cgi-bin/keystone/*')
         if debug == True :
             print 'DEBUG=True.On local dev env, do test===='
             pass
@@ -191,6 +191,9 @@ class Keystone(object):
         cmd0 = 'keystone-manage fernet_setup --keystone-user keystone --keystone-group keystone'
         ShellCmdExecutor.execCmd(cmd0)
         
+        cmd1 = 'keystone-manage credential_setup --keystone-user keystone --keystone-group keystone'
+        ShellCmdExecutor.execCmd(cmd1)
+        
         if not os.path.exists('/var/log/keystone') :
             os.system('mkdir -p /var/log/keystone')
             pass
@@ -208,6 +211,19 @@ class Keystone(object):
         pass
     
     @staticmethod
+    def bootstrapIdentityService():
+        bootsrap_cmd_template = 'keystone-manage bootstrap --bootstrap-password {keystone_admin_password} --bootstrap-admin-url http://{keystone_vip}:35357/v3/ --bootstrap-internal-url http://{keystone_vip}:35357/v3/ --bootstrap-public-url http://{keystone_vip}:5000/v3/ --bootstrap-region-id RegionOne'
+        
+        
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_admin_password = JSONUtility.getValue('keystone_admin_password')
+        keystone_vip = vipParamsDict['keystone_vip']
+        cmd = bootsrap_cmd_template.format(keystone_admin_password=keystone_admin_password,keystone_vip=keystone_vip)
+        print 'bootsrap identity service cmd=%s--' % cmd
+        ShellCmdExecutor.execCmd(cmd)
+        pass
+    
+    @staticmethod
     def httpConf():
         wsgi_keystone_conf_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'keystone', 'wsgi-keystone.conf')
         ShellCmdExecutor.execCmd('cp -r %s /etc/httpd/conf.d/' % wsgi_keystone_conf_file_path)
@@ -218,6 +234,8 @@ class Keystone(object):
         localIP = YAMLUtil.getManagementIP()
         FileUtil.replaceFileContent('/etc/httpd/conf.d/wsgi-keystone.conf', '<LOCAL_IP>', localIP)
         FileUtil.replaceFileContent('/etc/httpd/conf/httpd.conf', '<LOCAL_IP>', localIP)
+        
+        ShellCmdExecutor.execCmd('ln -s /usr/share/keystone/wsgi-keystone.conf /etc/httpd/conf.d/')
         pass
     
     @staticmethod
@@ -289,8 +307,8 @@ class Keystone(object):
         print "configure keystone conf file======"
         vipParamsDict = JSONUtility.getValue('vip')
         mysql_vip = vipParamsDict["mysql_vip"]
+        keystone_vip = vipParamsDict['keystone_vip']
  
-        admin_token = JSONUtility.getValue("admin_token")
         #memcache service list
         keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
         keystone_ip_list = keystone_params_dict['mgmt_ips']
@@ -332,11 +350,11 @@ class Keystone(object):
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<LOCAL_IP>', localIP)
 #         FileUtil.replaceByRegularExpression(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
         keystoneDbPass = JSONUtility.getValue('keystone_dbpass')
-        FileUtil.replaceFileContent(keystone_conf_file_path, '<ADMIN_TOKEN>', admin_token)
+#         FileUtil.replaceFileContent(keystone_conf_file_path, '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<LOCAL_MANAGEMENT_IP>', localIP)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<MYSQL_VIP>', mysql_vip)
-        FileUtil.replaceFileContent(keystone_conf_file_path, '<KEYSTONE_DBPASS>', keystoneDbPass)
         FileUtil.replaceFileContent(keystone_conf_file_path, '<MEMCACHED_LIST>', memcached_service_string)
+        FileUtil.replaceFileContent(keystone_conf_file_path,'<KEYSTONE_DBPASS>', keystoneDbPass)
         
         ShellCmdExecutor.execCmd("chmod 644 %s" % keystone_conf_file_path)
         
@@ -448,7 +466,6 @@ class Keystone(object):
 if __name__ == '__main__':
     
     print 'hello openstack-kilo:keystone============'
-    
     print 'start time: %s' % time.ctime()
     #when execute script,exec: python <this file absolute path>
     #The params are retrieved from conf/openstack_params.json: generated in init.pp in site.pp.
@@ -479,18 +496,21 @@ if __name__ == '__main__':
                     SSH.sendTagTo(keystone_ip, tag_file_name)
                     pass
                 pass
+            
+            Keystone.bootstrapIdentityService()
+            
+            #bootstrap the identity service
+            
             pass
         else :
             ##scp /etc/keystone/fernet-keys from first keystone.
             pass
         
         ####only when rdb cluster is prepared, then import keystone db schema.
-        if Keystone.getServerIndex() == 0 :
-            pass
         
         Keystone.httpConf()
         
-        Keystone.installWSGI()
+#         Keystone.installWSGI()
         
         from openstack.kilo.common.adminopenrc import AdminOpenrc
         AdminOpenrc.prepareAdminOpenrc()

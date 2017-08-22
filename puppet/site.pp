@@ -31,7 +31,7 @@ class initParam{
 
         exec {"prerequisites":
              path => "/usr/bin:/bin:/usr/sbin",
-             command => "python /etc/puppet/fuel-python/openstack/kilo/prerequisites/prerequisites.py"
+             command => "python /etc/puppet/fuel-python/openstack/newton/prerequisites/prerequisites.py"
         }
 }
 
@@ -45,7 +45,7 @@ class deploy_openstack {
       'haproxy-keepalived' : {
       exec{"ha_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/ha/HAProxyKeepalived.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/ha/HAProxyKeepalived.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -54,7 +54,7 @@ class deploy_openstack {
       'mysql' : {
       exec{"mysql_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/mysql/bcrdb.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/mysql/bcrdb.py",
        timeout => 3600,
        require => Exec['prerequisites']
         }
@@ -63,7 +63,7 @@ class deploy_openstack {
        'rabbitmq' : {
       exec{"rabbitmq_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/rabbitmq/rabbitmq.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/rabbitmq/rabbitmq.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -72,7 +72,7 @@ class deploy_openstack {
        'keystone' : {
          exec{"keystone_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/keystone/keystone.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/keystone/keystone.py",
        timeout => 3600,
        require => Exec['prerequisites']
           }
@@ -82,7 +82,7 @@ class deploy_openstack {
       'glance' : {
        exec{"glance_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/glance/glance.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/glance/glance.py",
        timeout => 3600,
        require => Exec['prerequisites']
                   }
@@ -91,7 +91,7 @@ class deploy_openstack {
        'cinder-api' : {
         exec{"cinder_api_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/cinder/cinder.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/cinder/cinder.py",
        timeout => 3600,
        require => Exec['prerequisites']
               }
@@ -100,7 +100,7 @@ class deploy_openstack {
        'cinder-storage' : {
         exec{"cinder_storage_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/cinderstorage/cinderstorage.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/cinderstorage/cinderstorage.py",
        timeout => 3600,
        require => Exec['prerequisites']
                }
@@ -109,7 +109,7 @@ class deploy_openstack {
         'heat' : {
         exec{"heat_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/heat/heat.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/heat/heat.py",
        timeout => 3600,
        require => Exec['prerequisites']
                }
@@ -118,7 +118,7 @@ class deploy_openstack {
        'mongodb' : {
        exec{"mongodb_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/mongodb/mongodb.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/mongodb/mongodb.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -127,7 +127,7 @@ class deploy_openstack {
        'ceilometer' : {
        exec{"ceilometer_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/ceilometer/ceilometer.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/ceilometer/ceilometer.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -136,7 +136,7 @@ class deploy_openstack {
       'nova-api' : {
        exec{"nova_api_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/nova/nova.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/nova/nova.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -145,7 +145,7 @@ class deploy_openstack {
         'nova-compute' : {
        exec{"nova_compute_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/novacompute/novacompute.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/novacompute/novacompute.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -154,7 +154,7 @@ class deploy_openstack {
        'neutron-server' : {
        exec{"neutron_server_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/neutronserver/neutronserver.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/neutronserver/neutronserver.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -163,7 +163,7 @@ class deploy_openstack {
        'neutron-agent' : {
        exec{"neutron_agent_install":
        path => "/usr/bin:/bin:/usr/sbin",
-       command => "python /etc/puppet/fuel-python/openstack/kilo/network/network.py",
+       command => "python /etc/puppet/fuel-python/openstack/newton/network/network.py",
        timeout => 3600,
        require => Exec['prerequisites']
              }
@@ -173,7 +173,7 @@ class deploy_openstack {
         {
            exec{"horizon_install":
            path => "/usr/bin:/bin:/usr/sbin",
-           command => "python /etc/puppet/fuel-python/openstack/kilo/dashboard/dashboard.py",
+           command => "python /etc/puppet/fuel-python/openstack/newton/dashboard/dashboard.py",
            timeout => 3600,
            require => Exec['prerequisites']
            }

@@ -44,6 +44,7 @@ from common.yaml.YAMLUtil import YAMLUtil
 
 from openstack.newton.keystone.keystone import Keystone
 
+
 class InitKeystone(object):
     '''
     classdocs
@@ -420,7 +421,7 @@ if __name__ == '__main__':
         print 'keystone initted####'
         print 'exit===='
     else :
-        from openstack.newton.keystone.keystone import Keystone
+#         from openstack.newton.keystone.keystone import Keystone
         if Keystone.getServerIndex() == 0 :
             Keystone.importKeystoneDBSchema()
             
