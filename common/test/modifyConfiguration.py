@@ -521,7 +521,9 @@ def execModification(dirPath, fileNameKey):
         ###
         ShellCmdExecutor.execCmd('systemctl daemon-reload')
         #Restart service
-        ShellCmdExecutor.execCmd('systemctl restart %s' % fileName)
+        if 'openstack-nova-metadata-api' not in fileName :
+            ShellCmdExecutor.execCmd('systemctl restart %s' % fileName)
+            pass
         pass
     
     file.close()
@@ -545,7 +547,18 @@ if __name__ == '__main__':
     
     #when execute script,exec: python <this file absolute path>
     ###############################
-    result = execModification('/usr/lib/systemd/system', 'openstack-')
+    result = ''
+    host_name = 'cmss-node53.domain.tld'
+    if '.domain.tld' in host_name:
+        print 'host_name=%s---------' % host_name.rstrip('.domain.tld')
+        pass
+    host_name = 'cmss-node53.domain'
+    if '.domain.tld' in host_name:
+        print 'host_name=%s---------' % host_name.rstrip('.domain.tld')
+        pass
+    else :
+        print host_name
+#     result = execModification('/usr/lib/systemd/system', 'openstack-')
     print 'result=%s-------------' % result
     
     exit()

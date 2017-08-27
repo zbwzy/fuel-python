@@ -30,7 +30,7 @@ echo 'start to create empty file system=============='
 echo `date`
 
 #create 20GB empty file
-/usr/bin/dd if=/dev/zero of=/home/test-disk bs=1M count=20480
+/usr/bin/dd if=/dev/zero of=/home/test-disk bs=1M count=40960
 #/usr/bin/dd if=/dev/zero of=/var/lib/cinder bs=1M count=20480
 echo 'end to create empty file system#####'
 echo `date`
