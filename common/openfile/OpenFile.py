@@ -205,4 +205,19 @@ class OpenFile(object):
         
         file.close()
         return 1
+    
+    
+    
+if __name__ == '__main__':
+    print 'hello  execModification==================='
+    print 'start time: %s' % time.ctime()
+    
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/initOpenFile'
+    if not os.path.exists(INSTALL_TAG_FILE) :
+        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
+        os.system('touch %s' % INSTALL_TAG_FILE)
+        
+    print 'done time: %s' % time.ctime()
+    print 'done  execModification#####'
+    pass
         

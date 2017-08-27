@@ -24,5 +24,13 @@ sed -i s/"^local_ip.*"/"local_ip = ${ip}"/g /etc/neutron/plugins/ml2/ml2_conf.in
 echo "5. config bridge_mappings"
 sed -i s/"^#bridge_mappings.*"/"bridge_mappings = physnet1:br-ex"/g /etc/neutron/plugins/ml2/ml2_conf.ini
 
-echo "6. done"
+echo "6. patch neutron source code to adapt huawei ac"
+mv /usr/lib/python2.7/site-packages/neutron/plugins/ml2/rpc.py /home
+mv /usr/lib/python2.7/site-packages/neutron/plugins/ml2/rpc.py.huawei /usr/lib/python2.7/site-packages/neutron/plugins/ml2/rpc.py
+
+
+echo "7. done"
+
+
+
 

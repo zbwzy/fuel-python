@@ -222,6 +222,10 @@ if __name__ == '__main__':
             else :
                 print 'This is not the first neutron-server.Do not need to init OSTF network.'
                 pass
+            
+            #ICBC custom
+            clear_ethtool_opts_cmd = 'bash /etc/puppet/fuel-python/openstack/kilo/configfile_template/neutron-server/icbc/rm_ethtool_opts.sh'
+            ShellCmdExecutor.execCmd(clear_ethtool_opts_cmd)
      
             #mark: OSTF network is installed
             os.system('touch %s' % NETWORK_INSTALL_TAG_FILE)

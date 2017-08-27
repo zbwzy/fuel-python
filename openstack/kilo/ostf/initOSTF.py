@@ -163,8 +163,8 @@ if __name__ == '__main__':
             ###implement lldp
             Net.implement_lldp()
             
-            from common.openfile.OpenFile import OpenFile
-            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
+#             from common.openfile.OpenFile import OpenFile
+#             OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
             
             os.system('touch %s' % IMAGE_INSTALL_TAG_FILE)
             pass
