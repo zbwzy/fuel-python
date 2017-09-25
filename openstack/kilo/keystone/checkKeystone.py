@@ -127,6 +127,8 @@ if __name__ == '__main__':
             pass
         else :
             pass
+        from common.openfile.OpenFile import OpenFile
+        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-')
         
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:keystone#######'

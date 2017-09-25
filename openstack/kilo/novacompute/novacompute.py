@@ -284,7 +284,7 @@ class NovaCompute(object):
     @staticmethod
     def install():
         print 'Nova-compute.install start===='
-        ShellCmdExecutor.execCmd('yum install sysfsutils libvirt* device-mapper* boost* -y')
+        ShellCmdExecutor.execCmd('yum install ipmi OpenIPMI sysfsutils libvirt* device-mapper* boost* -y')
         
         ShellCmdExecutor.execCmd('yum reinstall qemu* -y')
         
@@ -388,8 +388,10 @@ vif_plugging_timeout=0
     def start():        
         ShellCmdExecutor.execCmd("systemctl enable libvirtd.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-compute.service")
+        ShellCmdExecutor.execCmd("systemctl enable ipmi.service")
         ShellCmdExecutor.execCmd("systemctl restart libvirtd.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-compute.service")
+        ShellCmdExecutor.execCmd("systemctl start ipmi.service")
         pass
     
     @staticmethod
@@ -499,6 +501,7 @@ vif_plugging_timeout=0
         FileUtil.replaceFileContent(nova_conf_file_path, '<RESERVED_HOST_MEM>', reserverd_host_mem_mb)
         
         ShellCmdExecutor.execCmd("sudo chmod 644 %s" % nova_conf_file_path)
+        ShellCmdExecutor.execCmd("sudo chown -R nova:nova %s" % nova_conf_file_path)
         
         #configure libvirtd.conf
 #         libvirtd_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'libvirtd.conf')
@@ -562,6 +565,6 @@ if __name__ == '__main__':
         AdminOpenrc.prepareAdminOpenrc()
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
-    print 'hello openstack-icehouse:nova-compute#######'
+    print 'hello openstack-kilo:nova-compute#######'
     pass
 
