@@ -225,6 +225,7 @@ Repeat User Password:
         neutron_vip = vipParamsDict['neutron_vip']
         
         initNeutronScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'initNeutronUser.sh')
+        initRmNeutronDataScriptTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'rm_neutron_data.sh')
         ##
         openstackConfPopertiesFilePath = PropertiesUtility.getOpenstackConfPropertiesFilePath()
         openstackScriptDirPath = PropertiesUtility.getValue(openstackConfPopertiesFilePath, 'OPENSTACK_SCRIPT_DIR')
@@ -233,12 +234,18 @@ Repeat User Password:
             pass
         
         ShellCmdExecutor.execCmd('cp -r %s %s' % (initNeutronScriptTemplatePath, openstackScriptDirPath))
+        ShellCmdExecutor.execCmd('cp -r %s %s' % (initRmNeutronDataScriptTemplatePath, openstackScriptDirPath))
         
         initNeutronScriptPath = os.path.join(openstackScriptDirPath, 'initNeutronUser.sh')
         FileUtil.replaceFileContent(initNeutronScriptPath, '<ADMIN_TOKEN>', admin_token)
         FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
         FileUtil.replaceFileContent(initNeutronScriptPath, '<KEYSTONE_VIP>', keystone_vip)
         FileUtil.replaceFileContent(initNeutronScriptPath, '<NEUTRON_VIP>', neutron_vip)
+        
+        initRmNeutronDataScriptPath = os.path.join(openstackScriptDirPath, 'rm_neutron_data.sh')
+        FileUtil.replaceFileContent(initRmNeutronDataScriptPath, '<ADMIN_TOKEN>', admin_token)
+        FileUtil.replaceFileContent(initRmNeutronDataScriptPath, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+        FileUtil.replaceFileContent(initRmNeutronDataScriptPath, '<KEYSTONE_VIP>', keystone_vip)
 #         output, exitcode = ShellCmdExecutor.execCmd('bash %s' % initNeutronScriptPath)
         InitKeystone.initOpenstackComponentToKeystone(initNeutronScriptPath, keystone_neutron_password)
         pass

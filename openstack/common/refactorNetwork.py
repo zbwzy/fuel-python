@@ -136,6 +136,7 @@ class RefactorNetwork(object):
     
 if __name__ == '__main__' :
     RefactorNetwork.removeEthtoolOpts()
+    execute_cmd("systemctl restart network","restart network failure")
     pass
 
 
