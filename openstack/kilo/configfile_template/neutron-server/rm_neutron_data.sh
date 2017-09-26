@@ -26,7 +26,7 @@ echo '1.delete router from internal subnet==========='
 neutron router-interface-delete testrouter1 net04-subnet
 sleep 2
 
-echo '2.delete router from eternal net==========='
+echo '2.delete router from external net==========='
 neutron router-gateway-clear testrouter1 external-vlan-subnet
 neutron router-gateway-clear testrouter1 external-vlan
 sleep 2
