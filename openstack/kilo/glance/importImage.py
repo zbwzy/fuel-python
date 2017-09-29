@@ -68,6 +68,8 @@ if __name__ == '__main__':
             get_image_id_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'getDefaultImageID.sh')
             get_image_size_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'glance', 'getDefaultImageFileSize.sh')
             
+            rm_ostf_data_script_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'neutron-server', 'rm_neutron_data.sh')
+            
             ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % import_image_script_path)
             ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/import_image.sh')
             
@@ -77,17 +79,28 @@ if __name__ == '__main__':
             ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % get_image_size_script_path)
             ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/getDefaultImageFileSize.sh')
             
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/import_image.sh', '<KEYSTONE_VIP>', keystone_vip)
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/import_image.sh', '<ADMIN_TOKEN>', admin_token)
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/import_image.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            ShellCmdExecutor.execCmd('cp -r %s /opt/openstack_conf/scripts/' % rm_ostf_data_script_path)
+            ShellCmdExecutor.execCmd('chmod 777 /opt/openstack_conf/scripts/rm_neutron_data.sh')
             
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageID.sh', '<KEYSTONE_VIP>', keystone_vip)
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageID.sh', '<ADMIN_TOKEN>', admin_token)
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageID.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            real_import_image_script_path = '/opt/openstack_conf/scripts/import_image.sh'
+            FileUtil.replaceFileContent(real_import_image_script_path, '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent(real_import_image_script_path, '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent(real_import_image_script_path, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
             
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageFileSize.sh', '<KEYSTONE_VIP>', keystone_vip)
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageFileSize.sh', '<ADMIN_TOKEN>', admin_token)
-            FileUtil.replaceFileContent('/opt/openstack_conf/scripts/getDefaultImageFileSize.sh', '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            real_get_image_id_script_path = '/opt/openstack_conf/scripts/getDefaultImageID.sh'
+            FileUtil.replaceFileContent(real_get_image_id_script_path, '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent(real_get_image_id_script_path, '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent(real_get_image_id_script_path, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            
+            real_get_image_file_size_script_path = '/opt/openstack_conf/scripts/getDefaultImageFileSize.sh'
+            FileUtil.replaceFileContent(real_get_image_file_size_script_path, '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent(real_get_image_file_size_script_path, '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent(real_get_image_file_size_script_path, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
+            
+            real_rm_neutron_data_script_path = '/opt/openstack_conf/scripts/rm_neutron_data.sh'
+            FileUtil.replaceFileContent(real_rm_neutron_data_script_path, '<KEYSTONE_VIP>', keystone_vip)
+            FileUtil.replaceFileContent(real_rm_neutron_data_script_path, '<ADMIN_TOKEN>', admin_token)
+            FileUtil.replaceFileContent(real_rm_neutron_data_script_path, '<KEYSTONE_ADMIN_PASSWORD>', keystone_admin_password)
             time.sleep(1)
             
             from openstack.common.role import Role

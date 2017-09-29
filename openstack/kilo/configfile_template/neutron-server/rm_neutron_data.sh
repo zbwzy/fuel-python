@@ -32,7 +32,7 @@ neutron router-gateway-clear testrouter1 external-vlan
 sleep 2
 
 echo '3.delete port==========='
-neutron port-list | grep subnet_id | awk '{print "neutron delete " $2}' | bash
+neutron port-list | grep subnet_id | awk '{print "neutron port-delete " $2}' | bash
 
 echo '4.delete net==========='
 neutron subnet-list | grep net | awk '{print "neutron subnet-delete " $2}' | bash
