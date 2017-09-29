@@ -55,6 +55,8 @@ min_pool_size=1
 connection = mysql://cinder:<CINDER_DBPASS>@<MYSQL_VIP>/cinder
 
 [keystone_authtoken]
+auth_version=v2.0
+allow_expired=True
 signing_dir=/tmp/keystone-signing-cinde
 admin_password=<KEYSTONE_CINDER_PASSWORD> 
 admin_tenant_name=service
