@@ -52,43 +52,27 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-        NovaCompute.start()
+        #############added by ZhangBai
+        NovaCompute.configConfFile()
+        NovaCompute.configCeilometer()
+        ######################################
         
-        #add ssh mutual trust for nova user
-        if NovaCompute.getServerIndex() == 0 :
-            NovaCompute.sshMutualTrust()
-            NovaCompute.sshNovaUserTrust()
-            pass
-        else :
-            nova_compute_params_dict = JSONUtility.getRoleParamsDict('nova-compute')
-            nova_compute_ip_list = nova_compute_params_dict['mgmt_ips']
-            src_ip = nova_compute_ip_list[0]
-            if len(nova_compute_ip_list) > 1 :
-                NovaCompute.scpSSHNovaTrustFiles(src_ip)
-                pass
-            
+        NovaCompute.start()
+                    
         #start ceilometer compute
-        if YAMLUtil.hasRoleInNodes('ceilometer') :
-            ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
-            ShellCmdExecutor.execCmd('systemctl restart openstack-ceilometer-compute.service')
+        ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
+        ShellCmdExecutor.execCmd('systemctl restart openstack-ceilometer-compute.service')
         
         #open limits of file & restart always
         from common.openfile.OpenFile import OpenFile
         OpenFile.execModification('/usr/lib/systemd/system', 'openstack-nova-compute')
-        if YAMLUtil.hasRoleInNodes('ceilometer') :
-            OpenFile.execModification('/usr/lib/systemd/system', 'openstack-ceilometer-compute')
-            pass
+        OpenFile.execModification('/usr/lib/systemd/system', 'openstack-ceilometer-compute')
         
         from common.ntp.NTPService import NTPService
         ntp_enabled = YAMLUtil.getValue('ntp', 'enable')
         if ntp_enabled == False :
             #defaulty,choose the first keystone(uuid is  the smallest) as ntp server
             #set ntp client
-            keystone_params_dict = JSONUtility.getRoleParamsDict('keystone')
-            keystone_ip_list = keystone_params_dict['mgmt_ips']
-            keystone_0_ip = keystone_ip_list[0]
-            ntp_server_ip = keystone_0_ip
-            NTPService.setNTPClient(ntp_server_ip)
             pass
         else :
             ntp_server_ip = YAMLUtil.getValue('ntp', 'ntp_server_ip')
@@ -96,7 +80,6 @@ if __name__ == '__main__':
             pass
         
         ####################ICBC
-        from openstack.kilo.neutronserver.neutronserver import NeutronServer
         from openstack.kilo.common.net import Net
         Net.implement_lldp()
         

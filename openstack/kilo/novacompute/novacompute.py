@@ -104,6 +104,8 @@ class NovaCompute(object):
     classdocs
     '''
     NOVA_CONF_FILE_PATH = "/etc/nova/nova.conf"
+    OPENSTACK_PARAMS_CONF_FILE_SRC_PATH = '/etc/puppet/modules/inifile/openstack_params.json'
+    OPENSTACK_PARAMS_CONF_FILE_PATH = '/opt/openstack_conf/openstack_params.json'
     
     def __init__(self):
         '''
@@ -538,6 +540,14 @@ if __name__ == '__main__':
 
     ###############################
     INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/novacompute_installed'
+    openstack_params_dir_path = os.path.dirname(NovaCompute.OPENSTACK_PARAMS_CONF_FILE_PATH)
+    if not os.path.exists(openstack_params_dir_path) :
+        os.system('mkdir -p %s' % openstack_params_dir_path)
+        pass
+    
+    cp_cmd = 'cp -r %s %s' % (NovaCompute.OPENSTACK_PARAMS_CONF_FILE_SRC_PATH, openstack_params_dir_path)
+    os.system(cp_cmd)
+    
     if os.path.exists(INSTALL_TAG_FILE) :
         print 'nova-compute installed####'
         print 'exit===='
@@ -545,24 +555,21 @@ if __name__ == '__main__':
     else :
 #         Prerequisites.prepare()
         NovaCompute.install()
-        NovaCompute.configConfFile()
         #ICBC patch
         from openstack.kilo.common.net import Net
         Net.patch()
         ############
         #ceilometer
-        if YAMLUtil.hasRole('ceilometer') :
-            NovaCompute.installCeilometer()
-            NovaCompute.configCeilometer()
-            pass
+#         if YAMLUtil.hasRole('ceilometer') :
+        NovaCompute.installCeilometer()
 #         NovaCompute.start()
         #
         #patch
         from openstack.kilo.common.patch import Patch
         Patch.patchOsloDbApi()
         
-        from openstack.kilo.common.adminopenrc import AdminOpenrc
-        AdminOpenrc.prepareAdminOpenrc()
+#         from openstack.kilo.common.adminopenrc import AdminOpenrc
+#         AdminOpenrc.prepareAdminOpenrc()
         #mark: nova-compute is installed
         os.system('touch %s' % INSTALL_TAG_FILE)
     print 'hello openstack-kilo:nova-compute#######'

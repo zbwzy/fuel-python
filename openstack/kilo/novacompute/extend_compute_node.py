@@ -332,14 +332,14 @@ if __name__ == '__main__':
                     print 'output1=%s--' % output1
                     print 'exitcode1=%s--' % exitcode1
                     
-                    cmd2 = 'ssh root@{compute_ip} python /etc/puppet/fuel-python/openstack/kilo/novacompute/set_host.py {compute_ip}'.format(compute_ip=ip)
-                    print 'cmd2=%s' % cmd2
-                    output2, exitcode2 = ShellCmdExecutor.execCmd(cmd2)
-                    print 'output2=%s--' % output2
-                    print 'exitcode2=%s--' % exitcode2
-                    if exitcode == 0 :
-                        ExtendNovaCompute.appendToExtendHistory(ip)
-                        pass
+#                     cmd2 = 'ssh root@{compute_ip} python /etc/puppet/fuel-python/openstack/kilo/novacompute/set_host.py {compute_ip}'.format(compute_ip=ip)
+#                     print 'cmd2=%s' % cmd2
+#                     output2, exitcode2 = ShellCmdExecutor.execCmd(cmd2)
+#                     print 'output2=%s--' % output2
+#                     print 'exitcode2=%s--' % exitcode2
+#                     if exitcode == 0 :
+#                         ExtendNovaCompute.appendToExtendHistory(ip)
+#                         pass
                     #mark that the compute node is extended
                     pass
                 pass

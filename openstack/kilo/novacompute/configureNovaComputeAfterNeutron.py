@@ -222,8 +222,8 @@ if __name__ == '__main__':
         NovaCompute.finalizeInstallation()
         
         #ICBC custom
-        clear_ethtool_opts_cmd = 'bash /etc/puppet/fuel-python/openstack/kilo/configfile_template/neutron-server/icbc/rm_ethtool_opts.sh'
-        ShellCmdExecutor.execCmd(clear_ethtool_opts_cmd)
+        #clear_ethtool_opts_cmd = 'bash /etc/puppet/fuel-python/openstack/kilo/configfile_template/neutron-server/icbc/rm_ethtool_opts.sh'
+        # ShellCmdExecutor.execCmd(clear_ethtool_opts_cmd)
         
         os.system('touch %s' % TAG_FILE)
         pass
