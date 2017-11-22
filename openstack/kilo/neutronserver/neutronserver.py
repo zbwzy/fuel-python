@@ -455,8 +455,6 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-#         Prerequisites.prepare()
-        
         NeutronServer.install()
         
         NeutronServer.configConfFile()

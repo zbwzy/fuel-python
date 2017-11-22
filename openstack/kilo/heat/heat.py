@@ -632,7 +632,6 @@ if __name__ == '__main__':
         print 'exit===='
         pass
     else :
-#         Prerequisites.prepare()
 #         Heat.install()
 #         Heat.configConfFile()
     #     Heat.start()

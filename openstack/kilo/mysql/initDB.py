@@ -263,8 +263,6 @@ class MySQL(object):
         else :
             print 'start to init======='
             
-    #         Prerequisites.prepare()
-            
             #init mysql password
             user = 'root'
             

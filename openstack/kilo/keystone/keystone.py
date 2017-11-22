@@ -461,7 +461,6 @@ if __name__ == '__main__':
         pass
     else :
         print 'start to install======='
-#         Prerequisites.prepare()
         Keystone.install()
         Keystone.configConfFile()
         
