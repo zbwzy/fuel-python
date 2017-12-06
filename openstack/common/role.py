@@ -67,6 +67,46 @@ class Role(object):
             return False
         pass
     
+    @staticmethod
+    def isNovaApiRole():
+        if os.path.exists('/opt/is_nova_api_role'):
+            return True
+        else :
+            return False
+        pass
+    
+    @staticmethod
+    def isCeilometerRole():
+        if os.path.exists('/opt/is_ceilometer_role'):
+            return True
+        else :
+            return False
+        pass
+    
+    @staticmethod
+    def isKeystoneRole():
+        if os.path.exists('/opt/is_keystone_role'):
+            return True
+        else :
+            return False
+        pass
+    
+    @staticmethod
+    def isCinderRole():
+        if os.path.exists('/opt/is_cinder_api_role'):
+            return True
+        else :
+            return False
+        pass
+    
+    @staticmethod
+    def isHorizonRole():
+        if os.path.exists('/opt/is_horizon_role'):
+            return True
+        else :
+            return False
+        pass
+    
     
     
 if __name__ == '__main__':

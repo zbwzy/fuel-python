@@ -111,7 +111,7 @@ class NeutronServer(object):
     def install():
         print 'NeutronServer.install start===='
         #Install Openstack network services
-        yumCmd = "yum install openstack-neutron openstack-neutron-ml2 python-neutronclient which openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpnaas -y"
+        yumCmd = "yum install ipmi OpenIPMI openstack-neutron openstack-neutron-ml2 python-neutronclient which openstack-neutron-lbaas openstack-neutron-fwaas openstack-neutron-vpnaas -y"
         ShellCmdExecutor.execCmd(yumCmd)
         print 'NeutronServer.install done####'
         pass
@@ -120,6 +120,9 @@ class NeutronServer(object):
     def start():
         ShellCmdExecutor.execCmd('systemctl enable neutron-server.service')
         ShellCmdExecutor.execCmd('systemctl start neutron-server.service')
+        
+        ShellCmdExecutor.execCmd("systemctl enable ipmi.service")
+        ShellCmdExecutor.execCmd("systemctl start ipmi.service")
         pass
     
     @staticmethod
