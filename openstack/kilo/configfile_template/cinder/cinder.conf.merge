@@ -19,6 +19,8 @@ rpc_response_timeout=180
 storage_availability_zone=nova
 nova_catalog_info=compute:nova:internalURL
 osapi_volume_listen=<LOCAL_MANAGEMENT_IP>
+osapi_max_limit＝100000
+create_volume_action_locked＝False
 # osapi_volume_workers=8
 glance_api_servers=<GLANCE_VIP>:9292
 

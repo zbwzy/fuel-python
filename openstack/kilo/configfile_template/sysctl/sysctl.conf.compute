@@ -20,5 +20,5 @@ kernel.hung_task_panic = 0
 kernel.hung_task_timeout_secs = 120
 net.ipv4.ip_local_port_range = 32768 61000
 kernel.threads-max = 1000000 
-kernel.pid_max=316448
+kernel.pid_max=655360
 net.ipv4.conf.all.accept_redirects=0

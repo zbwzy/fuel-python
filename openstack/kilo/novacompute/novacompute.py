@@ -286,7 +286,7 @@ class NovaCompute(object):
     @staticmethod
     def install():
         print 'Nova-compute.install start===='
-        ShellCmdExecutor.execCmd('yum install ipmi OpenIPMI sysfsutils libvirt* device-mapper* boost* -y')
+        ShellCmdExecutor.execCmd('yum install OpenIPMI sysfsutils libvirt* device-mapper* boost* -y')
         
         ShellCmdExecutor.execCmd('yum reinstall qemu* -y')
         
@@ -412,6 +412,18 @@ vif_plugging_timeout=0
         pass
     
     @staticmethod
+    def reconfigLibvirtdServiceFile():
+        ###libvirtd service conf:  /usr/lib/systemd/system/
+        libvirtdServiceFileTemplatePath = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR,'libvirtd', 'libvirtd.service')
+        ShellCmdExecutor.execCmd('cp -r %s /usr/lib/systemd/system/' % libvirtdServiceFileTemplatePath)
+
+        ShellCmdExecutor.execCmd('chown -R root:root /usr/lib/systemd/system/libvirtd.service')
+        ShellCmdExecutor.execCmd('chmod 644 /usr/lib/systemd/system/libvirtd.service')
+        
+        ShellCmdExecutor.execCmd('systemctl restart libvirtd.service')
+        pass
+    
+    @staticmethod
     def configConfFile():
         '''
         MYSQL_VIP
@@ -427,6 +439,7 @@ vif_plugging_timeout=0
         '''
         ####
         NovaCompute.reconfigLibvirtd()
+        NovaCompute.reconfigLibvirtdServiceFile()
         ####
         vipParamsDict = JSONUtility.getValue('vip')
         mysql_vip = vipParamsDict["mysql_vip"]

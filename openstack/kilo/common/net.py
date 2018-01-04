@@ -89,10 +89,6 @@ class Net(object):
     @staticmethod
     def implement_lldp():
         print 'implement_lldp========'
-        role = 'neutron-agent'
-        key = 'neutron_network_mode'
-        network_mode = YAMLUtil.getValue(role, key)
-        
 #         if network_mode == 'vlan' :
         ShellCmdExecutor.execCmd('yum install lldpad -y')
         ShellCmdExecutor.execCmd('lldpad -d')

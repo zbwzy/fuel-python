@@ -6,6 +6,7 @@ Created on Nov 22, 2017
 import sys
 import os
 import time
+import traceback
 
 reload(sys)
 sys.setdefaultencoding('utf8')
@@ -31,6 +32,7 @@ from common.shell.ShellCmdExecutor import ShellCmdExecutor
 from common.json.JSONUtil import JSONUtility
 from common.file.FileUtil import FileUtil
 from openstack.common.role import Role
+from common.yaml.YAMLUtil import YAMLUtil
 
 class ControllerServiceInit(object):
     '''
@@ -147,24 +149,69 @@ class ControllerServiceInit(object):
         pass
     
     
+    
 if __name__ == '__main__':
-    print 'start to init controller service=========='
-    print 'start to init keystone====='
-    ControllerServiceInit.initKeystone()
-    print 'start to init glance====='
-    ControllerServiceInit.initGlance()
-    print 'start to init nova-api====='
-    ControllerServiceInit.initNovaApi()
-    print 'start to init neutron-server====='
-    ControllerServiceInit.initNeutronServer()
-    print 'start to init neutron-agent====='
-    ControllerServiceInit.initNeutronAgent()
-    print 'start to init ceilometer====='
-    ControllerServiceInit.initCeilometer()
-    print 'start to init horizon====='
-    ControllerServiceInit.initHorizon()
-    print 'start to init cinder====='
-    ControllerServiceInit.initCinder()
+    print 'Start to init extended controller node============'
+    
+    print 'start time: %s' % time.ctime()
+
+    ###############################
+    INSTALL_TAG_FILE = '/opt/openstack_conf/tag/install/init_extended_controller'
+    if not os.path.exists(INSTALL_TAG_FILE) :
+        from common.lock.FileBasedLock import FileBasedLock
+        file_lock = FileBasedLock(lockFilePath='/opt/openstack_conf/lock/extend_controller_lock')
+        if file_lock.acquire(acquireTimeout=600) == True :
+            try :
+                local_mgmt_ip = YAMLUtil.getManagementIP()
+                print 'start to init controller service=========='
+                print 'start to init keystone====='
+                ControllerServiceInit.initKeystone()
+                print 'start to init glance====='
+                ControllerServiceInit.initGlance()
+                print 'start to init nova-api====='
+                ControllerServiceInit.initNovaApi()
+                print 'start to init neutron-server====='
+                ControllerServiceInit.initNeutronServer()
+                print 'start to init neutron-agent====='
+                ControllerServiceInit.initNeutronAgent()
+                print 'start to init ceilometer====='
+                ControllerServiceInit.initCeilometer()
+                print 'start to init horizon====='
+                ControllerServiceInit.initHorizon()
+                print 'start to init cinder====='
+                ControllerServiceInit.initCinder()
+                
+                print 'start to implement lldp===='
+                ####################ICBC
+                from openstack.kilo.common.net import Net
+                Net.implement_lldp()
+                print 'done to implement lldp####'
+                
+                ########set hosts
+                cmd = 'python /etc/puppet/fuel-python/openstack/kilo/novacompute/set_host_4controller.py {controller_ip}'.format(controller_ip=local_mgmt_ip)
+                print 'cmd=%s' % cmd
+                output, exitcode = ShellCmdExecutor.execCmd(cmd)
+                print 'output=%s--' % output
+                print 'exitcode=%s--' % exitcode
+                
+                os.system('touch %s' % INSTALL_TAG_FILE)
+                pass
+            except Exception, e :
+                print 'ERROR: %s' % e
+                print traceback.format_exc()
+            finally: 
+                file_lock.release()
+                pass
+            pass
+        else :
+            print 'There is file lock.'
+            pass
+        pass
+    else :
+        
+        pass
+    pass
+    print 'end time: %s' % time.ctime()
     print 'done to init controller service######'
     pass
 
