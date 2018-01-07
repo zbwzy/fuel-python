@@ -1,0 +1,15 @@
+---
+sources:
+    - name: guardian_source
+      interval: 30
+      meters:
+          - "storage_connectivity"
+          - "path_access_ok"
+          - "business_connectivity"
+      sinks:
+          - guardian_sink
+sinks:
+    - name: guardian_sink
+      transformers:
+      publishers:
+          - udp://<CLOUDMASTER_IP>:4953

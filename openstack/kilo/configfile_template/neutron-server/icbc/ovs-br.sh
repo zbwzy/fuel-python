@@ -30,9 +30,9 @@ rm -rf ${path2}
 echo "3. restart network"
 systemctl restart network
 
-echo "4. create ovs bridge br-ex and add bond to br-ex"
-ovs-vsctl add-br br-ex
-ovs-vsctl add-port br-ex ${bond}
+#echo "4. create ovs bridge br-ex and add bond to br-ex"
+#ovs-vsctl add-br br-ex
+#ovs-vsctl add-port br-ex ${bond}
 
-echo "5. done"
+echo "4. done"
 

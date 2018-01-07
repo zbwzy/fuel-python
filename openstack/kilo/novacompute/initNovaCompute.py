@@ -55,6 +55,7 @@ if __name__ == '__main__':
         #############added by ZhangBai
         NovaCompute.configConfFile()
         NovaCompute.configCeilometer()
+        NovaCompute.configCeilometerHA()
         ######################################
         
         NovaCompute.start()

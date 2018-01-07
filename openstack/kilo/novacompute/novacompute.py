@@ -307,7 +307,7 @@ class NovaCompute(object):
     
     @staticmethod
     def installCeilometer():
-        cmd = 'yum install openstack-ceilometer-compute python-ceilometerclient python-pecan -y'
+        cmd = 'yum install openstack-ceilometer-compute openstack-ceilometer-compute-ha python-ceilometerclient python-pecan -y'
         ShellCmdExecutor.execCmd(cmd)
         pass
     
@@ -356,6 +356,49 @@ class NovaCompute(object):
         pass
     
     @staticmethod
+    def configCeilometerHA():
+        vipParamsDict = JSONUtility.getValue('vip')
+        keystone_vip = vipParamsDict['keystone_vip']
+
+        rabbit_params_dict = JSONUtility.getRoleParamsDict('rabbitmq')
+        rabbit_hosts = rabbit_params_dict["rabbit_hosts"]
+        rabbit_password = rabbit_params_dict["rabbit_password"]
+        keystone_ceilometer_password = JSONUtility.getValue("keystone_ceilometer_password")
+        
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        metering_secret = ceilometer_params_dict['ceilometer_metering_secret']
+        
+        local_mgmt_ip = YAMLUtil.getManagementIP()
+        
+        ceilometer_params_dict = JSONUtility.getRoleParamsDict('ceilometer')
+        
+        ceilometer_conf_template_file_path = os.path.join(OPENSTACK_CONF_FILE_TEMPLATE_DIR, 'nova-compute', 'ceilometer_ha.conf')
+        print 'ceilometer_conf_template_file_path=%s' % ceilometer_conf_template_file_path
+        
+        ceilometer_conf_file_path = '/etc/ceilometer/ceilometer_ha.conf'
+        
+        if os.path.exists(ceilometer_conf_file_path) :
+            ShellCmdExecutor.execCmd("sudo rm -rf %s" % ceilometer_conf_file_path)
+            pass
+        
+        print 'ceilometer_conf_template_file_path=%s------xxx' % ceilometer_conf_template_file_path
+        ShellCmdExecutor.execCmd('cat %s > /tmp/ceilometer.conf' % ceilometer_conf_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/ceilometer.conf /etc/ceilometer/')
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_CEILOMETER_PASSWORD>', keystone_ceilometer_password)
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<KEYSTONE_VIP>', keystone_vip)
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<METERING_SECRET>', metering_secret)
+        
+        FileUtil.replaceFileContent(ceilometer_conf_file_path, '<LOCAL_MANAGEMENT_IP>', local_mgmt_ip)
+        
+        ShellCmdExecutor.execCmd("chmod 640 %s" % ceilometer_conf_file_path)
+        ShellCmdExecutor.execCmd("chown -R root:ceilometer %s" % ceilometer_conf_file_path)
+    
+    @staticmethod
     def startCeilometer():
         ShellCmdExecutor.execCmd('systemctl enable openstack-ceilometer-compute.service')
         ShellCmdExecutor.execCmd('systemctl start openstack-ceilometer-compute.service')
@@ -390,9 +433,11 @@ vif_plugging_timeout=0
     def start():        
         ShellCmdExecutor.execCmd("systemctl enable libvirtd.service")
         ShellCmdExecutor.execCmd("systemctl enable openstack-nova-compute.service")
+        ShellCmdExecutor.execCmd("systemctl enable openstack-nova-compute-ha.service")
         ShellCmdExecutor.execCmd("systemctl enable ipmi.service")
         ShellCmdExecutor.execCmd("systemctl restart libvirtd.service")
         ShellCmdExecutor.execCmd("systemctl start openstack-nova-compute.service")
+        ShellCmdExecutor.execCmd("systemctl start openstack-nova-compute-ha.service")
         ShellCmdExecutor.execCmd("systemctl start ipmi.service")
         pass
     
