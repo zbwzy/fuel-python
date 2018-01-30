@@ -9,8 +9,8 @@ iscsi_helper = lioadm
 rootwrap_config = /etc/cinder/rootwrap.conf
 auth_strategy = keystone
 verbose = True
-osapi_max_limit＝100000
-create_volume_action_locked＝False
+osapi_max_limit=100000
+create_volume_action_locked=False
 
 [database]
 connection = mysql://cinder:b6dcbe8437a518dc44b7@10.20.0.11/cinder
