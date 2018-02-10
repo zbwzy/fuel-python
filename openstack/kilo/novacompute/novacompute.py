@@ -382,8 +382,8 @@ class NovaCompute(object):
             pass
         
         print 'ceilometer_conf_template_file_path=%s------xxx' % ceilometer_conf_template_file_path
-        ShellCmdExecutor.execCmd('cat %s > /tmp/ceilometer.conf' % ceilometer_conf_template_file_path)
-        ShellCmdExecutor.execCmd('mv /tmp/ceilometer.conf /etc/ceilometer/')
+        ShellCmdExecutor.execCmd('cat %s > /tmp/ceilometer_ha.conf' % ceilometer_conf_template_file_path)
+        ShellCmdExecutor.execCmd('mv /tmp/ceilometer_ha.conf /etc/ceilometer/')
         
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_HOSTS>', rabbit_hosts)
         FileUtil.replaceFileContent(ceilometer_conf_file_path, '<RABBIT_PASSWORD>', rabbit_password)
